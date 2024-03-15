@@ -17,10 +17,22 @@ public class CalculateTest
     [Fact]
     public void TestCalculate()
     {
-        var output = Calculate.CalculateBestPlay("AQ", "98").Take(3).ToList();
-        foreach (var line in output)
+        var output = Calculate.CalculateBestPlay("AQ", "T9").ToList();
+        foreach (var play in output)
         {
-            _testOutputHelper.WriteLine($"Average:{line.Item2:0.##}");
+            foreach (var tuple in play)
+            {
+                _testOutputHelper.WriteLine($"Card: {tuple.Item1} Trick: {tuple.Item2}");
+            }
         }
+    }
+
+    [Fact]
+    public void TestGetTrickCount()
+    {
+        Card[] tricks = [Card.Ten, Card.Jack, Card.Queen, Card.Dummy, Card.Ace, Card.Dummy, Card.Nine, Card.King];
+        Assert.Equal(2, Calculate.GetTrickCount(tricks));
+        Card[] tricks2 = [Card.Ten, Card.Jack, Card.Ace, Card.Dummy, Card.Queen, Card.Dummy, Card.Nine, Card.King];
+        Assert.Equal(1, Calculate.GetTrickCount(tricks2));
     }
 }

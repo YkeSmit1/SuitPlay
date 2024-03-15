@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Diagnostics;
-using MoreLinq.Extensions;
+﻿using System.Diagnostics;
 
 namespace Calculator;
 
@@ -35,12 +33,11 @@ public class Calculate
 {
     private static readonly Player[] PlayersNS = [Player.North, Player.South];
     private static readonly Dictionary<Player, IEnumerable<Card>> InitialCards = new();
-    private static Dictionary<IEnumerable<Card>, int> treeWithNumberOfTricksNS;
     private static IEnumerable<Card> allCards;
 
-    public static IEnumerable<(string, double)> CalculateBestPlay(string north, string south)
+    public static IEnumerable<IEnumerable<(Card, int)>> CalculateBestPlay(string north, string south)
     {
-        allCards = Enum.GetValues<Card>().Except([Card.Dummy, Card.Two, Card.Three, Card.Four, Card.Five, Card.Six, Card.Seven]);
+        allCards = Enum.GetValues<Card>().Except([Card.Dummy, Card.Two, Card.Three, Card.Four, Card.Five, Card.Six, Card.Seven, Card.Eight]);
         InitialCards[Player.North] = north.Select(CharToCard);
         InitialCards[Player.South] = south.Select(CharToCard);
         var cardsEW = allCards.Except(InitialCards[Player.North]).Except(InitialCards[Player.South]);
@@ -49,24 +46,18 @@ public class Calculate
         {
             InitialCards[Player.East] = combination;
             InitialCards[Player.West] = cardsEW.Except(InitialCards[Player.East]);
-            var tree = GenerateTree(InitialCards[Player.North], InitialCards[Player.South], InitialCards[Player.East], InitialCards[Player.West]);
-            treeWithNumberOfTricksNS = tree.ToDictionary(play => play, GetTrickCount);
-            yield return (
-                string.Join('|',
-                    treeWithNumberOfTricksNS.Take(3).Select(x =>
-                        $"Play: {string.Join(",", x.Key.Select(y => string.Join(" ", y)))} Tricks:{x.Value}")),
-                treeWithNumberOfTricksNS.Average(x => x.Value));
-        }
-
-        yield break;
-
-        int GetTrickCount(IEnumerable<Card> play)
-        {
-            return play.Chunk(4).Count(x => PlayersNS.Contains((Player)Enumerable.MaxBy(play.Select((cardsEW1, index) => (cardsEW: cardsEW1, index)), y => y.index).index));
+            yield return FindBestMove();
+            break;
         }
     }
-    
-    public static Card CharToCard(char card)
+
+    public static int GetTrickCount(IEnumerable<Card> play)
+    {
+        return play.Chunk(4).Count(trick =>
+            PlayersNS.Contains((Player)Enumerable.MaxBy(trick.Select((card, index) => (card, index)), (y) => y.card).index));
+    }
+
+    private static Card CharToCard(char card)
     {
         return card switch
         {
@@ -109,16 +100,6 @@ public class Calculate
         };
     }    
 
-    private static IEnumerable<IEnumerable<Card>> GenerateTree(params IEnumerable<Card>[] hands)
-    {
-        var permutations = hands.Select(x => x.Permutations()).ToArray();
-        var enumerable = permutations[0].Cartesian(permutations[1], permutations[2], permutations[3],
-            (x, y, z, u) => new List<IList<Card>> { x, y, z, u });
-        var cartesian = enumerable.Select(y => y.SelectMany(x => x));
-        Debug.Assert(cartesian.All(x => x.Count() == allCards.Count()));
-        return cartesian;
-    }
-
     private static IEnumerable<IEnumerable<T>> AllCombinations<T>(IEnumerable<T> elements)
     {
         List<IEnumerable<T>> ret = [];
@@ -139,16 +120,18 @@ public class Calculate
         }
     }
 
-    private Card FindBestMove()
+    private static IEnumerable<(Card, int)> FindBestMove()
     {
         var playedCards = new List<Card>();
         var bestValue = int.MinValue;
         var bestCard = Card.Dummy;
-        foreach (var card in GetPlayableCards(playedCards))
+        var playableCards = GetPlayableCards(playedCards);
+        foreach (var card in playableCards)
         {
             playedCards.Add(card);
-            int value = Minimax(playedCards, false);
+            var value = Minimax(playedCards, false);
             playedCards.Remove(card);
+            yield return (card, value);
             
             if (value > bestValue)
             {
@@ -157,39 +140,61 @@ public class Calculate
             } 
         }
 
-        return bestCard;
+        //return (bestCard, bestValue);
     }
 
-    private int Minimax(List<Card> playedCards, bool maximizingPlayer)
+    private static int Minimax(ICollection<Card> playedCards, bool maximizingPlayer)
     {
-        if (playedCards.Count == allCards.Count())
-            return treeWithNumberOfTricksNS[playedCards];
-        var value = maximizingPlayer ? int.MinValue: int.MaxValue;
-        foreach (var card in GetPlayableCards(playedCards))
+        if (playedCards.Count(card => card != Card.Dummy) == allCards.Count())
         {
-            playedCards.Add(card);
-            value = Math.Max(value, Minimax(playedCards, !maximizingPlayer));
-            playedCards.Remove(card);
+            var trickCount = GetTrickCount(playedCards);
+            Console.WriteLine($"Cards:{string.Join(",", playedCards)} Tricks:{trickCount}");
+            return trickCount;
         }
 
-        return value;
-
+        if (maximizingPlayer)
+        {
+            var value = int.MinValue;
+            var playableCards = GetPlayableCards(playedCards);
+            foreach (var card in playableCards)
+            {
+                playedCards.Add(card);
+                value = Math.Max(value, Minimax(playedCards, false));
+                playedCards.Remove(card);
+            }
+            return value;
+            
+        }
+        else
+        {
+            var value = int.MaxValue;
+            var playableCards = GetPlayableCards(playedCards);
+            foreach (var card in playableCards)
+            {
+                playedCards.Add(card);
+                value = Math.Min(value, Minimax(playedCards, true));
+                playedCards.Remove(card);
+            }
+            return value;
+        }
     }
 
-    private IEnumerable<Card> GetPlayableCards(IEnumerable<Card> playedCards)
+    private static IEnumerable<Card> GetPlayableCards(IEnumerable<Card> playedCards)
     {
         var availableCards = playedCards.Count() % 4 == 0
-            ? GetAvailableCards(playedCards, Player.North).Concat(GetAvailableCards(playedCards, Player.South))
+            ? GetAvailableCards(playedCards, Player.North)
+                .Concat(GetAvailableCards(playedCards, Player.South))
             : GetAvailableCards(playedCards, NextPlayer((Player)(playedCards.Count() % 4)));
         return !availableCards.Any() ? new []{Card.Dummy} : availableCards;
     }
 
     private static IEnumerable<Card> GetAvailableCards(IEnumerable<Card> playedCards, Player player)
     {
-        return InitialCards[player].Except(playedCards.Select((card, index) => (card, index)).Where(x => x.index == (int)player).Select(x => x.card));
+        var playedCardsByPlayer = playedCards.Select((card, index) => (card, index)).Where(x => x.index == (int)player).Select(x => x.card);
+        return InitialCards[player].Except(playedCardsByPlayer);
     }
 
-    private Player NextPlayer(Player player)
+    private static Player NextPlayer(Player player)
     {
         return player == Player.West ? Player.North : player + 1;
     }
