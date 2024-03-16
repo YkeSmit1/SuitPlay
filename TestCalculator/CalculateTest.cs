@@ -17,10 +17,12 @@ public class CalculateTest
     [Fact]
     public void TestCalculate()
     {
-        var output = Calculate.CalculateBestPlay("AQ", "T9").ToList();
+        var output = Calculate.CalculateBestPlay("AQ8", "T9").ToList();
         foreach (var play in output)
         {
-            foreach (var tuple in play)
+            _testOutputHelper.WriteLine($"East: {string.Join(",", play.Item1)}");
+            
+            foreach (var tuple in play.Item2)
             {
                 _testOutputHelper.WriteLine($"Card: {tuple.Item1} Trick: {tuple.Item2}");
             }
