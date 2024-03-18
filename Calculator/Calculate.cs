@@ -36,7 +36,7 @@ public class Calculate
 
     public static IEnumerable<(IEnumerable<Card>, (Card, int))> CalculateBestPlay(string north, string south)
     {
-        allCards = Enum.GetValues<Card>().Except([Card.Dummy, Card.Two, Card.Three, Card.Four, Card.Five, Card.Six, Card.Seven]);
+        allCards = Enum.GetValues<Card>().Except([Card.Dummy, Card.Two, Card.Three, Card.Four, Card.Five, Card.Six]);
         InitialCards[Player.North] = north.Select(CharToCard);
         InitialCards[Player.South] = south.Select(CharToCard);
         var cardsEW = allCards.Except(InitialCards[Player.North]).Except(InitialCards[Player.South]).ToList();
@@ -52,7 +52,7 @@ public class Calculate
 
     public static int GetTrickCount(IEnumerable<Card> play)
     {
-        return play.Chunk(4).Count(trick =>
+        return play.Chunk(4).Where(x => x.First() != Card.Dummy).Count(trick =>
             PlayersNS.Contains((Player)trick.Select((card, index) => (card, index)).MaxBy((y) => y.card).index));
     }
 
