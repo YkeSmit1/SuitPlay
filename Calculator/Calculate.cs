@@ -30,23 +30,21 @@ public enum Player
 public class Calculate
 {
     private static readonly Player[] PlayersNS = [Player.North, Player.South];
-    private static readonly Dictionary<Player, IEnumerable<Card>> InitialCards = new();
+    private static readonly Dictionary<Player, IList<Card>> InitialCards = new();
     private static IEnumerable<Card> allCards;
-    private static IEnumerable<Card> cardsWest;
 
     public static IEnumerable<(IEnumerable<Card>, (Card, int))> CalculateBestPlay(string north, string south)
     {
         allCards = Enum.GetValues<Card>().Except([Card.Dummy]);
-        InitialCards[Player.North] = north.Select(CharToCard);
-        InitialCards[Player.South] = south.Select(CharToCard);
+        InitialCards[Player.North] = north.Select(CharToCard).ToList();
+        InitialCards[Player.South] = south.Select(CharToCard).ToList();
         var cardsEW = allCards.Except(InitialCards[Player.North]).Except(InitialCards[Player.South]).ToList();
         var combinations = AllCombinations(cardsEW);
         foreach (var combination in combinations)
         {
-            InitialCards[Player.East] = combination;
-            cardsWest = cardsEW.Except(InitialCards[Player.East]);
-            InitialCards[Player.West] = cardsWest;
-            yield return (combination, FindBestMove());
+            InitialCards[Player.East] = combination.ToList();
+            InitialCards[Player.West] = cardsEW.Except(InitialCards[Player.East]).ToList();
+            yield return (InitialCards[Player.East], FindBestMove());
         }
     }
 
@@ -180,10 +178,10 @@ public class Calculate
 
     private static List<Card> GetPlayableCards(IList<Card> playedCards)
     {
-        var availableCards = playedCards.Count % 4 == 0
+        var availableCards = (playedCards.Count % 4 == 0
             ? GetAvailableCards(playedCards, Player.North).Concat(GetAvailableCards(playedCards, Player.South))
-            : GetAvailableCards(playedCards, NextPlayer(GetCurrentPlayer(playedCards)));
-        return (!availableCards.Any() ? new []{Card.Dummy} : availableCards).ToList();
+            : GetAvailableCards(playedCards, NextPlayer(GetCurrentPlayer(playedCards)))).ToList();
+        return availableCards.Count == 0 ? [Card.Dummy] : availableCards;
     }
 
     private static IEnumerable<Card> GetAvailableCards(IList<Card> playedCards, Player player)

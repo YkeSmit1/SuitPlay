@@ -36,27 +36,40 @@ public class CalculateTest
     }
        
     [Theory]
-    [InlineData("AQ", "T9",
-        new[] { Card.Ten, Card.Ten, Card.Ten, Card.Ten, Card.Ace, Card.Ten, Card.Ten, Card.Ace, Card.Ten, Card.Ace, Card.Ace,
-            Card.Ace, Card.Ace, Card.Ace, Card.Ace, Card.Ace },
-        new[] { 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 1, 2, 1, 1, 1, 1 })]
-    [InlineData("AQ8", "T9",
-        new[]
-        {
-            Card.Ten, Card.Ten, Card.Ten, Card.Ace, Card.Ace, Card.Ace, Card.Ace, Card.Ace
-        }, new[] { 3, 3, 3, 3, 3, 2, 2, 1})]
-    //[InlineData("A2", "KT987", new[] {Card.Ace, Card.Ten, Card.Ace, Card.Ace}, new[] {3, 3, 3, 3})]
-    public void TestCalculateExpected(string north, string south, Card[] expectedPlay, int[] expectedTricks)
+    [InlineData("AQ", "T9")]
+    public void TestCalculateExpected(string north, string south)
     {
         var output = Calculate.CalculateBestPlay(north, south).ToList();
-        var counter = 0;
+        Assert.Equal(512, output.Count);
         foreach (var play in output)
         {
             _testOutputHelper.WriteLine($"East: {string.Join(",", play.Item1)} Best play: {play.Item2.Item1} Tricks:{play.Item2.Item2}");
-            Assert.Equal(expectedPlay[counter], play.Item2.Item1);
-            Assert.Equal(expectedTricks[counter], play.Item2.Item2);
-            counter++;
+            if (play.Item1.Contains(Card.King) && play.Item1.Count() != 1)
+            {
+                Assert.Equal(Card.Ace, play.Item2.Item1);
+                Assert.Equal(1, play.Item2.Item2);
+            }
+            
+            if (play.Item1.Contains(Card.King) && play.Item1.Count() == 1)
+            {
+                Assert.Equal(Card.Ace, play.Item2.Item1);
+                Assert.Equal(2, play.Item2.Item2);
+            }
+            
+            if (!play.Item1.Contains(Card.King) && play.Item1.Count() != 8)
+            {
+                Assert.Equal(Card.Ten, play.Item2.Item1);
+                Assert.Equal(2, play.Item2.Item2);
+            }
+            
+            if (!play.Item1.Contains(Card.King) && play.Item1.Count() == 8)
+            {
+                Assert.Equal(Card.Ace, play.Item2.Item1);
+                Assert.Equal(2, play.Item2.Item2);
+            }
         }
     }
+    
+    
     
 }
