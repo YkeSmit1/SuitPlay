@@ -36,7 +36,7 @@ public class Calculate
 
     public static IEnumerable<(IEnumerable<Card>, (Card, int))> CalculateBestPlay(string north, string south)
     {
-        allCards = Enum.GetValues<Card>().Except([Card.Dummy, Card.Two, Card.Three, Card.Four, Card.Five, Card.Six]);
+        allCards = Enum.GetValues<Card>().Except([Card.Dummy]);
         InitialCards[Player.North] = north.Select(CharToCard);
         InitialCards[Player.South] = south.Select(CharToCard);
         var cardsEW = allCards.Except(InitialCards[Player.North]).Except(InitialCards[Player.South]).ToList();
@@ -127,7 +127,7 @@ public class Calculate
         foreach (var card in playableCards)
         {
             playedCards.Add(card);
-            var value = Minimax(playedCards, false);
+            var value = Minimax(playedCards, int.MinValue, int.MaxValue, false);
             playedCards.RemoveAt(playedCards.Count - 1);
             
             if (value > bestValue)
@@ -140,7 +140,7 @@ public class Calculate
         return (bestCard, bestValue);
     }
 
-    private static int Minimax(IList<Card> playedCards, bool maximizingPlayer)
+    private static int Minimax(IList<Card> playedCards, int alpha, int beta, bool maximizingPlayer)
     {
         if (playedCards.Count(card => card != Card.Dummy) == allCards.Count() || playedCards.Chunk(4).Last().First() == Card.Dummy)
         {
@@ -153,8 +153,11 @@ public class Calculate
             foreach (var card in GetPlayableCards(playedCards))
             {
                 playedCards.Add(card);
-                value = Math.Max(value, Minimax(playedCards, false));
+                value = Math.Max(value, Minimax(playedCards, alpha, beta, false));
                 playedCards.RemoveAt(playedCards.Count - 1);
+                alpha = Math.Max(alpha, value);
+                if (value >= beta)
+                    break;
             }
             return value;
             
@@ -165,8 +168,11 @@ public class Calculate
             foreach (var card in GetPlayableCards(playedCards))
             {
                 playedCards.Add(card);
-                value = Math.Min(value, Minimax(playedCards, true));
+                value = Math.Min(value, Minimax(playedCards, alpha, beta, true));
                 playedCards.RemoveAt(playedCards.Count - 1);
+                beta = Math.Min(beta, value);
+                if (value <= alpha)
+                    break;
             }
             return value;
         }
