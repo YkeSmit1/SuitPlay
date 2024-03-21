@@ -27,15 +27,44 @@ public enum Player
     None
 }
 
+public class ListComparer<T> : IEqualityComparer<IList<T>>
+{
+    public bool Equals(IList<T> left, IList<T> right)
+    {
+        if (left == null && right == null)
+            return true;
+        if (left == null || right == null)
+            return false;
+        return left.SequenceEqual(right);
+    }
+
+    public int GetHashCode(IList<T> list)
+    {
+        return list.Aggregate(19, (current, total) => current * 31 + total.GetHashCode());
+    }
+}
+
 public class Calculate
 {
     private static readonly Player[] PlayersNS = [Player.North, Player.South];
     private static readonly Dictionary<Player, IList<Card>> InitialCards = new();
-    private static IEnumerable<Card> allCards;
+    private static IList<Card> allCards;
+    private static readonly List<(IList<Card>, int)> Tree = [];
 
+    public static IEnumerable<(IList<Card> Key, double tricks)> GetAverageTrickCount(string north, string south)
+    {
+        var unused = CalculateBestPlay(north, south).ToList();
+        var groupedTricks = Tree.GroupBy(
+            x => x.Item1, 
+            x => x.Item2,
+            (key, tricks) => (Key: key, tricks: tricks.Average()), new ListComparer<Card>());
+        var averageTrickCountOrdered = groupedTricks.OrderBy(x => x.Key.Count).ThenByDescending(x => x.tricks);
+        return averageTrickCountOrdered;
+    }
     public static IEnumerable<(IEnumerable<Card>, (Card, int))> CalculateBestPlay(string north, string south)
     {
-        allCards = Enum.GetValues<Card>().Except([Card.Dummy]);
+        Tree.Clear();
+        allCards = Enum.GetValues<Card>().Except([Card.Dummy]).ToList();
         InitialCards[Player.North] = north.Select(CharToCard).ToList();
         InitialCards[Player.South] = south.Select(CharToCard).ToList();
         var cardsEW = allCards.Except(InitialCards[Player.North]).Except(InitialCards[Player.South]).ToList();
@@ -71,7 +100,7 @@ public class Calculate
             'Q' => Card.Queen,
             'K' => Card.King,
             'A' => Card.Ace,
-            _ => throw new InvalidOperationException()
+            _ => throw new ArgumentOutOfRangeException(nameof(card), card, null)
         };
     }
 
@@ -126,6 +155,7 @@ public class Calculate
         {
             playedCards.Add(card);
             var value = Minimax(playedCards, int.MinValue, int.MaxValue, false);
+            Tree.Add((playedCards.Where(x => playedCards.IndexOf(x) % 2 == 0).Select(x => x).ToList(), value));
             playedCards.RemoveAt(playedCards.Count - 1);
             
             if (value > bestValue)
@@ -152,6 +182,7 @@ public class Calculate
             {
                 playedCards.Add(card);
                 value = Math.Max(value, Minimax(playedCards, alpha, beta, false));
+                Tree.Add((playedCards.Where(x => playedCards.IndexOf(x) % 2 == 0).Select(x => x).ToList(), value));
                 playedCards.RemoveAt(playedCards.Count - 1);
                 alpha = Math.Max(alpha, value);
                 if (value >= beta)
@@ -167,6 +198,7 @@ public class Calculate
             {
                 playedCards.Add(card);
                 value = Math.Min(value, Minimax(playedCards, alpha, beta, true));
+                Tree.Add((playedCards.Where(x => playedCards.IndexOf(x) % 2 == 0).Select(x => x).ToList(), value));
                 playedCards.RemoveAt(playedCards.Count - 1);
                 beta = Math.Min(beta, value);
                 if (value <= alpha)
