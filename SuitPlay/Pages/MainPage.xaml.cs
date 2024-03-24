@@ -5,7 +5,7 @@ using SuitPlay.Views;
 
 namespace SuitPlay.Pages;
 
-public partial class MainPage : ContentPage
+public partial class MainPage
 {
     private HandView selectedHandView;
     private HandView SelectedHandView
@@ -31,7 +31,7 @@ public partial class MainPage : ContentPage
 
     private void InitCards()
     {
-        ((HandViewModel)Cards.BindingContext).ShowHand(",,,AKQJT98765432", false, "default", dictionary);
+        ((HandViewModel)Cards.BindingContext).ShowHand(",,,AKQJT98765432", "default", dictionary);
         AddTapGesture(Cards);
         ((HandViewModel)North.BindingContext).Cards.Clear();
         ((HandViewModel)South.BindingContext).Cards.Clear();
@@ -45,15 +45,20 @@ public partial class MainPage : ContentPage
         tapGestureRecognizer.CommandParameter = handView;
         foreach (var image in handView.GetVisualTreeDescendants().Where(x => x is Image))
         {
-            ((Image)image).GestureRecognizers.Add(tapGestureRecognizer);
+            if (((Image)image).GestureRecognizers.Count == 0)
+                ((Image)image).GestureRecognizers.Add(tapGestureRecognizer);
         }
     }
 
     private void TapGestureRecognizer_OnTapped(object sender, TappedEventArgs e)
     {
         var card = (Card)((Image)sender).BindingContext;
-        ((HandViewModel)((HandView)e.Parameter)?.BindingContext)?.RemoveCard(card);
-        ((HandViewModel)SelectedHandView.BindingContext).AddCard(card);
+        var sourceHandView = (HandView)e.Parameter;
+        ((HandViewModel)sourceHandView?.BindingContext)?.RemoveCard(card);
+        AddTapGesture(sourceHandView);
+        var targetHandView = sourceHandView == Cards ? SelectedHandView : Cards;
+        ((HandViewModel)targetHandView.BindingContext).AddCard(card);
+        AddTapGesture(targetHandView);
     }
     
     private void ResetButton_OnClicked(object sender, EventArgs e)

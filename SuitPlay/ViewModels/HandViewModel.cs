@@ -17,17 +17,15 @@ namespace SuitPlay.ViewModels
         public void RemoveCard(Card card)
         {
             Cards.Remove(card);
+            ReorderHand();
         }
 
-        public void ShowHand(string hand, bool alternateSuits, string cardProfile, Dictionary<(string suit ,string card), string> dictionary)
+        public void ShowHand(string hand, string cardProfile, Dictionary<(string suit ,string card), string> dictionary)
         {
             var settings = CardImageSettings.GetCardImageSettings(cardProfile);
             Cards.Clear();
 
-            var suitOrder = alternateSuits ?
-                new List<Suit> { Suit.Spades, Suit.Hearts, Suit.Clubs, Suit.Diamonds } :
-                new List<Suit> { Suit.Spades, Suit.Hearts, Suit.Diamonds, Suit.Clubs };
-            var suits = hand.Split(',').Select((x, index) => (x, (Suit)(3 - index))).OrderBy(x => suitOrder.IndexOf(x.Item2));
+            var suits = hand.Split(',').Select((x, index) => (x, (Suit)(3 - index)));
             var index = 0;
 
             foreach (var suit in suits)
