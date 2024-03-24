@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:SuitPlay.ViewModels"
+             xmlns:suitPlay="clr-namespace:SuitPlay"
+             x:Class="SuitPlay.Views.HandView">
+    <ContentView.BindingContext>
+        <viewModels:HandViewModel/>
+    </ContentView.BindingContext>
+    <ContentView.Content>
+        <StackLayout HeightRequest="150" HorizontalOptions="Center">
+            <AbsoluteLayout BindableLayout.ItemsSource="{Binding Cards}" x:DataType="viewModels:HandViewModel">
+                <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="suitPlay:Card">
+                            <Image Source="{Binding Source}"  
+                                   AbsoluteLayout.LayoutBounds="{Binding Rect}"
+                                   WidthRequest="{Binding Rect.Width}"
+                                   HeightRequest="{Binding Rect.Height}">
+                            </Image>
+                        </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </AbsoluteLayout>
+        </StackLayout>
+    </ContentView.Content>
+</ContentView>
