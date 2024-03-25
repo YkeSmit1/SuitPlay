@@ -9,19 +9,21 @@
             Padding="30,0"
             Spacing="25">
             <Border>
-                <views:HandView x:Name="Cards"/>
+                <views:HandView x:Name="Cards" Padding="10"/>
             </Border>
             <Border>
-                <views:HandView x:Name="North" BackgroundColor="Blue"/>
+                <views:HandView x:Name="North" Padding="10"/>
             </Border>
-            <Button Text="North" Clicked="ButtonSelectNorth_OnClicked"></Button>
+            <Button Text="Select North" Clicked="ButtonSelectNorth_OnClicked"></Button>
             <Border>
-                <views:HandView x:Name="South" BackgroundColor="DarkGreen"/>
+                <views:HandView x:Name="South" Padding="10"/>
             </Border>
-            <Button Text="South" Clicked="ButtonSelectSouth_OnClicked" ></Button>
-            <Button Text="Reset" Clicked="ResetButton_OnClicked"></Button>
-            <Button Text="Calculate" Clicked="CalculateButton_OnClicked"></Button>
-            <Label x:Name="BestPlay"></Label>
+            <Button Text="Select South" Clicked="ButtonSelectSouth_OnClicked" ></Button>
+            <HorizontalStackLayout>
+                <Button Text="Reset" Clicked="ResetButton_OnClicked" Margin="20"></Button>
+                <Button Text="Calculate" Clicked="CalculateButton_OnClicked" Margin="20"></Button>                
+            </HorizontalStackLayout>
+            <Label x:Name="BestPlay" Text="Best play"></Label>
         </VerticalStackLayout>
     </ScrollView>
 

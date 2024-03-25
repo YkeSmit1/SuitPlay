@@ -9,7 +9,7 @@
         <viewModels:HandViewModel/>
     </ContentView.BindingContext>
     <ContentView.Content>
-        <StackLayout HeightRequest="150" HorizontalOptions="Center">
+        <StackLayout HeightRequest="98" WidthRequest="254" HorizontalOptions="Center">
             <AbsoluteLayout BindableLayout.ItemsSource="{Binding Cards}" x:DataType="viewModels:HandViewModel">
                 <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="suitPlay:Card">
