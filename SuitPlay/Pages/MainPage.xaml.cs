@@ -29,7 +29,9 @@ public partial class MainPage
         dictionary = SplitImages.Split(CardImageSettings.GetCardImageSettings("default"));
         Cards.OnImageTapped += TapGestureRecognizer_OnTapped;
         North.OnImageTapped += TapGestureRecognizer_OnTapped;
+        North.OnHandTapped += TapGestureRecognizerSelect_OnTapped;
         South.OnImageTapped += TapGestureRecognizer_OnTapped;
+        South.OnHandTapped += TapGestureRecognizerSelect_OnTapped;
         InitCards();
     }
 
@@ -46,6 +48,11 @@ public partial class MainPage
         var card = (Card)((Image)sender).BindingContext;
         ((HandViewModel)((HandView)e.Parameter)?.BindingContext)?.RemoveCard(card);
         ((HandViewModel)((HandView)e.Parameter == Cards ? SelectedHandView : Cards).BindingContext).AddCard(card);
+    }
+    
+    private void TapGestureRecognizerSelect_OnTapped(object sender, TappedEventArgs e)
+    {
+        SelectedHandView = (HandView)e.Parameter;
     }
     
     private void ResetButton_OnClicked(object sender, EventArgs e)

@@ -9,8 +9,8 @@
         <viewModels:HandViewModel/>
     </ContentView.BindingContext>
     <ContentView.Content>
-        <StackLayout HeightRequest="98" WidthRequest="254" HorizontalOptions="Center">
-            <AbsoluteLayout BindableLayout.ItemsSource="{Binding Cards}" x:DataType="viewModels:HandViewModel">
+        <StackLayout HeightRequest="98">
+            <AbsoluteLayout BindableLayout.ItemsSource="{Binding Cards}" x:DataType="viewModels:HandViewModel" HorizontalOptions="Center">
                 <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="suitPlay:Card">
                             <Image Source="{Binding Source}"  
@@ -26,6 +26,11 @@
                         </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </AbsoluteLayout>
+            <StackLayout.GestureRecognizers>
+                <TapGestureRecognizer 
+                    Tapped="TapGestureRecognizerHand_OnTapped"
+                    CommandParameter="{Binding Source={RelativeSource Mode=FindAncestor, AncestorType={x:Type views:HandView }}}"/>
+            </StackLayout.GestureRecognizers>
         </StackLayout>
     </ContentView.Content>
 </ContentView>

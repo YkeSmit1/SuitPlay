@@ -14,11 +14,11 @@
             <Border>
                 <views:HandView x:Name="North" Padding="10"/>
             </Border>
-            <Button Text="Select North" Clicked="ButtonSelectNorth_OnClicked"></Button>
+            <Label Text="North" HorizontalOptions="Center" Style="{StaticResource SubHeadline}"/>
             <Border>
                 <views:HandView x:Name="South" Padding="10"/>
             </Border>
-            <Button Text="Select South" Clicked="ButtonSelectSouth_OnClicked" ></Button>
+            <Label Text="South" HorizontalOptions="Center" Style="{StaticResource SubHeadline}"/>
             <HorizontalStackLayout>
                 <Button Text="Reset" Clicked="ResetButton_OnClicked" Margin="20"></Button>
                 <Button Text="Calculate" x:Name="CalculateButton" Clicked="CalculateButton_OnClicked" Margin="20"></Button>                
