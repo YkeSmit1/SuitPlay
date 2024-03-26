@@ -21,7 +21,7 @@
             <Button Text="Select South" Clicked="ButtonSelectSouth_OnClicked" ></Button>
             <HorizontalStackLayout>
                 <Button Text="Reset" Clicked="ResetButton_OnClicked" Margin="20"></Button>
-                <Button Text="Calculate" Clicked="CalculateButton_OnClicked" Margin="20"></Button>                
+                <Button Text="Calculate" x:Name="CalculateButton" Clicked="CalculateButton_OnClicked" Margin="20"></Button>                
             </HorizontalStackLayout>
             <Label x:Name="BestPlay" Text="Best play"></Label>
         </VerticalStackLayout>

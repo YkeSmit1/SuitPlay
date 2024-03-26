@@ -55,20 +55,30 @@ public partial class MainPage
 
     private async void CalculateButton_OnClicked(object sender, EventArgs e)
     {
-        var stopWatch = Stopwatch.StartNew();
-        var southHand = GetHand(((HandViewModel)South.BindingContext).Cards);
-        var northHand = GetHand(((HandViewModel)North.BindingContext).Cards);
-        var tricks = await GetAverageTrickCount(northHand, southHand);
-        var twoTricks = tricks.Where(x => x.Key.Count == 4).ToList();
-        if (twoTricks.Count == 0)
+        CalculateButton.IsEnabled = false;
+        try
         {
-            BestPlay.Text = "Unable to calculate best play";
-            return;
+            BestPlay.Text = "Calculating...";
+            var stopWatch = Stopwatch.StartNew();
+            var southHand = GetHand(((HandViewModel)South.BindingContext).Cards);
+            var northHand = GetHand(((HandViewModel)North.BindingContext).Cards);
+            var tricks = await GetAverageTrickCount(northHand, southHand);
+            var twoTricks = tricks.Where(x => x.Key.Count == 4).ToList();
+            if (twoTricks.Count == 0)
+            {
+                BestPlay.Text = "Unable to calculate best play";
+                return;
+            }
+            var bestTrick = twoTricks.First();
+            var firstTrick = string.Join(",",bestTrick.Key.Take(2));
+            var secondTrick = string.Join(",", bestTrick.Key.Skip(2).Take(2));
+            BestPlay.Text = $"First trick: {firstTrick}\nSecond trick:{secondTrick}\nAverage tricks:{bestTrick.tricks:0.##} ({stopWatch.Elapsed:s\\:ff} seconds)";
         }
-        var bestTrick = twoTricks.First();
-        var firstTrick = string.Join(",",bestTrick.Key.Take(2));
-        var secondTrick = string.Join(",", bestTrick.Key.Skip(2).Take(2));
-        BestPlay.Text = $"First trick: {firstTrick}\nSecond trick:{secondTrick}\nAverage tricks:{bestTrick.tricks:0.##} ({stopWatch.Elapsed:s\\:ff} seconds)";
+        finally
+        {
+            CalculateButton.IsEnabled = true;
+        }
+        
         return;
 
         string GetHand(ObservableCollection<Card> observableCollection)
