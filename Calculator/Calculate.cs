@@ -50,21 +50,22 @@ public class Calculate
 {
     private static readonly Player[] PlayersNS = [Player.North, Player.South];
     private static IList<Card> allCards;
-
-    public static IEnumerable<(IList<Card> Key, double tricks)> GetAverageTrickCount(string north, string south)
+    
+    public static IEnumerable<IGrouping<IList<Card>, int>> GetAverageTrickCount(string north, string south, IList<Card> cardsInSuit)
     {
+        allCards = cardsInSuit;
         var tree = CalculateBestPlay(north, south);
         var groupedTricks = tree.GroupBy(
-            x => x.Item1, 
+            x => x.Item1,
             x => x.Item2,
-            (key, tricks) => (Key: key, tricks: tricks.Average()), new ListComparer<Card>());
-        var averageTrickCountOrdered = groupedTricks.OrderBy(x => x.Key.Count).ThenByDescending(x => x.tricks);
+            new ListComparer<Card>());
+        
+        var averageTrickCountOrdered = groupedTricks.OrderBy(x => x.Key.Count).ThenBy(z => z.Key.First());
         return averageTrickCountOrdered;
     }
-
-    private static List<(IList<Card>, int)> CalculateBestPlay(string north, string south)
+    
+    private static List<(IList<Card>, int )> CalculateBestPlay(string north, string south)
     {
-        allCards = Enum.GetValues<Card>().Except([Card.Dummy]).ToList();
         var cardsEW = allCards.Except(north.Select(CharToCard).ToList()).Except(south.Select(CharToCard).ToList()).ToList();
         var combinations = AllCombinations(cardsEW);
         var cardsN = north.Select(CharToCard);
@@ -75,9 +76,27 @@ public class Calculate
             var enumerable = combination.ToList();
             var cardsW = cardsEW.Except(enumerable);
             var calculateBestPlayForCombination = CalculateBestPlayForCombination(cardsN, cardsS, enumerable, cardsW);
-            results.Add((calculateBestPlayForCombination));
+            // Remove suboptimal plays
+            RemoveBadPlays();
+            results.Add(calculateBestPlayForCombination);
+            return;
+
+            void RemoveBadPlays()
+            {
+                //RemoveBadPlaysSingle(3);
+                return;
+
+                void RemoveBadPlaysSingle(int nrOfCards)
+                {
+                    var cardPlays = calculateBestPlayForCombination.Where(x => x.Item1.Count == nrOfCards).ToList();
+                    var cardSubOptimalPays = cardPlays.Where(x =>
+                        cardPlays.Any(y => y.Item1.Take(nrOfCards - 2).SequenceEqual(x.Item1.Take(nrOfCards - 2)) && (nrOfCards % 2 == 0 ? y.Item2 > x.Item2 : y.Item2 < x.Item2))).ToList();
+                    calculateBestPlayForCombination.RemoveAll(x => cardSubOptimalPays.Any(y => y.Item1.SequenceEqual(x.Item1)));
+                }
+            }
+            
         });
-        return results.SelectMany(x => x).ToList();
+        return results.SelectMany(x => x).ToList();    
     }
     
     public static int GetTrickCount(IEnumerable<Card> play)
@@ -106,7 +125,7 @@ public class Calculate
             _ => throw new ArgumentOutOfRangeException(nameof(card), card, null)
         };
     }
-
+    
     private static char CardToChar(Card card)
     {
         return card switch
@@ -146,11 +165,11 @@ public class Calculate
                 : elements.SelectMany((e, index) =>
                     Combinations(elements.Skip(index + 1), k - 1).Select(c => new[] { e }.Concat(c)));
         }
-    }
-
+    }    
+        
     private static List<(IList<Card>, int)> CalculateBestPlayForCombination(params IEnumerable<Card>[] cards)
     {
-        var tree = new List<(IList<Card>, int)>();        
+        var tree = new List<(IList<Card>, int)>();
         var initialCards = new Dictionary<Player, IList<Card>>
         {
             [Player.North] = cards[0].ToList(),
@@ -169,7 +188,7 @@ public class Calculate
             {
                 playedCards.Add(card);
                 var value = Minimax(playedCards, int.MinValue, int.MaxValue, false);
-                tree.Add((playedCards.Where(x => playedCards.IndexOf(x) % 2 == 0).Select(x => x).ToList(), value));
+                tree.Add((playedCards.Select(x => x).ToList(), value));
                 playedCards.RemoveAt(playedCards.Count - 1);
             }
         }
@@ -184,33 +203,35 @@ public class Calculate
 
             if (maximizingPlayer)
             {
-                var value = int.MinValue;
+                var bestValue = int.MinValue;
                 foreach (var card in GetPlayableCards(playedCards))
                 {
                     playedCards.Add(card);
-                    value = Math.Max(value, Minimax(playedCards, alpha, beta, false));
-                    tree.Add((playedCards.Where(x => playedCards.IndexOf(x) % 2 == 0).Select(x => x).ToList(), value));
+                    var value = Minimax(playedCards, alpha, beta, false);
+                    bestValue = Math.Max(bestValue, value);
+                    tree.Add((playedCards.Select(x => x).ToList(), value));
                     playedCards.RemoveAt(playedCards.Count - 1);
-                    alpha = Math.Max(alpha, value);
-                    if (value >= beta)
+                    alpha = Math.Max(alpha, bestValue);
+                    if (bestValue >= beta)
                         break;
                 }
-                return value;
+                return bestValue;
             }
             else
             {
-                var value = int.MaxValue;
+                var bestValue = int.MaxValue;
                 foreach (var card in GetPlayableCards(playedCards))
                 {
                     playedCards.Add(card);
-                    value = Math.Min(value, Minimax(playedCards, alpha, beta, true));
-                    tree.Add((playedCards.Where(x => playedCards.IndexOf(x) % 2 == 0).Select(x => x).ToList(), value));
+                    var value = Minimax(playedCards, alpha, beta, true);
+                    bestValue = Math.Min(bestValue, value);
+                    tree.Add((playedCards.Select(x => x).ToList(), value));
                     playedCards.RemoveAt(playedCards.Count - 1);
-                    beta = Math.Min(beta, value);
-                    if (value <= alpha)
+                    beta = Math.Min(beta, bestValue);
+                    if (bestValue <= alpha)
                         break;
                 }
-                return value;
+                return bestValue;
             }
         }
 
@@ -245,5 +266,15 @@ public class Calculate
             var playerToLead = initialCards.Single(x => x.Value.Contains(lastTrick.First())).Key;
             return (Player)((lastTrick.Length + (int)playerToLead) % 4 - 1);
         }
+    }
+
+    public static List<string> PlayToString(IEnumerable<(IList<Card>, int)> play)
+    {
+        return play.Select(x => $"Count:{x.Item1.Count} Play:{string.Join(",", x.Item1)} Tricks:{x.Item2}").ToList();
+    }
+    
+    public static List<string> GroupingToString(IEnumerable<IGrouping<IList<Card>, int>> play)
+    {
+        return play.Select(x => $"Count:{x.Key.Count} Play:{string.Join(",", x.Key)} Tricks:{string.Join(";", x)}").ToList();
     }
 }
