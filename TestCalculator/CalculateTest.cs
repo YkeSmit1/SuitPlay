@@ -64,7 +64,8 @@ public class CalculateTest
     public void TestAverageTrickCountCheck(string north, string south, Card[] bestPlay, double expected)
     {
         var cardsInDeck = Enum.GetValues<Card>().Except([Card.Dummy]).ToList();
-        var output = Calculate.GetAverageTrickCount(north, south, cardsInDeck).ToList();
+        var output = Calculate.GetAverageTrickCount(north, south, cardsInDeck).OrderBy(x => x.Key.Count)
+            .ThenBy(z => z.Key.First()).ToList();
         
         Assert.NotEmpty(output);
         Assert.Contains(output, x => x.Key.Count == 1);
@@ -91,7 +92,8 @@ public class CalculateTest
     public void TestAverageTrickCountCheck6Cards(string north, string south, Card[] bestPlay, double expected)
     {
         var cardsInDeck = Enum.GetValues<Card>().Except([Card.Dummy, Card.Two, Card.Three, Card.Four, Card.Five, Card.Six, Card.Seven, Card.Eight]).ToList();
-        var output = Calculate.GetAverageTrickCount(north, south, cardsInDeck).ToList();
+        var output = Calculate.GetAverageTrickCount(north, south, cardsInDeck).OrderBy(x => x.Key.Count)
+            .ThenBy(z => z.Key.First()).ToList();
         
         Assert.NotEmpty(output);
         Assert.Contains(output, x => x.Key.Count == 1);
@@ -125,7 +127,8 @@ public class CalculateTest
     public void TestAverageTrickCountCheck5Cards(string north, string south, Card[] bestPlay, double expected)
     {
         var cardsInDeck = Enum.GetValues<Card>().Except([Card.Dummy, Card.Two, Card.Three, Card.Four, Card.Five, Card.Six, Card.Seven, Card.Eight, Card.Nine]).ToList();
-        var output = Calculate.GetAverageTrickCount(north, south, cardsInDeck).ToList();
+        var output = Calculate.GetAverageTrickCount(north, south, cardsInDeck).OrderBy(x => x.Key.Count)
+            .ThenBy(z => z.Key.First()).ToList();
         
         Assert.NotEmpty(output);
         Assert.Contains(output, x => x.Key.Count == 1);

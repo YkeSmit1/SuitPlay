@@ -70,16 +70,16 @@ public partial class MainPage
             var southHand = GetHand(((HandViewModel)South.BindingContext).Cards);
             var northHand = GetHand(((HandViewModel)North.BindingContext).Cards);
             var tricks = await GetAverageTrickCount(northHand, southHand);
-            var twoTricks = tricks.Where(x => x.Key.Count == 4).ToList();
+            var twoTricks = tricks.Where(x => x.Key.Count == 8).ToList();
             if (twoTricks.Count == 0)
             {
                 BestPlay.Text = "Unable to calculate best play";
                 return;
             }
-            var bestTrick = twoTricks.First();
-            var firstTrick = string.Join(",",bestTrick.Key.Take(2));
-            var secondTrick = string.Join(",", bestTrick.Key.Skip(2).Take(2));
-            BestPlay.Text = $"First trick: {firstTrick}\nSecond trick:{secondTrick}\nAverage tricks:{bestTrick.tricks:0.##} ({stopWatch.Elapsed:s\\:ff} seconds)";
+            var bestTrick = twoTricks.OrderByDescending(x => x.Average()).First();
+            var firstTrick = string.Join(",",bestTrick.Key.Take(4));
+            var secondTrick = string.Join(",", bestTrick.Key.Skip(4).Take(4));
+            BestPlay.Text = $"First trick: {firstTrick}\nSecond trick:{secondTrick}\nAverage tricks:{bestTrick.Average():0.##} ({stopWatch.Elapsed:s\\:ff} seconds)";
         }
         finally
         {
@@ -95,18 +95,8 @@ public partial class MainPage
         }
     }
 
-    private static Task<IEnumerable<(IList<Calculator.Card> Key, double tricks)>> GetAverageTrickCount(string northHand, string southHand)
+    private static Task<IEnumerable<IGrouping<IList<Calculator.Card>, int>>> GetAverageTrickCount(string northHand, string southHand)
     {
         return Task.Run(() => Calculate.GetAverageTrickCount(northHand, southHand));
-    }
-
-    private void ButtonSelectNorth_OnClicked(object sender, EventArgs e)
-    {
-        SelectedHandView = North;
-    }
-
-    private void ButtonSelectSouth_OnClicked(object sender, EventArgs e)
-    {
-        SelectedHandView = South;
     }
 }

@@ -51,9 +51,9 @@ public class Calculate
     private static readonly Player[] PlayersNS = [Player.North, Player.South];
     private static IList<Card> allCards;
     
-    public static IEnumerable<IGrouping<IList<Card>, int>> GetAverageTrickCount(string north, string south, IList<Card> cardsInSuit)
+    public static IEnumerable<IGrouping<IList<Card>, int>> GetAverageTrickCount(string north, string south, IList<Card> cardsInSuit = null)
     {
-        allCards = cardsInSuit;
+        allCards = cardsInSuit ?? Enum.GetValues<Card>().Except([Card.Dummy]).ToList();
         var tree = CalculateBestPlay(north, south);
         var groupedTricks = tree.GroupBy(
             x => x.Item1,
