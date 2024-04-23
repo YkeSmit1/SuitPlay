@@ -83,22 +83,31 @@ public class Calculate
 
             void RemoveBadPlays()
             {
-                //RemoveBadPlaysSingle(3);
-                return;
-
-                void RemoveBadPlaysSingle(int nrOfCards)
-                {
-                    var cardPlays = calculateBestPlayForCombination.Where(x => x.Item1.Count == nrOfCards).ToList();
-                    var cardSubOptimalPays = cardPlays.Where(x =>
-                        cardPlays.Any(y => y.Item1.Take(nrOfCards - 2).SequenceEqual(x.Item1.Take(nrOfCards - 2)) && (nrOfCards % 2 == 0 ? y.Item2 > x.Item2 : y.Item2 < x.Item2))).ToList();
-                    calculateBestPlayForCombination.RemoveAll(x => cardSubOptimalPays.Any(y => y.Item1.SequenceEqual(x.Item1)));
-                }
+                RemoveBadPlaysSingle(calculateBestPlayForCombination, 3);
             }
             
         });
         return results.SelectMany(x => x).ToList();    
     }
-    
+
+    public static void RemoveBadPlaysSingle(List<(IList<Card> play, int tricks)> bestPlays, int nrOfCards)
+    {
+        var cardPlays = bestPlays.Where(x => x.play.Count == nrOfCards).ToList();
+        bestPlays.RemoveAll(x => cardPlays.Where(HasBetterPlay).Any(y => y.play.SequenceEqual(x.play)));
+        return;
+
+        bool HasBetterPlay((IList<Card> play, int tricks) playToCheck)
+        {
+            var similarPlays = cardPlays.Where(x => IsSimilar(x.play, playToCheck.play)).ToList();
+            return similarPlays.Count != 0 && similarPlays.All(play => play.tricks < playToCheck.tricks);
+            
+            static bool IsSimilar(IList<Card> a, IList<Card> b)
+            {
+                return a[0] == b[0] && a[1] != b[1] && a[2] == b[2];
+            }
+        }
+    }
+
     public static int GetTrickCount(IEnumerable<Card> play)
     {
         return play.Chunk(4).Where(x => x.First() != Card.Dummy).Count(trick =>
