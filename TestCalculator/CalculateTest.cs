@@ -41,8 +41,12 @@ public class CalculateTest
 
     [Theory]
     [InlineData("AQT", "432", new[] { Card.Four, Card.Five, Card.Ten }, 2.0)]
+    [InlineData("AQT", "432", new[] { Card.Four, Card.Five, Card.Queen }, 1.75)]
     [InlineData("A32", "QT9", new[] { Card.Ten, Card.Four, Card.Three }, 1.75)]
-    [InlineData("AJ9", "432", new[] { Card.Four, Card.Five, Card.Nine }, 1.375)]
+    [InlineData("AJ9", "432", new[] { Card.Four, Card.Five, Card.Nine }, 1.375)] // Fails because alpha beta pruning eliminates 459T
+    [InlineData("KJ5", "432", new[] { Card.Four, Card.Six, Card.Jack }, 1.0)]
+    [InlineData("KJ5", "432", new[] { Card.Four, Card.Six, Card.King }, 0.75)]
+    [InlineData("AKJT98", "32", new[] { Card.Three, Card.Four, Card.Jack }, 5.49)]
     public void TestAverageTrickCountCheck(string north, string south, Card[] bestPlay, double expected)
     {
         var cardsInDeck = Enum.GetValues<Card>().Except([Card.Dummy]).ToList();
@@ -81,7 +85,7 @@ public class CalculateTest
     [InlineData("AQ", "T", new[] { Card.Ten, Card.Jack, Card.Ace }, 1.5)]
     [InlineData("KJ", "T", new[] { Card.Ten, Card.Queen, Card.King }, 1.0)]
     [InlineData("KJ", "T", new[] { Card.Ten, Card.Ace, Card.Jack }, 1.0)]
-    [InlineData("AJ", "T", new[] { Card.Ten, Card.Queen, Card.Ace }, 1.5)]
+    [InlineData("AJ", "T", new[] { Card.Ten, Card.Queen, Card.Ace }, 1.5)] // Fails because W having KQ is optimised away
     [InlineData("AJ", "T", new[] { Card.Ten, Card.King, Card.Ace }, 1.5)]
     public void TestAverageTrickCountCheck5Cards(string north, string south, Card[] bestPlay, double expected)
     {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using MoreLinq;
 
 namespace Calculator;
 
@@ -55,7 +56,8 @@ public class Calculate
     {
         allCards = cardsInSuit ?? Enum.GetValues<Card>().Except([Card.Dummy]).ToList();
         var tree = CalculateBestPlay(north, south);
-        var groupedTricks = tree.GroupBy(
+        //LogTreeForPlay(tree, cards);
+        var groupedTricks = tree.Values.SelectMany(x => x).GroupBy(
             x => x.Item1,
             x => x.Item2,
             new ListComparer<Card>());
@@ -63,22 +65,22 @@ public class Calculate
         var averageTrickCountOrdered = groupedTricks.OrderBy(x => x.Key.Count).ThenBy(z => z.Key.First());
         return averageTrickCountOrdered;
     }
-    
-    private static List<(IList<Card>, int )> CalculateBestPlay(string north, string south)
+
+    private static ConcurrentDictionary<List<Card>, List<(IList<Card>, int)>> CalculateBestPlay(string north, string south)
     {
         var cardsEW = allCards.Except(north.Select(CharToCard).ToList()).Except(south.Select(CharToCard).ToList()).ToList();
         var combinations = AllCombinations(cardsEW);
         var cardsN = north.Select(CharToCard);
         var cardsS = south.Select(CharToCard);
-        ConcurrentBag<List<(IList<Card>, int)>> results = [];
-        Parallel.ForEach(combinations, combination =>
+        ConcurrentDictionary<List<Card>, List<(IList<Card>, int)>> results = [];
+        Parallel.ForEach(combinations, new ParallelOptions() /*{MaxDegreeOfParallelism = 1}*/, combination =>
         {
             var enumerable = combination.ToList();
             var cardsW = cardsEW.Except(enumerable);
             var calculateBestPlayForCombination = CalculateBestPlayForCombination(cardsN, cardsS, enumerable, cardsW);
             // Remove suboptimal plays
             RemoveBadPlays();
-            results.Add(calculateBestPlayForCombination);
+            results[enumerable] = calculateBestPlayForCombination;
             return;
 
             void RemoveBadPlays()
@@ -87,7 +89,18 @@ public class Calculate
             }
             
         });
-        return results.SelectMany(x => x).ToList();    
+        return results;    
+    }
+    
+    private static void LogTreeForPlay(ConcurrentDictionary<List<Card>,List<(IList<Card>, int)>> tree, Card[] cards)
+    {
+        foreach (var combination in tree)
+        {
+            foreach (var play in combination.Value.Where(play => play.Item1.StartsWith(cards) && play.Item1.Count < 5))
+            {
+                Console.WriteLine($"East:{string.Join(',', combination.Key)}\t\t{PlayToString(play)}");
+            }
+        }
     }
 
     public static void RemoveBadPlaysSingle(List<(IList<Card> play, int tricks)> bestPlays, int nrOfCards)
@@ -277,13 +290,23 @@ public class Calculate
         }
     }
 
-    public static List<string> PlayToString(IEnumerable<(IList<Card>, int)> play)
+    public static List<string> PlaysToString(IEnumerable<(IList<Card>, int)> play)
     {
-        return play.Select(x => $"Count:{x.Item1.Count} Play:{string.Join(",", x.Item1)} Tricks:{x.Item2}").ToList();
+        return play.Select(PlayToString).ToList();
     }
-    
-    public static List<string> GroupingToString(IEnumerable<IGrouping<IList<Card>, int>> play)
+
+    public static List<string> GroupingsToString(IEnumerable<IGrouping<IList<Card>, int>> play)
     {
-        return play.Select(x => $"Count:{x.Key.Count} Play:{string.Join(",", x.Key)} Tricks:{string.Join(";", x)}").ToList();
+        return play.Select(GroupingToString).ToList();
+    }
+
+    private static string PlayToString((IList<Card>, int) x)
+    {
+        return $"Count:{x.Item1.Count} Play:{string.Join(",", x.Item1)} Tricks:{x.Item2}";
+    }
+
+    private static string GroupingToString(IGrouping<IList<Card>, int> x)
+    {
+        return $"Count:{x.Key.Count} Play:{string.Join(",", x.Key)} Tricks:{string.Join(";", x)}";
     }
 }
