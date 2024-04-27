@@ -73,7 +73,7 @@ public class Calculate
         var cardsN = north.Select(CharToCard);
         var cardsS = south.Select(CharToCard);
         ConcurrentDictionary<List<Card>, List<(IList<Card>, int)>> results = [];
-        Parallel.ForEach(combinations, new ParallelOptions() /*{MaxDegreeOfParallelism = 1}*/, combination =>
+        Parallel.ForEach(combinations, combination =>
         {
             var enumerable = combination.ToList();
             var cardsW = cardsEW.Except(enumerable);
