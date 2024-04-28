@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Calculator;
+using MoreLinq;
 using SuitPlay.ViewModels;
 using SuitPlay.Views;
 
@@ -70,16 +71,30 @@ public partial class MainPage
             var southHand = GetHand(((HandViewModel)South.BindingContext).Cards);
             var northHand = GetHand(((HandViewModel)North.BindingContext).Cards);
             var tricks = await GetAverageTrickCount(northHand, southHand);
-            var twoTricks = tricks.Where(x => x.Key.Count == 8).ToList();
-            if (twoTricks.Count == 0)
+            var enumerable = tricks.ToList();
+
+            var firstTricks = enumerable.Where(x => x.Key.Count == 4).ToList();
+            if (firstTricks.Count == 0)
             {
-                BestPlay.Text = "Unable to calculate best play";
+                BestPlay.Text = "Unable to calculate first trick";
                 return;
             }
-            var bestTrick = twoTricks.OrderByDescending(x => x.Average()).First();
-            var firstTrick = string.Join(",",bestTrick.Key.Take(4));
-            var secondTrick = string.Join(",", bestTrick.Key.Skip(4).Take(4));
-            BestPlay.Text = $"First trick: {firstTrick}\nSecond trick:{secondTrick}\nAverage tricks:{bestTrick.Average():0.##} ({stopWatch.Elapsed:s\\:ff} seconds)";
+            var bestFirstTrick = firstTricks.OrderByDescending(x => x.Average()).First();
+            var bestFirstTrickAsString = string.Join(",", bestFirstTrick.Key);
+
+            var secondTrick = enumerable.Where(x => x.Key.StartsWith(bestFirstTrick.Key) && x.Key.Count == 8).ToList();
+            if (secondTrick.Count == 0)
+            {
+                BestPlay.Text = $"First trick: {bestFirstTrickAsString}\n Unable to calculate second trick\n({stopWatch.Elapsed:s\\:ff} seconds)";
+                return;
+            }
+            var bestSecondTrick = secondTrick.OrderByDescending(x => x.Average()).First();
+            var bestSecondTrickAsString = string.Join(",", bestSecondTrick.Key.Skip(4));
+            BestPlay.Text = $"First trick: {bestFirstTrickAsString}\nSecond trick:{bestSecondTrickAsString}\nAverage tricks:{bestSecondTrick.Average():0.##} ({stopWatch.Elapsed:s\\:ff} seconds)";
+        }
+        catch (Exception exception)
+        {
+            await DisplayAlert("Error", exception.Message, "OK");
         }
         finally
         {
