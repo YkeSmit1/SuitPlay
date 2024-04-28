@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Calculator;
 using MoreLinq;
 using SuitPlay.ViewModels;
@@ -71,26 +70,7 @@ public partial class MainPage
             var southHand = GetHand(((HandViewModel)South.BindingContext).Cards);
             var northHand = GetHand(((HandViewModel)North.BindingContext).Cards);
             var tricks = await GetAverageTrickCount(northHand, southHand);
-            var enumerable = tricks.ToList();
-
-            var firstTricks = enumerable.Where(x => x.Key.Count == 4).ToList();
-            if (firstTricks.Count == 0)
-            {
-                BestPlay.Text = "Unable to calculate first trick";
-                return;
-            }
-            var bestFirstTrick = firstTricks.OrderByDescending(x => x.Average()).First();
-            var bestFirstTrickAsString = string.Join(",", bestFirstTrick.Key);
-
-            var secondTrick = enumerable.Where(x => x.Key.StartsWith(bestFirstTrick.Key) && x.Key.Count == 8).ToList();
-            if (secondTrick.Count == 0)
-            {
-                BestPlay.Text = $"First trick: {bestFirstTrickAsString}\n Unable to calculate second trick\n({stopWatch.Elapsed:s\\:ff} seconds)";
-                return;
-            }
-            var bestSecondTrick = secondTrick.OrderByDescending(x => x.Average()).First();
-            var bestSecondTrickAsString = string.Join(",", bestSecondTrick.Key.Skip(4));
-            BestPlay.Text = $"First trick: {bestFirstTrickAsString}\nSecond trick:{bestSecondTrickAsString}\nAverage tricks:{bestSecondTrick.Average():0.##} ({stopWatch.Elapsed:s\\:ff} seconds)";
+            BestPlay.Text = $"{GetBestPlayText(tricks.ToList())} ({stopWatch.Elapsed:s\\:ff} seconds)";
         }
         catch (Exception exception)
         {
@@ -103,12 +83,43 @@ public partial class MainPage
         
         return;
 
-        string GetHand(ObservableCollection<Card> observableCollection)
+        string GetHand(IEnumerable<Card> observableCollection)
         {
             return observableCollection.Aggregate("",
                 (current, card) => current + dictionary.Single(x => x.Value == card.Source).Key.card);
         }
     }
+
+    private static string GetBestPlayText(IReadOnlyCollection<IGrouping<IList<Calculator.Card>, int>> tricks)
+    {
+        var bestPlay = FindBestPlay(tricks);
+        if (bestPlay.Count < 3)
+        {
+            return "Unable to calculate first trick";
+        }
+        var bestFirstTrickAsString = string.Join(",", bestPlay);
+        var average = tricks.Single(x => x.Key.SequenceEqual(bestPlay)).Average();
+        var bestPlayText = $"First trick: {bestFirstTrickAsString}\nAverage tricks:{average:0.##}";
+        return bestPlayText;
+    }
+    
+    private static List<Calculator.Card> FindBestPlay(IReadOnlyCollection<IGrouping<IList<Calculator.Card>, int>> tricks)
+    {
+        var play = new List<Calculator.Card>();
+        while (play.Count < 3)
+        {
+            var trickWithNextCard = tricks.Where(x => x.Key.Count == play.Count + 1 && x.Key.StartsWith(play)).ToList();
+            if (trickWithNextCard.Count == 0)
+                break;
+            play.Add(play.Count % 2 == 0 ? GetOurCard() : GetTheirCard());
+            continue;
+
+            Calculator.Card GetOurCard() => trickWithNextCard.OrderByDescending(x => x.Max()).First().Key.Last();
+            Calculator.Card GetTheirCard() => trickWithNextCard.Where(x => x.Key.Last() != Calculator.Card.Dummy).OrderBy(y => y.Key.Last()).First().Key.Last();
+        }
+
+        return play;
+    }    
 
     private static Task<IEnumerable<IGrouping<IList<Calculator.Card>, int>>> GetAverageTrickCount(string northHand, string southHand)
     {
