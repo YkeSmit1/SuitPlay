@@ -131,20 +131,19 @@ public class CalculateTest
                     (new[] { Card.Nine, Card.Ten, Card.Jack }, 1)], Expected = 2}
             ];
             yield return [new TestDataPlayAndExpected {Plays = [
-                    (new[] {Card.Ten, Card.Jack, Card.Queen}, 2), 
+                    (new[] { Card.Ten, Card.Jack, Card.Queen }, 2),
                     (new[] { Card.Ten, Card.King, Card.Queen }, 1),
-                    (new[] { Card.Ten, Card.Jack, Card.Ace }, 1),
+                    (new[] {Card.Ten, Card.Jack, Card.Ace}, 1), 
                     (new[] { Card.Ten, Card.King, Card.Ace }, 2)
-                ], Expected = 2}
+                ], Expected = 4}
             ];
             yield return [new TestDataPlayAndExpected {Plays = [
                     (new[] {Card.Ten, Card.Queen, Card.King}, 1), 
                     (new[] { Card.Ten, Card.Ace, Card.King }, 0),
                     (new[] { Card.Ten, Card.Queen, Card.Jack }, 0),
                     (new[] { Card.Ten, Card.Ace, Card.Jack }, 1)
-                ], Expected = 2}
+                ], Expected = 4}
             ];
-            
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

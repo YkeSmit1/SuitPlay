@@ -116,7 +116,7 @@ public class Calculate
             
             static bool IsSimilar(IList<Card> a, IList<Card> b)
             {
-                return a[0] == b[0] && a[1] != b[1] && a[2] == b[2];
+                return a[0] == b[0] && a[1] != b[1];
             }
         }
     }
