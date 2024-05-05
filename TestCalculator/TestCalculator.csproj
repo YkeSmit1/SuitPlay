@@ -10,6 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Common.BridgeClasses" Version="1.0.7" />
         <PackageReference Include="coverlet.collector" Version="6.0.0"/>
         <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0"/>
@@ -23,6 +24,21 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Calculator\Calculator.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="lesson2.pbn">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="lesson2a.pbn">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="lesson2b.pbn">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="lesson2c.pbn">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

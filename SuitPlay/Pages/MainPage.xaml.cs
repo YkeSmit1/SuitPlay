@@ -45,7 +45,7 @@ public partial class MainPage
 
     private void TapGestureRecognizer_OnTapped(object sender, TappedEventArgs e)
     {
-        var card = (Card)((Image)sender).BindingContext;
+        var card = (UiCard)((Image)sender).BindingContext;
         ((HandViewModel)((HandView)e.Parameter)?.BindingContext)?.RemoveCard(card);
         ((HandViewModel)((HandView)e.Parameter == Cards ? SelectedHandView : Cards).BindingContext).AddCard(card);
     }
@@ -83,14 +83,14 @@ public partial class MainPage
         
         return;
 
-        string GetHand(IEnumerable<Card> observableCollection)
+        string GetHand(IEnumerable<UiCard> observableCollection)
         {
             return observableCollection.Aggregate("",
                 (current, card) => current + dictionary.Single(x => x.Value == card.Source).Key.card);
         }
     }
 
-    private static string GetBestPlayText(IReadOnlyCollection<IGrouping<IList<Calculator.Card>, int>> tricks)
+    private static string GetBestPlayText(IReadOnlyCollection<IGrouping<IList<Calculator.CardFace>, int>> tricks)
     {
         var bestPlay = FindBestPlay(tricks);
         if (bestPlay.Count < 3)
@@ -103,9 +103,9 @@ public partial class MainPage
         return bestPlayText;
     }
     
-    private static List<Calculator.Card> FindBestPlay(IReadOnlyCollection<IGrouping<IList<Calculator.Card>, int>> tricks)
+    private static List<Calculator.CardFace> FindBestPlay(IReadOnlyCollection<IGrouping<IList<Calculator.CardFace>, int>> tricks)
     {
-        var play = new List<Calculator.Card>();
+        var play = new List<Calculator.CardFace>();
         while (play.Count < 3)
         {
             var trickWithNextCard = tricks.Where(x => x.Key.Count == play.Count + 1 && x.Key.StartsWith(play)).ToList();
@@ -114,14 +114,14 @@ public partial class MainPage
             play.Add(play.Count % 2 == 0 ? GetOurCard() : GetTheirCard());
             continue;
 
-            Calculator.Card GetOurCard() => trickWithNextCard.OrderByDescending(x => x.Max()).First().Key.Last();
-            Calculator.Card GetTheirCard() => trickWithNextCard.Where(x => x.Key.Last() != Calculator.Card.Dummy).OrderBy(y => y.Key.Last()).First().Key.Last();
+            Calculator.CardFace GetOurCard() => trickWithNextCard.OrderByDescending(x => x.Max()).First().Key.Last();
+            Calculator.CardFace GetTheirCard() => trickWithNextCard.Where(x => x.Key.Last() != Calculator.CardFace.Dummy).OrderBy(y => y.Key.Last()).First().Key.Last();
         }
 
         return play;
     }    
 
-    private static Task<IEnumerable<IGrouping<IList<Calculator.Card>, int>>> GetAverageTrickCount(string northHand, string southHand)
+    private static Task<IEnumerable<IGrouping<IList<Calculator.CardFace>, int>>> GetAverageTrickCount(string northHand, string southHand)
     {
         return Task.Run(() => Calculate.GetAverageTrickCount(northHand, southHand));
     }

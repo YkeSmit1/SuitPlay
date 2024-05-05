@@ -6,17 +6,17 @@ namespace SuitPlay.ViewModels
 {
     public class HandViewModel : ObservableObject
     {
-        public ObservableCollection<Card> Cards { get; set; } = [];
+        public ObservableCollection<UiCard> Cards { get; set; } = [];
 
-        public void AddCard(Card card)
+        public void AddCard(UiCard uiCard)
         {
-            Cards.Add(card);
+            Cards.Add(uiCard);
             ReorderHand();
         }
         
-        public void RemoveCard(Card card)
+        public void RemoveCard(UiCard uiCard)
         {
-            Cards.Remove(card);
+            Cards.Remove(uiCard);
             ReorderHand();
         }
 
@@ -33,7 +33,7 @@ namespace SuitPlay.ViewModels
                 foreach (var card in suit.x)
                 {
                     var valueTuple = (Util.GetSuitDescriptionASCII(suit.Item2), card.ToString());
-                    Cards.Add(new Card
+                    Cards.Add(new UiCard
                         {
                             Rect = new Rect(index * settings.CardDistance, 0, settings.CardWidth, settings.CardHeight),
                             Source = dictionary[valueTuple],

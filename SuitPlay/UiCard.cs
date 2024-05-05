@@ -2,7 +2,7 @@
 
 namespace SuitPlay
 {
-    public class Card
+    public class UiCard
     {
         public Rect Rect { get; set; }
         public string Source { get; set; }

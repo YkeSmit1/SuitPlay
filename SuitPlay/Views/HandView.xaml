@@ -12,7 +12,7 @@
         <StackLayout HeightRequest="98">
             <AbsoluteLayout BindableLayout.ItemsSource="{Binding Cards}" x:DataType="viewModels:HandViewModel" HorizontalOptions="Center">
                 <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="suitPlay:Card">
+                        <DataTemplate x:DataType="suitPlay:UiCard">
                             <Image Source="{Binding Source}"  
                                    AbsoluteLayout.LayoutBounds="{Binding Rect}"
                                    WidthRequest="{Binding Rect.Width}"
