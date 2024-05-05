@@ -25,4 +25,5 @@ public class Card
 
     public Suit Suit;
     public Face Face;
+    public Player Player;
 }

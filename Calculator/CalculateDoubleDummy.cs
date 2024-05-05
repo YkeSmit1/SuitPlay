@@ -44,8 +44,8 @@ public class CalculateDoubleDummy
         IEnumerable<(Card, int)> FindBestMove()
         {
             var playedCards = new List<Card>();
-            var playableCards = GetPlayableCards(playedCards);
-            foreach (var card in playableCards)
+            var availableCards = GetAvailableCards(playedCards, Player.West, []).ToList();
+            foreach (var card in availableCards)
             {
                 playedCards.Add(card);
                 var value = Minimax(playedCards, int.MinValue, int.MaxValue);
@@ -62,8 +62,9 @@ public class CalculateDoubleDummy
                 return GetTrickCount(playedCards);
             }
 
-            var playerToPlay = GetPlayerToPlay(playedCards, initialCards, trumpSuit);
-            var availableCards = GetAvailableCards(playedCards, playerToPlay).ToList();
+            var lastTrick = playedCards.Chunk(4).Last();
+            var playerToPlay = GetPlayerToPlay(lastTrick, trumpSuit);
+            var availableCards = GetAvailableCards(playedCards, playerToPlay, lastTrick).ToList();
             if (playerToPlay is Player.North or Player.South)
             {
                 var bestValue = int.MinValue;
@@ -94,20 +95,17 @@ public class CalculateDoubleDummy
             }
         }
 
-        List<Card> GetPlayableCards(IList<Card> playedCards)
+        IEnumerable<Card> GetAvailableCards(ICollection<Card> playedCards, Player player, Card[] lastTrick)
         {
-            var availableCards = GetAvailableCards(playedCards, GetPlayerToPlay(playedCards, initialCards, trumpSuit)).ToList();
-            return availableCards;
-        }
-
-        IEnumerable<Card> GetAvailableCards(IList<Card> playedCards, Player player)
-        {
-            var availableCards = initialCards[player].Except(playedCards.Where(x => initialCards[player].Contains(x))).ToList();
+            var availableCards = initialCards[player].Where(x => !playedCards.Any(y => Equals(y, x))).ToList();
             availableCards.RemoveAll(x => availableCards.Contains(new Card() {Suit = x.Suit, Face = x.Face + 1 }));
-            var tricks = playedCards.Chunk(4);
-            if (playedCards.Count % 4 != 0 && availableCards.Any(y => y.Suit == tricks.Last().First().Suit))
+            if (lastTrick.Length % 4 != 0)
             {
-                availableCards.RemoveAll(x => x.Suit != tricks.Last().First().Suit);
+                var leadSuit = lastTrick.First().Suit;
+                if (availableCards.Any(y => y.Suit == leadSuit))
+                {
+                    availableCards.RemoveAll(x => x.Suit != leadSuit);
+                }
             }
 
             return availableCards;
@@ -115,25 +113,20 @@ public class CalculateDoubleDummy
        
         int GetTrickCount(IEnumerable<Card> play)
         {
-            return play.Chunk(4).Count(trick => TrickWon(trick, initialCards, trumpSuit) is Player.North or Player.South);
+            return play.Chunk(4).Count(trick => TrickWon(trick, trumpSuit) is Player.North or Player.South);
         }
     }
     
-    public static Player GetPlayerToPlay(IList<Card> playedCards, IDictionary<Player, IEnumerable<Card>> initialCards, Suit trumpSuit)
+    public static Player GetPlayerToPlay(Card[] lastTrick, Suit trumpSuit)
     {
-        if (playedCards.Count == 0)
-            return Player.West;
-        var lastTrick = playedCards.Chunk(4).Last();
         if (lastTrick.Length == 4)
-            return TrickWon(lastTrick, initialCards, trumpSuit);
-        var playerToLead = initialCards.Single(x => x.Value.Contains(lastTrick.First())).Key;
-        var playerToPlay = (Player)((lastTrick.Length + (int)playerToLead) % 4);
-        return playerToPlay;
+            return TrickWon(lastTrick, trumpSuit);
+        return (Player)((lastTrick.Length + (int)lastTrick.First().Player) % 4);
     }
 
-    private static Player TrickWon(Card[] trick, IDictionary<Player, IEnumerable<Card>> initialCards, Suit trumpSuit)
+    private static Player TrickWon(Card[] trick, Suit trumpSuit)
     {
-        var playerToLead = initialCards.Single(x => x.Value.Contains(trick.First())).Key; 
+        var playerToLead = trick.First().Player; 
         var highestCard = trumpSuit != Suit.NoTrump && trick.Any(x => x.Suit == trumpSuit)
             ? trick.Where(x => x.Suit == trumpSuit).MaxBy(x => x.Face)
             : trick.Where(x => x.Suit == trick.First().Suit).MaxBy(x => x.Face);
