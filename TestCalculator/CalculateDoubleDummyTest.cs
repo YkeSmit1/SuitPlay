@@ -17,31 +17,31 @@ public class CalculateDoubleDummyTest
     [Fact]
     public void TestCalculateDoubleDummy4Cards()
     {
-        DoCalculate("lesson2c.pbn");
+        DoCalculate("lesson2c.pbn", 3.0);
     }
 
     [Fact]
     public void TestCalculateDoubleDummy6Cards()
     {
-        DoCalculate("lesson2b.pbn");
+        DoCalculate("lesson2b.pbn", 5.33);
     }
 
     [Fact]
     public void TestCalculateDoubleDummy8Cards()
     {
-        DoCalculate("lesson2a.pbn");
+        DoCalculate("lesson2a.pbn", 7.125);
     }
     
     [Fact]
     public void TestCalculateDoubleDummy()
     {
-        DoCalculate("lesson2.pbn");
+        DoCalculate("lesson2.pbn", 0);
     }
     
     [Fact]
     public void TestCalculateDoubleDummy9Cards()
     {
-        DoCalculate("lesson2d.pbn");
+        DoCalculate("lesson2d.pbn", 0);
     }
     
     
@@ -79,19 +79,20 @@ public class CalculateDoubleDummyTest
             new Card { Suit = Suit.Diamonds, Face = Face.Ace, Player = Player.South}], Suit.Spades));
     }    
     
-    private void DoCalculate(string filePath)
+    private void DoCalculate(string filePath, double average)
     {
         var pbn = new Common.Pbn();
         pbn.Load(filePath);
         var firstBoard = pbn.Boards[0];
         var hand = StringToCards(firstBoard.Deal);
         var res = CalculateDoubleDummy.CalculateBestPlayForCombination(Suit.Spades, hand);
-        Assert.True(res.Tricks.Count == hand[Player.North].Count());
+        Assert.Equal(hand[Player.North].Count(), res.Tricks.Count);
         testOutputHelper.WriteLine($"NrOfNodes:{res.NrOfEndNodes}");
         foreach (var card in res.Tricks)
         {
             testOutputHelper.WriteLine($"Card:{card.Item1.Suit}{card.Item1.Face} Tricks:{card.Item2}");
         }
+        Assert.Equal(average, res.Tricks.Average(x => x.Item2), 0.01);
     }    
 
     private static IDictionary<Player, IEnumerable<Card>> StringToCards(Dictionary<Common.Player, string> board)
