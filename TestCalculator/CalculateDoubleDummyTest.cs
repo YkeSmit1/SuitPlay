@@ -39,44 +39,44 @@ public class CalculateDoubleDummyTest
     }
     
     [Fact]
+    public void TestCalculateDoubleDummy9Cards()
+    {
+        DoCalculate("lesson2d.pbn");
+    }
+    
+    
+    [Fact]
     public void TestPlayerToPlay()
     {
-        var initialCards = new Dictionary<Player, IEnumerable<Card>>
-        {
-            [Player.North] = new[] { new Card { Suit = Suit.Spades, Face = Face.Ace }, 
-                new Card { Suit = Suit.Clubs, Face = Face.King } },
-            [Player.East] = new[] { new Card { Suit = Suit.Spades, Face = Face.King } },
-            [Player.South] = new[] { new Card { Suit = Suit.Spades, Face = Face.Queen } },
-            [Player.West] = new[] { new Card { Suit = Suit.Spades, Face = Face.Jack } }
-        };
-
         Assert.Equal(Player.East,
-            CalculateDoubleDummy.GetPlayerToPlay([new Card { Suit = Suit.Spades, Face = Face.Ace }], Suit.Spades));
+            CalculateDoubleDummy.GetPlayerToPlay([new Card { Suit = Suit.Spades, Face = Face.Ace, Player = Player.North}], Suit.Spades));
 
         Assert.Equal(Player.South, CalculateDoubleDummy.GetPlayerToPlay(
-            [new Card { Suit = Suit.Spades, Face = Face.Ace }, new Card { Suit = Suit.Spades, Face = Face.King }], Suit.Spades));
+            [new Card { Suit = Suit.Spades, Face = Face.Ace, Player = Player.North}, 
+                new Card { Suit = Suit.Spades, Face = Face.King, Player = Player.East}], Suit.Spades));
 
         Assert.Equal(Player.North, CalculateDoubleDummy.GetPlayerToPlay(
-            [new Card { Suit = Suit.Spades, Face = Face.Queen }, new Card { Suit = Suit.Spades, Face = Face.King }], Suit.Spades));
+            [new Card { Suit = Suit.Spades, Face = Face.Queen, Player = Player.South}, 
+                new Card { Suit = Suit.Spades, Face = Face.Jack, Player = Player.West}], Suit.Spades));
 
         Assert.Equal(Player.North, CalculateDoubleDummy.GetPlayerToPlay(
-        [new Card { Suit = Suit.Spades, Face = Face.King }, 
-            new Card { Suit = Suit.Spades, Face = Face.Queen }, 
-            new Card { Suit = Suit.Spades, Face = Face.Jack }, 
-            new Card { Suit = Suit.Spades, Face = Face.Ace }], 
+        [new Card { Suit = Suit.Spades, Face = Face.King, Player = Player.East}, 
+            new Card { Suit = Suit.Spades, Face = Face.Queen, Player = Player.South}, 
+            new Card { Suit = Suit.Spades, Face = Face.Jack, Player = Player.West}, 
+            new Card { Suit = Suit.Spades, Face = Face.Ace, Player = Player.North}], 
         Suit.Spades));
 
         Assert.Equal(Player.West, CalculateDoubleDummy.GetPlayerToPlay(
-        [new Card { Suit = Suit.Clubs, Face = Face.King }, 
-            new Card { Suit = Suit.Diamonds, Face = Face.Ace }, 
-            new Card { Suit = Suit.Hearts, Face = Face.Queen }, 
-            new Card { Suit = Suit.Spades, Face = Face.Jack }], Suit.Spades));
+        [new Card { Suit = Suit.Clubs, Face = Face.King, Player = Player.North}, 
+            new Card { Suit = Suit.Diamonds, Face = Face.Ace, Player = Player.East}, 
+            new Card { Suit = Suit.Hearts, Face = Face.Queen, Player = Player.South}, 
+            new Card { Suit = Suit.Spades, Face = Face.Jack, Player = Player.West}], Suit.Spades));
 
         Assert.Equal(Player.West, CalculateDoubleDummy.GetPlayerToPlay(
-        [new Card { Suit = Suit.Spades, Face = Face.Jack }, 
-            new Card { Suit = Suit.Diamonds, Face = Face.Queen }, 
-            new Card { Suit = Suit.Diamonds, Face = Face.King }, 
-            new Card { Suit = Suit.Diamonds, Face = Face.Ace }], Suit.Spades));
+        [new Card { Suit = Suit.Spades, Face = Face.Jack, Player = Player.West}, 
+            new Card { Suit = Suit.Diamonds, Face = Face.Queen, Player = Player.North}, 
+            new Card { Suit = Suit.Diamonds, Face = Face.King, Player = Player.East}, 
+            new Card { Suit = Suit.Diamonds, Face = Face.Ace, Player = Player.South}], Suit.Spades));
     }    
     
     private void DoCalculate(string filePath)

@@ -126,11 +126,9 @@ public class CalculateDoubleDummy
 
     private static Player TrickWon(Card[] trick, Suit trumpSuit)
     {
-        var playerToLead = trick.First().Player; 
         var highestCard = trumpSuit != Suit.NoTrump && trick.Any(x => x.Suit == trumpSuit)
             ? trick.Where(x => x.Suit == trumpSuit).MaxBy(x => x.Face)
             : trick.Where(x => x.Suit == trick.First().Suit).MaxBy(x => x.Face);
-        var indexTrickWon = trick.ToList().IndexOf(highestCard);
-        return (Player)((int)(playerToLead + indexTrickWon) % 4);
+        return highestCard.Player;
     }
 }
