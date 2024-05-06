@@ -44,7 +44,7 @@ public class CalculateDoubleDummy
         IEnumerable<(Card, int)> FindBestMove()
         {
             var playedCards = new List<Card>();
-            var availableCards = GetAvailableCards(playedCards, Player.West, []).ToList();
+            var availableCards = GetAvailableCards(playedCards, Player.West).ToList();
             foreach (var card in availableCards)
             {
                 playedCards.Add(card);
@@ -64,11 +64,11 @@ public class CalculateDoubleDummy
 
             var lastTrick = playedCards.Chunk(4).Last();
             var playerToPlay = GetPlayerToPlay(lastTrick, trumpSuit);
-            var availableCards = GetAvailableCards(playedCards, playerToPlay, lastTrick).ToList();
+            var availableCards = GetAvailableCards(playedCards, playerToPlay).ToList();
             if (playerToPlay is Player.North or Player.South)
             {
                 var bestValue = int.MinValue;
-                foreach (var card in availableCards)
+                foreach (var card in availableCards.Where(card => CanPlay(lastTrick, card, availableCards)))
                 {
                     playedCards.Add(card);
                     bestValue = Math.Max(bestValue, Minimax(playedCards, alpha, beta));
@@ -82,7 +82,7 @@ public class CalculateDoubleDummy
             else
             {
                 var bestValue = int.MaxValue;
-                foreach (var card in availableCards)
+                foreach (var card in availableCards.Where(card => CanPlay(lastTrick, card, availableCards)))
                 {
                     playedCards.Add(card);
                     bestValue = Math.Min(bestValue, Minimax(playedCards, alpha, beta));
@@ -95,25 +95,21 @@ public class CalculateDoubleDummy
             }
         }
 
-        IEnumerable<Card> GetAvailableCards(ICollection<Card> playedCards, Player player, Card[] lastTrick)
+        IEnumerable<Card> GetAvailableCards(ICollection<Card> playedCards, Player player)
         {
             var availableCards = initialCards[player].Where(x => !playedCards.Any(y => Equals(y, x))).ToList();
-            availableCards.RemoveAll(x => availableCards.Contains(new Card() {Suit = x.Suit, Face = x.Face + 1 }));
-            if (lastTrick.Length % 4 != 0)
-            {
-                var leadSuit = lastTrick.First().Suit;
-                if (availableCards.Any(y => y.Suit == leadSuit))
-                {
-                    availableCards.RemoveAll(x => x.Suit != leadSuit);
-                }
-            }
-
+            availableCards.RemoveAll(x => availableCards.Contains(new Card {Suit = x.Suit, Face = x.Face + 1 }));
             return availableCards;
         }
        
         int GetTrickCount(IEnumerable<Card> play)
         {
             return play.Chunk(4).Count(trick => TrickWon(trick, trumpSuit) is Player.North or Player.South);
+        }
+
+        bool CanPlay(IReadOnlyCollection<Card> lastTrick, Card card, IEnumerable<Card> availableCards)
+        {
+            return lastTrick.Count == 4 || card.Suit == lastTrick.First().Suit || availableCards.All(x => x.Suit != lastTrick.First().Suit);
         }
     }
     
