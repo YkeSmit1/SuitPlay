@@ -9,7 +9,7 @@ public class Card
     {
         return Suit == other.Suit && Face == other.Face;
     }
-
+    
     public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj)) return false;
@@ -17,7 +17,7 @@ public class Card
         if (obj.GetType() != this.GetType()) return false;
         return Equals((Card)obj);
     }
-
+    
     public override int GetHashCode()
     {
         return HashCode.Combine((int)Suit, (int)Face);
