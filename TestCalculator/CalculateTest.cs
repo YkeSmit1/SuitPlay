@@ -32,8 +32,7 @@ public class CalculateTest
     [InlineData("AJ9", "432")]
     public void TestAverageTrickCount(string north, string south)
     {
-        var cardsInDeck = Enum.GetValues<CardFace>().Except([CardFace.Dummy]).ToList();
-        var output = Calculate.GetAverageTrickCount(north, south, new CalculateOptions {CardsInSuit = cardsInDeck}).ToList();
+        var output = Calculate.GetAverageTrickCount(north, south).ToList();
         
         BasicChecks(output);
         LogAllPlays(output);
@@ -49,8 +48,7 @@ public class CalculateTest
     [InlineData("AKJT98", "32", new[] { CardFace.Three, CardFace.Four, CardFace.Jack }, 5.5, false)] // Fails because alpha beta pruning
     public void TestAverageTrickCountCheck(string north, string south, CardFace[] bestPlay, double expected, bool usePruning)
     {
-        var cardsInDeck = Enum.GetValues<CardFace>().Except([CardFace.Dummy]).ToList();
-        var output = Calculate.GetAverageTrickCount(north, south, new CalculateOptions {CardsInSuit = cardsInDeck, UsePruning = usePruning}).
+        var output = Calculate.GetAverageTrickCount(north, south, new CalculateOptions {UsePruning = usePruning}).
             OrderBy(x => x.Key.Count).ThenBy(z => z.Key.First()).ToList();
         
         BasicChecks(output);
