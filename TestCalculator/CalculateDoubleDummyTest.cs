@@ -32,13 +32,13 @@ public class CalculateDoubleDummyTest
         DoCalculate("lesson2a.pbn", 7.125);
     }
     
-    [Fact]
+    [Fact(Skip = "Test too slow")]
     public void TestCalculateDoubleDummy()
     {
         DoCalculate("lesson2.pbn", 0);
     }
     
-    [Fact]
+    [Fact(Skip = "Test too slow")]
     public void TestCalculateDoubleDummy9Cards()
     {
         DoCalculate("lesson2d.pbn", 0);

@@ -3,50 +3,6 @@ using MoreLinq;
 
 namespace Calculator;
 
-public enum CardFace
-{
-    Dummy,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    Ten,
-    Jack,
-    Queen,
-    King,
-    Ace
-}
-
-public enum Player
-{
-    North,
-    East,
-    South,
-    West,
-    None
-}
-
-public class ListComparer<T> : IEqualityComparer<IList<T>>
-{
-    public bool Equals(IList<T> left, IList<T> right)
-    {
-        if (left == null && right == null)
-            return true;
-        if (left == null || right == null)
-            return false;
-        return left.SequenceEqual(right);
-    }
-
-    public int GetHashCode(IList<T> list)
-    {
-        return list.Aggregate(19, (current, total) => current * 31 + total.GetHashCode());
-    }
-}
-
 public class Calculate
 {
     private static readonly Player[] PlayersNS = [Player.North, Player.South];
@@ -68,10 +24,10 @@ public class Calculate
 
     private static ConcurrentDictionary<List<CardFace>, List<(IList<CardFace>, int)>> CalculateBestPlay(string north, string south)
     {
-        var cardsEW = allCards.Except(north.Select(CharToCard).ToList()).Except(south.Select(CharToCard).ToList()).ToList();
-        var combinations = AllCombinations(cardsEW);
-        var cardsN = north.Select(CharToCard);
-        var cardsS = south.Select(CharToCard);
+        var cardsEW = allCards.Except(north.Select(Utils.CharToCard).ToList()).Except(south.Select(Utils.CharToCard).ToList()).ToList();
+        var combinations = Combinations.AllCombinations(cardsEW);
+        var cardsN = north.Select(Utils.CharToCard);
+        var cardsS = south.Select(Utils.CharToCard);
         ConcurrentDictionary<List<CardFace>, List<(IList<CardFace>, int)>> results = [];
         Parallel.ForEach(combinations, combination =>
         {
@@ -126,69 +82,7 @@ public class Calculate
         return play.Chunk(4).Where(x => x.First() != CardFace.Dummy).Count(trick =>
             PlayersNS.Contains((Player)trick.Select((card, index) => (card, index)).MaxBy((y) => y.card).index));
     }
-
-    private static CardFace CharToCard(char card)
-    {
-        return card switch
-        {
-            '2' => CardFace.Two,
-            '3' => CardFace.Three,
-            '4' => CardFace.Four,
-            '5' => CardFace.Five,
-            '6' => CardFace.Six,
-            '7' => CardFace.Seven,
-            '8' => CardFace.Eight,
-            '9' => CardFace.Nine,
-            'T' => CardFace.Ten,
-            'J' => CardFace.Jack,
-            'Q' => CardFace.Queen,
-            'K' => CardFace.King,
-            'A' => CardFace.Ace,
-            _ => throw new ArgumentOutOfRangeException(nameof(card), card, null)
-        };
-    }
-    
-    private static char CardToChar(CardFace card)
-    {
-        return card switch
-        {
-            CardFace.Dummy => 'D',
-            CardFace.Two => '2',
-            CardFace.Three => '3',
-            CardFace.Four => '4',
-            CardFace.Five => '5',
-            CardFace.Six => '6',
-            CardFace.Seven => '7',
-            CardFace.Eight => '8',
-            CardFace.Nine => '9',
-            CardFace.Ten => 'T',
-            CardFace.Jack => 'J',
-            CardFace.Queen => 'Q',
-            CardFace.King => 'K',
-            CardFace.Ace => 'A',
-            _ => throw new ArgumentOutOfRangeException(nameof(card), card, null)
-        };
-    }    
-
-    private static List<IEnumerable<T>> AllCombinations<T>(IEnumerable<T> elements)
-    {
-        List<IEnumerable<T>> ret = [];
-        for (var k = 0; k <= elements.Count(); k++)
-        {
-            ret.AddRange(k == 0 ? new[] { Array.Empty<T>() } : Combinations(elements, k));
-        }
-
-        return ret;
-
-        static IEnumerable<IEnumerable<TU>> Combinations<TU>(IEnumerable<TU> elements, int k)
-        {
-            return k == 0
-                ? new[] { Array.Empty<TU>() }
-                : elements.SelectMany((e, index) =>
-                    Combinations(elements.Skip(index + 1), k - 1).Select(c => new[] { e }.Concat(c)));
-        }
-    }    
-        
+       
     private static List<(IList<CardFace>, int)> CalculateBestPlayForCombination(params IEnumerable<CardFace>[] cards)
     {
         var tree = new List<(IList<CardFace>, int)>();
@@ -284,8 +178,8 @@ public class Calculate
             return (Player)((lastTrick.Length + (int)playerToLead) % 4 - 1);
         }
     }
-    
-    public static Player NextPlayer(Player player)
+
+    private static Player NextPlayer(Player player)
     {
         return player == Player.West ? Player.North : player + 1;
     }
