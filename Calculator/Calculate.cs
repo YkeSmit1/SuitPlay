@@ -7,10 +7,16 @@ public class Calculate
 {
     private static readonly Player[] PlayersNS = [Player.North, Player.South];
     private static IList<CardFace> allCards;
-    
-    public static IEnumerable<IGrouping<IList<CardFace>, int>> GetAverageTrickCount(string north, string south, IList<CardFace> cardsInSuit = null)
+    private static CalculateOptions options;
+
+    public static IEnumerable<IGrouping<IList<CardFace>, int>> GetAverageTrickCount(string north, string south)
     {
-        allCards = cardsInSuit ?? Enum.GetValues<CardFace>().Except([CardFace.Dummy]).ToList();
+        return GetAverageTrickCount(north, south, CalculateOptions.DefaultCalculateOptions);
+    }
+    public static IEnumerable<IGrouping<IList<CardFace>, int>> GetAverageTrickCount(string north, string south, CalculateOptions calculateOptions)
+    {
+        options = calculateOptions;
+        allCards = options?.CardsInSuit ?? Enum.GetValues<CardFace>().Except([CardFace.Dummy]).ToList();
         var tree = CalculateBestPlay(north, south);
         //LogTreeForPlay(tree, cards);
         var groupedTricks = tree.Values.SelectMany(x => x).GroupBy(
@@ -35,7 +41,8 @@ public class Calculate
             var cardsW = cardsEW.Except(enumerable);
             var calculateBestPlayForCombination = CalculateBestPlayForCombination(cardsN, cardsS, enumerable, cardsW);
             // Remove suboptimal plays
-            RemoveBadPlays();
+            if (options.FilterBadPlaysByEW)
+                RemoveBadPlays();
             results[enumerable] = calculateBestPlayForCombination;
             return;
 
@@ -128,7 +135,7 @@ public class Calculate
                     tree.Add((playedCards.Select(x => x).ToList(), value));
                     playedCards.RemoveAt(playedCards.Count - 1);
                     alpha = Math.Max(alpha, bestValue);
-                    if (bestValue >= beta)
+                    if (options.UsePruning && bestValue >= beta)
                         break;
                 }
                 return bestValue;
@@ -144,7 +151,7 @@ public class Calculate
                     tree.Add((playedCards.Select(x => x).ToList(), value));
                     playedCards.RemoveAt(playedCards.Count - 1);
                     beta = Math.Min(beta, bestValue);
-                    if (bestValue <= alpha)
+                    if (options.UsePruning && bestValue <= alpha)
                         break;
                 }
                 return bestValue;

@@ -65,7 +65,7 @@ public partial class MainPage
         CalculateButton.IsEnabled = false;
         try
         {
-            BestPlay.Text = "Calculating...";
+            BestPlay.Text = "Calculating...\nAverage";
             var stopWatch = Stopwatch.StartNew();
             var southHand = GetHand(((HandViewModel)South.BindingContext).Cards);
             var northHand = GetHand(((HandViewModel)North.BindingContext).Cards);
@@ -90,7 +90,7 @@ public partial class MainPage
         }
     }
 
-    private static string GetBestPlayText(IReadOnlyCollection<IGrouping<IList<Calculator.CardFace>, int>> tricks)
+    private static string GetBestPlayText(IReadOnlyCollection<IGrouping<IList<CardFace>, int>> tricks)
     {
         var bestPlay = FindBestPlay(tricks);
         if (bestPlay.Count < 3)
@@ -103,9 +103,9 @@ public partial class MainPage
         return bestPlayText;
     }
     
-    private static List<Calculator.CardFace> FindBestPlay(IReadOnlyCollection<IGrouping<IList<Calculator.CardFace>, int>> tricks)
+    private static List<CardFace> FindBestPlay(IReadOnlyCollection<IGrouping<IList<CardFace>, int>> tricks)
     {
-        var play = new List<Calculator.CardFace>();
+        var play = new List<CardFace>();
         while (play.Count < 3)
         {
             var trickWithNextCard = tricks.Where(x => x.Key.Count == play.Count + 1 && x.Key.StartsWith(play)).ToList();
@@ -114,15 +114,16 @@ public partial class MainPage
             play.Add(play.Count % 2 == 0 ? GetOurCard() : GetTheirCard());
             continue;
 
-            Calculator.CardFace GetOurCard() => trickWithNextCard.OrderByDescending(x => x.Max()).First().Key.Last();
-            Calculator.CardFace GetTheirCard() => trickWithNextCard.Where(x => x.Key.Last() != Calculator.CardFace.Dummy).OrderBy(y => y.Key.Last()).First().Key.Last();
+            CardFace GetOurCard() => trickWithNextCard.OrderByDescending(x => x.Max()).First().Key.Last();
+            CardFace GetTheirCard() => trickWithNextCard.Where(x => x.Key.Last() != CardFace.Dummy).OrderBy(y => y.Key.Last()).First().Key.Last();
         }
 
         return play;
     }    
 
-    private static Task<IEnumerable<IGrouping<IList<Calculator.CardFace>, int>>> GetAverageTrickCount(string northHand, string southHand)
+    private Task<IEnumerable<IGrouping<IList<CardFace>, int>>> GetAverageTrickCount(string northHand, string southHand)
     {
-        return Task.Run(() => Calculate.GetAverageTrickCount(northHand, southHand));
+        return Task.Run(() => Calculate.GetAverageTrickCount(northHand, southHand,
+            new CalculateOptions { FilterBadPlaysByEW = RemoveBadPlaysCheckBox.IsChecked, UsePruning = UsePruningCheckBox.IsChecked }));
     }
 }
