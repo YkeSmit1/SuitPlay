@@ -28,7 +28,7 @@ jobs:
     - name: Build
       run: dotnet publish suitplay\suitplay.csproj -c Release -f:net8.0-windows10.0.19041.0
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --verbosity normal
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4.3.3
       with:
