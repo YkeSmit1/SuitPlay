@@ -114,7 +114,7 @@ public partial class MainPage
             play.Add(play.Count % 2 == 0 ? GetOurCard() : GetTheirCard());
             continue;
 
-            CardFace GetOurCard() => trickWithNextCard.OrderByDescending(x => x.Max()).First().Key.Last();
+            CardFace GetOurCard() => trickWithNextCard.OrderByDescending(x => x.Average()).First().Key.Last();
             CardFace GetTheirCard() => trickWithNextCard.Where(x => x.Key.Last() != CardFace.Dummy).OrderBy(y => y.Key.Last()).First().Key.Last();
         }
 

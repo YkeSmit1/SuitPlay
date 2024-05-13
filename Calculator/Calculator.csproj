@@ -9,11 +9,4 @@
     <ItemGroup>
       <PackageReference Include="morelinq" Version="4.1.0" />
     </ItemGroup>
-
-    <ItemGroup>
-      <None Update="lesson2c.pbn">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-
 </Project>
