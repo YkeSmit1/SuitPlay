@@ -170,8 +170,7 @@ public class Calculate
         {
             if (player >= Player.None)
                 return [];
-            var playedCardsByPlayer = playedCards.Where(x => initialCards[player].Contains(x));
-            var availableCards = initialCards[player].Except(playedCardsByPlayer).ToList();
+            var availableCards = initialCards[player].Except(playedCards).ToList();
             availableCards.RemoveAll(x => availableCards.Contains(x + 1));
             return availableCards;
         }

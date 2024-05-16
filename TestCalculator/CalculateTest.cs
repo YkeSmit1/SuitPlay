@@ -46,6 +46,8 @@ public class CalculateTest
     [InlineData("KJ5", "432", new[] { CardFace.Four, CardFace.Six, CardFace.Jack }, 1.0, true)]
     [InlineData("KJ5", "432", new[] { CardFace.Four, CardFace.Six, CardFace.King }, 0.75, true)]
     [InlineData("AKJT98", "32", new[] { CardFace.Three, CardFace.Four, CardFace.Jack }, 5.5, false)] // Fails because alpha beta pruning
+    [InlineData("QT83", "K7542", new[] { CardFace.Three, CardFace.Six, CardFace.King }, 3.5, true)]
+    [InlineData("QT83", "K7542", new[] { CardFace.Two, CardFace.Six, CardFace.Queen }, 3.5, true)]
     public void TestAverageTrickCountCheck(string north, string south, CardFace[] bestPlay, double expected, bool usePruning)
     {
         var output = Calculate.GetAverageTrickCount(north, south, new CalculateOptions {UsePruning = usePruning}).

@@ -2,6 +2,33 @@
 
 namespace Calculator;
 
+public enum Suit
+{
+    Spades = 0,
+    Hearts = 1,
+    Diamonds = 2,
+    Clubs = 3,
+    NoTrump = 4
+}
+
+public enum Face
+{
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
+    Nine,
+    Ten,
+    Jack,
+    Queen,
+    King,
+    Ace,
+}
+
+
 [DebuggerDisplay("{Suit,nq} {Face,nq}")]
 public class Card
 {

@@ -1,31 +1,5 @@
 ﻿namespace Calculator;
 
-public enum Suit
-{
-    Spades = 0,
-    Hearts = 1,
-    Diamonds = 2,
-    Clubs = 3,
-    NoTrump = 4
-}
-
-public enum Face
-{
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    Ten,
-    Jack,
-    Queen,
-    King,
-    Ace,
-}
-
 public class Results
 {
     public IList<(Card, int)> Tricks;
@@ -97,7 +71,7 @@ public class CalculateDoubleDummy
 
         IEnumerable<Card> GetAvailableCards(ICollection<Card> playedCards, Player player)
         {
-            var availableCards = initialCards[player].Where(x => !playedCards.Any(y => Equals(y, x))).ToList();
+            var availableCards = initialCards[player].Except(playedCards).ToList();
             availableCards.RemoveAll(x => availableCards.Contains(new Card {Suit = x.Suit, Face = x.Face + 1 }));
             return availableCards;
         }
