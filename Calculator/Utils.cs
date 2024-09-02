@@ -1,5 +1,7 @@
 ﻿namespace Calculator;
 
+using Alias = Universal.Common.Mathematics.Math;
+
 public class ListComparer<T> : IEqualityComparer<IList<T>>
 {
     public bool Equals(IList<T> left, IList<T> right)
@@ -26,65 +28,47 @@ public enum Player
     None
 }
 
-public enum CardFace
-{
-    Dummy,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    Ten,
-    Jack,
-    Queen,
-    King,
-    Ace
-}
-
 public static class Utils
 {
-    public static CardFace CharToCard(char card)
+    public static Face CharToCard(char card)
     {
         return card switch
         {
-            '2' => CardFace.Two,
-            '3' => CardFace.Three,
-            '4' => CardFace.Four,
-            '5' => CardFace.Five,
-            '6' => CardFace.Six,
-            '7' => CardFace.Seven,
-            '8' => CardFace.Eight,
-            '9' => CardFace.Nine,
-            'T' => CardFace.Ten,
-            'J' => CardFace.Jack,
-            'Q' => CardFace.Queen,
-            'K' => CardFace.King,
-            'A' => CardFace.Ace,
+            '2' => Face.Two,
+            '3' => Face.Three,
+            '4' => Face.Four,
+            '5' => Face.Five,
+            '6' => Face.Six,
+            '7' => Face.Seven,
+            '8' => Face.Eight,
+            '9' => Face.Nine,
+            'T' => Face.Ten,
+            'J' => Face.Jack,
+            'Q' => Face.Queen,
+            'K' => Face.King,
+            'A' => Face.Ace,
             _ => throw new ArgumentOutOfRangeException(nameof(card), card, null)
         };
     }
 
-    private static char CardToChar(CardFace card)
+    private static char CardToChar(Face card)
     {
         return card switch
         {
-            CardFace.Dummy => 'D',
-            CardFace.Two => '2',
-            CardFace.Three => '3',
-            CardFace.Four => '4',
-            CardFace.Five => '5',
-            CardFace.Six => '6',
-            CardFace.Seven => '7',
-            CardFace.Eight => '8',
-            CardFace.Nine => '9',
-            CardFace.Ten => 'T',
-            CardFace.Jack => 'J',
-            CardFace.Queen => 'Q',
-            CardFace.King => 'K',
-            CardFace.Ace => 'A',
+            Face.Dummy => 'D',
+            Face.Two => '2',
+            Face.Three => '3',
+            Face.Four => '4',
+            Face.Five => '5',
+            Face.Six => '6',
+            Face.Seven => '7',
+            Face.Eight => '8',
+            Face.Nine => '9',
+            Face.Ten => 'T',
+            Face.Jack => 'J',
+            Face.Queen => 'Q',
+            Face.King => 'K',
+            Face.Ace => 'A',
             _ => throw new ArgumentOutOfRangeException(nameof(card), card, null)
         };
     }

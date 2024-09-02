@@ -13,6 +13,7 @@ public enum Suit
 
 public enum Face
 {
+    Dummy,
     Two,
     Three,
     Four,
@@ -25,9 +26,8 @@ public enum Face
     Jack,
     Queen,
     King,
-    Ace,
+    Ace
 }
-
 
 [DebuggerDisplay("{Suit,nq} {Face,nq}")]
 public class Card

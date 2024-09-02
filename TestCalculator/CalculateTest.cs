@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Calculator;
 using JetBrains.Annotations;
@@ -17,11 +18,11 @@ public class CalculateTest
     }
 
     [Theory]
-    [InlineData(new[] {CardFace.Ten, CardFace.Jack, CardFace.Queen, CardFace.Dummy, CardFace.Ace, CardFace.Dummy, CardFace.Nine, CardFace.King}, 2)]
-    [InlineData(new[] {CardFace.Ten, CardFace.Jack, CardFace.Ace, CardFace.Dummy, CardFace.Queen, CardFace.Dummy, CardFace.Nine, CardFace.King}, 1)]
-    public void TestGetTrickCount(CardFace[] tricks, int expected)
+    [InlineData(new[] {Face.Ten, Face.Jack, Face.Queen, Face.Dummy, Face.Ace, Face.Dummy, Face.Nine, Face.King}, 2)]
+    [InlineData(new[] {Face.Ten, Face.Jack, Face.Ace, Face.Dummy, Face.Queen, Face.Dummy, Face.Nine, Face.King}, 1)]
+    public void TestGetTrickCount(Face[] tricks, int expected)
     {
-        Assert.Equal(expected, Calculate.GetTrickCount(tricks));
+        Assert.Equal(expected, Calculate.GetTrickCount(tricks.Select((x, index) => new Card { Face = x, Player = (Player)(index % 4)})));
     }
        
     [Theory]
@@ -39,16 +40,16 @@ public class CalculateTest
     }
 
     [Theory]
-    [InlineData("AQT", "432", new[] { CardFace.Four, CardFace.Five, CardFace.Ten }, 2.0, true)]
-    [InlineData("AQT", "432", new[] { CardFace.Four, CardFace.Five, CardFace.Queen }, 1.75, true)]
-    [InlineData("A32", "QT9", new[] { CardFace.Ten, CardFace.Four, CardFace.Three }, 1.75, false)] // Fails because alpha beta pruning
-    [InlineData("AJ9", "432", new[] { CardFace.Four, CardFace.Five, CardFace.Nine }, 1.375, false)] // Fails because alpha beta pruning eliminates 459T
-    [InlineData("KJ5", "432", new[] { CardFace.Four, CardFace.Six, CardFace.Jack }, 1.0, true)]
-    [InlineData("KJ5", "432", new[] { CardFace.Four, CardFace.Six, CardFace.King }, 0.75, true)]
-    [InlineData("AKJT98", "32", new[] { CardFace.Three, CardFace.Four, CardFace.Jack }, 5.5, false)] // Fails because alpha beta pruning
-    [InlineData("QT83", "K7542", new[] { CardFace.Three, CardFace.Six, CardFace.King }, 3.5, true)]
-    [InlineData("QT83", "K7542", new[] { CardFace.Two, CardFace.Six, CardFace.Queen }, 3.5, true)]
-    public void TestAverageTrickCountCheck(string north, string south, CardFace[] bestPlay, double expected, bool usePruning)
+    [InlineData("AQT", "432", new[] { Face.Four, Face.Five, Face.Ten }, 2.0, true)]
+    [InlineData("AQT", "432", new[] { Face.Four, Face.Five, Face.Queen }, 1.75, true)]
+    [InlineData("A32", "QT9", new[] { Face.Ten, Face.Four, Face.Three }, 1.75, false)] // Fails because alpha beta pruning
+    [InlineData("AJ9", "432", new[] { Face.Four, Face.Five, Face.Nine }, 1.375, false)] // Fails because alpha beta pruning eliminates 459T
+    [InlineData("KJ5", "432", new[] { Face.Four, Face.Six, Face.Jack }, 1.0, true)]
+    [InlineData("KJ5", "432", new[] { Face.Four, Face.Six, Face.King }, 0.75, true)]
+    [InlineData("AKJT98", "32", new[] { Face.Three, Face.Four, Face.Jack }, 5.5, false)] // Fails because alpha beta pruning
+    [InlineData("QT83", "K7542", new[] { Face.Three, Face.Six, Face.King }, 3.5, true)]
+    [InlineData("QT83", "K7542", new[] { Face.Two, Face.Six, Face.Queen }, 3.5, true)]
+    public void TestAverageTrickCountCheck(string north, string south, Face[] bestPlay, double expected, bool usePruning)
     {
         var output = Calculate.GetAverageTrickCount(north, south, new CalculateOptions {UsePruning = usePruning}).
             OrderBy(x => x.Key.Count).ThenBy(z => z.Key.First()).ToList();
@@ -61,15 +62,15 @@ public class CalculateTest
     }
     
     [Theory]
-    [InlineData("AQ", "9", new[] { CardFace.Nine, CardFace.Jack, CardFace.Queen }, 1.5)]
-    [InlineData("AQ", "9", new[] { CardFace.Nine, CardFace.Jack, CardFace.Ace }, 1.25)]
-    [InlineData("KJ", "9", new[] { CardFace.Nine, CardFace.Ten, CardFace.King }, 0.5)]
-    [InlineData("KJ", "9", new[] { CardFace.Nine, CardFace.Ten, CardFace.Jack }, 0.5)]
-    [InlineData("AJ", "9", new[] { CardFace.Nine, CardFace.Ten, CardFace.Jack }, 1.0)] // Fails because comp plays T from KQT
-    [InlineData("AJ", "9", new[] { CardFace.Nine, CardFace.Ten, CardFace.Ace }, 1.0)]
-    public void TestAverageTrickCountCheck6Cards(string north, string south, CardFace[] bestPlay, double expected)
+    [InlineData("AQ", "9", new[] { Face.Nine, Face.Jack, Face.Queen }, 1.5)]
+    [InlineData("AQ", "9", new[] { Face.Nine, Face.Jack, Face.Ace }, 1.25)]
+    [InlineData("KJ", "9", new[] { Face.Nine, Face.Ten, Face.King }, 0.5)]
+    [InlineData("KJ", "9", new[] { Face.Nine, Face.Ten, Face.Jack }, 0.5)]
+    [InlineData("AJ", "9", new[] { Face.Nine, Face.Ten, Face.Jack }, 1.0)] // Fails because comp plays T from KQT
+    [InlineData("AJ", "9", new[] { Face.Nine, Face.Ten, Face.Ace }, 1.0)]
+    public void TestAverageTrickCountCheck6Cards(string north, string south, Face[] bestPlay, double expected)
     {
-        var cardsInDeck = Enum.GetValues<CardFace>().Except([CardFace.Dummy, CardFace.Two, CardFace.Three, CardFace.Four, CardFace.Five, CardFace.Six, CardFace.Seven, CardFace.Eight]).ToList();
+        var cardsInDeck = Enum.GetValues<Face>().Except([Face.Dummy, Face.Two, Face.Three, Face.Four, Face.Five, Face.Six, Face.Seven, Face.Eight]).ToList();
         var output = Calculate.GetAverageTrickCount(north, south, new CalculateOptions {CardsInSuit = cardsInDeck, FilterBadPlaysByEW = true}).
             OrderBy(x => x.Key.Count).ThenBy(z => z.Key.First()).ToList();
         
@@ -81,15 +82,15 @@ public class CalculateTest
     }
 
     [Theory]
-    [InlineData("AQ", "T", new[] { CardFace.Ten, CardFace.Jack, CardFace.Queen }, 1.5)]
-    [InlineData("AQ", "T", new[] { CardFace.Ten, CardFace.Jack, CardFace.Ace }, 1.5)]
-    [InlineData("KJ", "T", new[] { CardFace.Ten, CardFace.Queen, CardFace.King }, 1.0)]
-    [InlineData("KJ", "T", new[] { CardFace.Ten, CardFace.Ace, CardFace.Jack }, 1.0)]
-    //[InlineData("AJ", "T", new[] { CardFace.Ten, CardFace.Queen, CardFace.Ace }, 1.5)] // Fails because W having KQ is optimised away
-    [InlineData("AJ", "T", new[] { CardFace.Ten, CardFace.King, CardFace.Ace }, 1.5)]
-    public void TestAverageTrickCountCheck5Cards(string north, string south, CardFace[] bestPlay, double expected)
+    [InlineData("AQ", "T", new[] { Face.Ten, Face.Jack, Face.Queen }, 1.5)]
+    [InlineData("AQ", "T", new[] { Face.Ten, Face.Jack, Face.Ace }, 1.5)]
+    [InlineData("KJ", "T", new[] { Face.Ten, Face.Queen, Face.King }, 1.0)]
+    [InlineData("KJ", "T", new[] { Face.Ten, Face.Ace, Face.Jack }, 1.0)]
+    //[InlineData("AJ", "T", new[] { Face.Ten, Face.Queen, Face.Ace }, 1.5)] // Fails because W having KQ is optimised away
+    [InlineData("AJ", "T", new[] { Face.Ten, Face.King, Face.Ace }, 1.5)]
+    public void TestAverageTrickCountCheck5Cards(string north, string south, Face[] bestPlay, double expected)
     {
-        var cardsInDeck = Enum.GetValues<CardFace>().Except([CardFace.Dummy, CardFace.Two, CardFace.Three, CardFace.Four, CardFace.Five, CardFace.Six, CardFace.Seven, CardFace.Eight, CardFace.Nine]).ToList();
+        var cardsInDeck = Enum.GetValues<Face>().Except([Face.Dummy, Face.Two, Face.Three, Face.Four, Face.Five, Face.Six, Face.Seven, Face.Eight, Face.Nine]).ToList();
         var output = Calculate.GetAverageTrickCount(north, south, new CalculateOptions {CardsInSuit = cardsInDeck}).
             OrderBy(x => x.Key.Count).ThenBy(z => z.Key.First()).ToList();
         
@@ -99,7 +100,7 @@ public class CalculateTest
         var actual = GetGrouping(bestPlay, output).Average();
         Assert.Equal(expected, actual,0.01);
     }
-    
+
     [Theory]
     [ClassData(typeof(CalculatorTestData))]
     public void TestRemoveBadPlaysSingle(TestDataPlayAndExpected testData)
@@ -110,7 +111,7 @@ public class CalculateTest
 
     public class TestDataPlayAndExpected
     {
-        public required List<(IList<CardFace>, int)> Plays;
+        public required List<(IList<Face>, int)> Plays;
         public int Expected;
     }
 
@@ -119,29 +120,29 @@ public class CalculateTest
         public IEnumerator<object[]> GetEnumerator()
         {
             yield return [new TestDataPlayAndExpected {Plays = [
-                (new[] {CardFace.Nine, CardFace.Ten, CardFace.Jack}, 2), 
-                (new[] { CardFace.Nine, CardFace.King, CardFace.Jack }, 1)], Expected = 1}
+                (new[] {Face.Nine, Face.Ten, Face.Jack}, 2), 
+                (new[] { Face.Nine, Face.King, Face.Jack }, 1)], Expected = 1}
             ];
             yield return [new TestDataPlayAndExpected {Plays = [
-                    (new[] {CardFace.Nine, CardFace.Ten, CardFace.Jack}, 2), 
-                    (new[] { CardFace.Nine, CardFace.King, CardFace.Jack }, 2)], Expected = 2}
+                    (new[] {Face.Nine, Face.Ten, Face.Jack}, 2), 
+                    (new[] { Face.Nine, Face.King, Face.Jack }, 2)], Expected = 2}
             ];
             yield return [new TestDataPlayAndExpected {Plays = [
-                    (new[] {CardFace.Nine, CardFace.Ten, CardFace.Jack}, 2), 
-                    (new[] { CardFace.Nine, CardFace.Ten, CardFace.Jack }, 1)], Expected = 2}
+                    (new[] {Face.Nine, Face.Ten, Face.Jack}, 2), 
+                    (new[] { Face.Nine, Face.Ten, Face.Jack }, 1)], Expected = 2}
             ];
             yield return [new TestDataPlayAndExpected {Plays = [
-                    (new[] { CardFace.Ten, CardFace.Jack, CardFace.Queen }, 2),
-                    (new[] { CardFace.Ten, CardFace.King, CardFace.Queen }, 1),
-                    (new[] {CardFace.Ten, CardFace.Jack, CardFace.Ace}, 1), 
-                    (new[] { CardFace.Ten, CardFace.King, CardFace.Ace }, 2)
+                    (new[] { Face.Ten, Face.Jack, Face.Queen }, 2),
+                    (new[] { Face.Ten, Face.King, Face.Queen }, 1),
+                    (new[] {Face.Ten, Face.Jack, Face.Ace}, 1), 
+                    (new[] { Face.Ten, Face.King, Face.Ace }, 2)
                 ], Expected = 4}
             ];
             yield return [new TestDataPlayAndExpected {Plays = [
-                    (new[] {CardFace.Ten, CardFace.Queen, CardFace.King}, 1), 
-                    (new[] { CardFace.Ten, CardFace.Ace, CardFace.King }, 0),
-                    (new[] { CardFace.Ten, CardFace.Queen, CardFace.Jack }, 0),
-                    (new[] { CardFace.Ten, CardFace.Ace, CardFace.Jack }, 1)
+                    (new[] {Face.Ten, Face.Queen, Face.King}, 1), 
+                    (new[] { Face.Ten, Face.Ace, Face.King }, 0),
+                    (new[] { Face.Ten, Face.Queen, Face.Jack }, 0),
+                    (new[] { Face.Ten, Face.Ace, Face.Jack }, 1)
                 ], Expected = 4}
             ];
         }
@@ -149,7 +150,7 @@ public class CalculateTest
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
     
-    private void LogAllPlays(List<IGrouping<IList<CardFace>, int>> output)
+    private void LogAllPlays(List<IGrouping<IList<Face>, int>> output)
     {
         var currentLength = 0;
         foreach (var play in output)
@@ -169,9 +170,9 @@ public class CalculateTest
                 testOutputHelper.WriteLine($"Tricks:{groupedTrick.Key} Count:{groupedTrick.Count()}");
             }
         }
-    }    
+    }
     
-    private void LogSpecificPlay(CardFace[] cards, List<IGrouping<IList<CardFace>, int>> output)
+    private void LogSpecificPlay(Face[] cards, List<IGrouping<IList<Face>, int>> output)
     {
         var play = output.Single(x => x.Key.SequenceEqual(cards));
         {
@@ -183,9 +184,9 @@ public class CalculateTest
             }
         }
     }
-
+    
     [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local")]
-    private static void BasicChecks(List<IGrouping<IList<CardFace>, int>> output)
+    private static void BasicChecks(List<IGrouping<IList<Face>, int>> output)
     {
         Assert.NotEmpty(output);
         Assert.Contains(output, x => x.Key.Count == 1);
@@ -193,5 +194,5 @@ public class CalculateTest
         Assert.Contains(output, x => x.Any(y => y != 0));
     }
     
-    IEnumerable<int> GetGrouping(CardFace[] cards, List<IGrouping<IList<CardFace>, int>> output) => output.Single(x => x.Key.SequenceEqual(cards));
+    IEnumerable<int> GetGrouping(Face[] cards, List<IGrouping<IList<Face>, int>> output) => output.Single(x => x.Key.SequenceEqual(cards));
 }

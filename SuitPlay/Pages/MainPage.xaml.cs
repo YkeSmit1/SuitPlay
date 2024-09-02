@@ -90,7 +90,7 @@ public partial class MainPage
         }
     }
 
-    private static string GetBestPlayText(IReadOnlyCollection<IGrouping<IList<CardFace>, int>> tricks)
+    private static string GetBestPlayText(IReadOnlyCollection<IGrouping<IList<Face>, int>> tricks)
     {
         var bestPlay = FindBestPlay(tricks);
         if (bestPlay.Count < 3)
@@ -103,9 +103,9 @@ public partial class MainPage
         return bestPlayText;
     }
     
-    private static List<CardFace> FindBestPlay(IReadOnlyCollection<IGrouping<IList<CardFace>, int>> tricks)
+    private static List<Face> FindBestPlay(IReadOnlyCollection<IGrouping<IList<Face>, int>> tricks)
     {
-        var play = new List<CardFace>();
+        var play = new List<Face>();
         while (play.Count < 3)
         {
             var trickWithNextCard = tricks.Where(x => x.Key.Count == play.Count + 1 && x.Key.StartsWith(play)).ToList();
@@ -114,14 +114,14 @@ public partial class MainPage
             play.Add(play.Count % 2 == 0 ? GetOurCard() : GetTheirCard());
             continue;
 
-            CardFace GetOurCard() => trickWithNextCard.OrderByDescending(x => x.Average()).First().Key.Last();
-            CardFace GetTheirCard() => trickWithNextCard.Where(x => x.Key.Last() != CardFace.Dummy).OrderBy(y => y.Key.Last()).First().Key.Last();
+            Face GetOurCard() => trickWithNextCard.OrderByDescending(x => x.Average()).First().Key.Last();
+            Face GetTheirCard() => trickWithNextCard.Where(x => x.Key.Last() != Face.Dummy).OrderBy(y => y.Key.Last()).First().Key.Last();
         }
 
         return play;
     }    
 
-    private Task<IEnumerable<IGrouping<IList<CardFace>, int>>> GetAverageTrickCount(string northHand, string southHand)
+    private Task<IEnumerable<IGrouping<IList<Face>, int>>> GetAverageTrickCount(string northHand, string southHand)
     {
         return Task.Run(() => Calculate.GetAverageTrickCount(northHand, southHand,
             new CalculateOptions { FilterBadPlaysByEW = RemoveBadPlaysCheckBox.IsChecked, UsePruning = UsePruningCheckBox.IsChecked }));
