@@ -5,6 +5,11 @@ namespace Calculator;
 
 public class Calculate
 {
+    public class Result
+    {
+        public ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>> Trees { get; set; } = new();
+        public ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>> Plays { get; set; } = new();
+    }
     private static readonly Player[] PlayersNS = [Player.North, Player.South];
     private static IList<Face> allCards = Enum.GetValues<Face>().Except([Face.Dummy]).ToList();
     private static CalculateOptions options = CalculateOptions.DefaultCalculateOptions;
@@ -17,9 +22,8 @@ public class Calculate
     {
         options = calculateOptions;
         allCards = options?.CardsInSuit ?? Enum.GetValues<Face>().Except([Face.Dummy]).ToList();
-        var tree = CalculateBestPlay(north, south);
-        //LogTreeForPlay(tree, cards);
-        var groupedTricks = tree.Values.SelectMany(x => x).GroupBy(
+        var result = CalculateBestPlay(north, south);
+        var groupedTricks = result.Trees.Values.SelectMany(x => x).GroupBy(
             x => x.Item1,
             x => x.Item2,
             new ListComparer<Face>());
@@ -28,13 +32,14 @@ public class Calculate
         return averageTrickCountOrdered;
     }
 
-    public static ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>> CalculateBestPlay(string north, string south)
+    public static Result CalculateBestPlay(string north, string south)
     {
         var cardsEW = allCards.Except(north.Select(Utils.CharToCard).ToList()).Except(south.Select(Utils.CharToCard).ToList()).ToList();
+        cardsEW.Reverse();
         var combinations = Combinations.AllCombinations(cardsEW);
         var cardsN = north.Select(Utils.CharToCard);
         var cardsS = south.Select(Utils.CharToCard);
-        ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>> results = [];
+        var result = new Result();
         Parallel.ForEach(combinations, combination =>
         {
             var enumerable = combination.ToList();
@@ -43,27 +48,18 @@ public class Calculate
             // Remove suboptimal plays
             if (options.FilterBadPlaysByEW)
                 RemoveBadPlays();
-            results[enumerable] = calculateBestPlayForCombination;
+            result.Trees[enumerable] = calculateBestPlayForCombination.tree;
+            result.Plays[enumerable] = calculateBestPlayForCombination.results;
             return;
 
             void RemoveBadPlays()
             {
-                RemoveBadPlaysSingle(calculateBestPlayForCombination, 3);
+                RemoveBadPlaysSingle(calculateBestPlayForCombination.tree, 3);
             }
             
         });
-        return results;    
-    }
-    
-    private static void LogTreeForPlay(ConcurrentDictionary<List<Face>,List<(IList<Face>, int)>> tree, Face[] cards)
-    {
-        foreach (var combination in tree)
-        {
-            foreach (var play in combination.Value.Where(play => play.Item1.StartsWith(cards) && play.Item1.Count < 5))
-            {
-                Console.WriteLine($"East:{string.Join(',', combination.Key)}\t\t{PlayToString(play)}");
-            }
-        }
+        
+        return result;    
     }
 
     public static void RemoveBadPlaysSingle(List<(IList<Face> play, int tricks)> bestPlays, int nrOfCards)
@@ -90,18 +86,21 @@ public class Calculate
             PlayersNS.Contains(trick.MaxBy(x => x.Face).Player));
     }
        
-    private static List<(IList<Face>, int)> CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
+    private static (List<(IList<Face>, int)> tree, List<(IList<Face>, int)> results) CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
     {
         var tree = new List<(IList<Face>, int)>();
+        var results = new List<(IList<Face>, int)>();
         var initialCards = new Dictionary<Player, IList<Card>>
         {
-            [Player.North] = cards[0].Select(x => new Card() {Face = x, Player = Player.North}).ToList(),
-            [Player.South] = cards[1].Select(x => new Card() {Face = x, Player = Player.South}).ToList(),
-            [Player.East] = cards[2].Select(x => new Card() {Face = x, Player = Player.East}).ToList(),
-            [Player.West] = cards[3].Select(x => new Card() {Face = x, Player = Player.West}).ToList()
+            [Player.North] = cards[0].Select(x => new Card {Face = x, Player = Player.North}).ToList(),
+            [Player.South] = cards[1].Select(x => new Card {Face = x, Player = Player.South}).ToList(),
+            [Player.East] = cards[2].Select(x => new Card {Face = x, Player = Player.East}).ToList(),
+            [Player.West] = cards[3].Select(x => new Card {Face = x, Player = Player.West}).ToList()
         };
+        var cardsNS = initialCards[Player.North].Concat(initialCards[Player.South]).ToList();
+        var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).ToList();
         FindBestMove();
-        return tree;
+        return (tree, results);
 
         void FindBestMove()
         {
@@ -121,7 +120,9 @@ public class Calculate
             if (playedCards.Count(card => card.Face != Face.Dummy) == allCards.Count ||
                 playedCards.Chunk(4).Last().First().Face == Face.Dummy)
             {
-                return GetTrickCount(playedCards);
+                var trickCount = GetTrickCount(playedCards);
+                results.Add((playedCards.Select(x => x.Face).ToList(), trickCount));
+                return trickCount;
             }
 
             if (maximizingPlayer)
@@ -171,20 +172,10 @@ public class Calculate
             if (player >= Player.None)
                 return [];
             var availableCards = initialCards[player].Except(playedCards).ToList();
-            availableCards.RemoveAll(x => availableCards.Any(y => x.Face == y.Face + 1));
-            //SortAvailableCards();
+            var cardsOtherTeam = player is Player.North or Player.South ? cardsEW : cardsNS;
+            var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeam);
 
-            void SortAvailableCards()
-            {
-                var lastTrick = playedCards.Chunk(4).Last();
-                var indexPlayer = lastTrick.Length;
-                // switch (indexPlayer)
-                // {
-                //     case 1: availableCards = availableCards.OrderBy(x => );
-                // }
-            }
-
-            return availableCards;
+            return availableCardsFiltered.ToList();
         }
 
         Player GetCurrentPlayer(IList<Card> playedCards)
@@ -194,6 +185,24 @@ public class Calculate
                 return Player.None;
             var playerToLead = initialCards.Single(x => x.Value.Contains(lastTrick.First())).Key;
             return (Player)((lastTrick.Length + (int)playerToLead) % 4 - 1);
+        }
+    }
+
+    public static IEnumerable<Card> AvailableCardsFiltered(List<Card> availableCards, List<Card> cardsOtherTeam)
+    {
+        return availableCards.Where(card =>
+        {
+            var nsCardsLower = cardsOtherTeam.Where(x => x.Face < card.Face);
+            var hasSimilarCard = availableCards.Any(x => SequenceEqual(x, nsCardsLower, card));
+            return !hasSimilarCard;
+        });
+
+        bool SequenceEqual(Card x, IEnumerable<Card> nsCardsLower, Card card)
+        {
+            var enumerable = cardsOtherTeam.Where(y => y.Face < x.Face);
+            var equal = enumerable.SequenceEqual(nsCardsLower);
+            var sequenceEqual = equal && card.Face > x.Face;
+            return sequenceEqual;
         }
     }
 

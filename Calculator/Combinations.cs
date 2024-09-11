@@ -21,4 +21,26 @@ public static class Combinations
         }
     }    
     
+    public static IEnumerable<List<T>> FilterCombinations<T>(List<List<T>> elements, List<T> cardsNs) where T : Enum
+    {
+        return elements.Where(element => elements.All(x => !SimilarCombination(element, x, cardsNs))).ToList();
+
+        static bool SimilarCombination(List<T> enumerable, List<T> enumerable1, List<T> cardsNS)
+        {
+            if (enumerable.Count != enumerable1.Count)
+                return false;
+
+            var except = enumerable.Except(enumerable1).ToList();
+            var except1 = enumerable1.Except(enumerable).ToList();
+            if (except.Count == 0 || except1.Count == 0)
+                return false;
+            if (except.Last().CompareTo(except1.Last()) < 0)
+                return false;
+
+            var nsCardsLower = except.Concat(except1).Select(x => cardsNS.Where(y => y.CompareTo(x) < 0)).ToList();
+            var isSimilar = nsCardsLower.All(z => z.SequenceEqual(nsCardsLower.First()));
+            return isSimilar;
+        }
+
+    }
 }

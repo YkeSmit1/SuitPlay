@@ -51,11 +51,11 @@ public static class Utils
         };
     }
 
-    private static char CardToChar(Face card)
+    public static char CardToChar(Face card)
     {
         return card switch
         {
-            Face.Dummy => 'D',
+            Face.Dummy => 'X',
             Face.Two => '2',
             Face.Three => '3',
             Face.Four => '4',
@@ -71,5 +71,14 @@ public static class Utils
             Face.Ace => 'A',
             _ => throw new ArgumentOutOfRangeException(nameof(card), card, null)
         };
+    }
+
+    public static double GetDistributionProbability(int a, int b)
+    {
+        var combinations = Alias.Factorial(a + b) / (Alias.Factorial(a) * Alias.Factorial(b));
+        var nominator = Math.Pow(Alias.Factorial(13), 2) * Alias.Factorial(26 - a - b);
+        var denominator = Alias.Factorial(26) * Alias.Factorial(13 - a) * Alias.Factorial(13 - b);
+        var res = combinations * (nominator / denominator);
+        return res;
     }
 }

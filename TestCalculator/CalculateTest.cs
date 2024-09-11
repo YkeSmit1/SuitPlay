@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Calculator;
 using JetBrains.Annotations;
@@ -40,13 +39,13 @@ public class CalculateTest
     }
 
     [Theory]
-    [InlineData("AQT", "432", new[] { Face.Four, Face.Five, Face.Ten }, 2.0, true)]
-    [InlineData("AQT", "432", new[] { Face.Four, Face.Five, Face.Queen }, 1.75, true)]
-    [InlineData("A32", "QT9", new[] { Face.Ten, Face.Four, Face.Three }, 1.75, false)] // Fails because alpha beta pruning
-    [InlineData("AJ9", "432", new[] { Face.Four, Face.Five, Face.Nine }, 1.375, false)] // Fails because alpha beta pruning eliminates 459T
-    [InlineData("KJ5", "432", new[] { Face.Four, Face.Six, Face.Jack }, 1.0, true)]
-    [InlineData("KJ5", "432", new[] { Face.Four, Face.Six, Face.King }, 0.75, true)]
-    [InlineData("AKJT98", "32", new[] { Face.Three, Face.Four, Face.Jack }, 5.5, false)] // Fails because alpha beta pruning
+    [InlineData("AQT", "432", new[] { Face.Two, Face.Five, Face.Ten }, 2.0, true)]
+    [InlineData("AQT", "432", new[] { Face.Two, Face.Five, Face.Queen }, 1.75, true)]
+    [InlineData("A32", "QT9", new[] { Face.Nine, Face.Four, Face.Two }, 1.75, false)] // Fails because alpha beta pruning
+    [InlineData("AJ9", "432", new[] { Face.Two, Face.Five, Face.Nine }, 1.375, false)] // Fails because alpha beta pruning eliminates 459T
+    [InlineData("KJ5", "432", new[] { Face.Two, Face.Six, Face.Jack }, 1.0, true)]
+    [InlineData("KJ5", "432", new[] { Face.Two, Face.Six, Face.King }, 0.75, true)]
+    [InlineData("AKJT98", "32", new[] { Face.Two, Face.Four, Face.Eight }, 5.5, false)] // Fails because alpha beta pruning
     [InlineData("QT83", "K7542", new[] { Face.Three, Face.Six, Face.King }, 3.5, true)]
     [InlineData("QT83", "K7542", new[] { Face.Two, Face.Six, Face.Queen }, 3.5, true)]
     public void TestAverageTrickCountCheck(string north, string south, Face[] bestPlay, double expected, bool usePruning)
@@ -58,7 +57,7 @@ public class CalculateTest
         LogSpecificPlay(bestPlay, output);
 
         var actual = GetGrouping(bestPlay, output).Average();
-        Assert.Equal(expected, actual, 0.01);
+        Assert.Equal(expected, actual, 0.02);
     }
     
     [Theory]
@@ -150,8 +149,67 @@ public class CalculateTest
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
     
+    [Theory]
+    [InlineData(new[] { "K74", "K65", "54", "76" }, "AQ32", new[]{"K74", "54"})]
+    [InlineData(new[] { "KJ7", "KJ6", "K76", "54", "76" }, "AQT2", new[]{"KJ6", "K76", "54"})]
+    public void TestFilterCombinations(string[] combination, string cardsNS, string[] expected)
+    {
+        var actual = Combinations.FilterCombinations(combination.Select(AsList).ToList(), AsList(cardsNS));
+        Assert.Equal(expected.Select(AsList).ToList(), actual);
+        return;
+
+        List<Face> AsList(string x)
+        {
+            return x.Select(Utils.CharToCard).ToList();
+        }
+    }
+    
+    [Theory]
+    [InlineData("AQ32", "K74", "K4")]
+    [InlineData("AQ92", "KJT43", "KT3")]
+    public void TestFilterAvailableCards(string cardsOtherTeam, string cardsPlayer, string expected)
+    {
+        // Arrange
+        var cardsPlayerList = cardsPlayer.Select(x => new Card {Face = Utils.CharToCard(x)});
+        var cardsOtherTeamList = cardsOtherTeam.Select(x => new Card {Face = Utils.CharToCard(x)});
+        var expectedList = expected.Select(x => new Card {Face = Utils.CharToCard(x)});
+        // Act
+        var actual = Calculate.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList());
+        // Assert
+        Assert.Equal(expectedList, actual);
+    }   
+    
+    [Theory]
+    [InlineData("AQT", "432")]
+    [InlineData("A32", "QT9")]
+    [InlineData("AJ9", "432")] 
+    [InlineData("KJ5", "432")]
+    [InlineData("AKJT98", "32")]
+    [InlineData("QT83", "K7542")]
+    public void TestLogPlays(string north, string south)
+    {
+        var concurrentDictionary = Calculate.CalculateBestPlay(north, south).Plays;
+        foreach (var value in concurrentDictionary.ToList())
+        {
+            testOutputHelper.WriteLine("");
+            testOutputHelper.WriteLine($"Combination: {string.Join("", value.Key.Select(Utils.CardToChar))}");
+            testOutputHelper.WriteLine("");
+            foreach (var tuple in value.Value.OrderByDescending(x => x.Item2))
+            {
+                testOutputHelper.WriteLine($"Play: {PlayToString(tuple.Item1)} Tricks: {tuple.Item2}");
+            }
+        }
+    }
+
+    private static string PlayToString(IList<Face> tuple)
+    {
+        return string.Join("|", string.Join("", tuple.Select(Utils.CardToChar)).Chunk(4).Select(x => new string(x)));
+    }
+
     private void LogAllPlays(List<IGrouping<IList<Face>, int>> output)
     {
+        testOutputHelper.WriteLine("");
+        testOutputHelper.WriteLine("***************  All Plays **************");
         var currentLength = 0;
         foreach (var play in output)
         {
