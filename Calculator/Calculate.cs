@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using MoreLinq;
 
 namespace Calculator;
 
@@ -31,52 +32,26 @@ public class Calculate
         return averageTrickCountOrdered;
     }
 
-    public static Result CalculateBestPlay(string north, string south)
+    public static Result CalculateBestPlay(string north, string south, CalculateOptions calculateOptions = null)
     {
+        options = calculateOptions ?? CalculateOptions.DefaultCalculateOptions;
+        allCards = options?.CardsInSuit ?? Enum.GetValues<Face>().Except([Face.Dummy]).ToList();
         var cardsEW = allCards.Except(north.Select(Utils.CharToCard).ToList()).Except(south.Select(Utils.CharToCard).ToList()).ToList();
         cardsEW.Reverse();
         var combinations = Combinations.AllCombinations(cardsEW);
         var cardsN = north.Select(Utils.CharToCard);
         var cardsS = south.Select(Utils.CharToCard);
         var result = new Result();
-        Parallel.ForEach(combinations, combination =>
+        Parallel.ForEach(combinations, new ParallelOptions() {MaxDegreeOfParallelism = 1}, combination =>
         {
             var enumerable = combination.ToList();
             var cardsW = cardsEW.Except(enumerable);
             var calculateBestPlayForCombination = CalculateBestPlayForCombination(cardsN, cardsS, enumerable, cardsW);
-            // Remove suboptimal plays
-            if (options.FilterBadPlaysByEW)
-                RemoveBadPlays();
             result.Trees[enumerable] = calculateBestPlayForCombination.tree;
             result.Plays[enumerable] = calculateBestPlayForCombination.results;
-            return;
-
-            void RemoveBadPlays()
-            {
-                RemoveBadPlaysSingle(calculateBestPlayForCombination.tree, 3);
-            }
-            
         });
         
         return result;    
-    }
-
-    public static void RemoveBadPlaysSingle(List<(IList<Face> play, int tricks)> bestPlays, int nrOfCards)
-    {
-        var cardPlays = bestPlays.Where(x => x.play.Count == nrOfCards).ToList();
-        bestPlays.RemoveAll(x => cardPlays.Where(HasBetterPlay).Any(y => y.play.SequenceEqual(x.play)));
-        return;
-
-        bool HasBetterPlay((IList<Face> play, int tricks) playToCheck)
-        {
-            var similarPlays = cardPlays.Where(x => IsSimilar(x.play, playToCheck.play)).ToList();
-            return similarPlays.Count != 0 && similarPlays.All(play => play.tricks < playToCheck.tricks);
-            
-            static bool IsSimilar(IList<Face> a, IList<Face> b)
-            {
-                return a[0] == b[0] && a[1] != b[1];
-            }
-        }
     }
 
     public static int GetTrickCount(IEnumerable<Card> play)
@@ -142,6 +117,7 @@ public class Calculate
             }
             else
             {
+                var cardTrickDictionary = new Dictionary<Card, int>();
                 var bestValue = int.MaxValue;
                 foreach (var card in GetPlayableCards(playedCards))
                 {
@@ -149,10 +125,20 @@ public class Calculate
                     var value = Minimax(playedCards, alpha, beta, true);
                     bestValue = Math.Min(bestValue, value);
                     tree.Add((playedCards.Select(x => x.Face).ToList(), value));
+                    cardTrickDictionary[card] = bestValue;
                     playedCards.RemoveAt(playedCards.Count - 1);
                     beta = Math.Min(beta, bestValue);
                     if (options.UsePruning && bestValue <= alpha)
                         break;
+                }
+
+                var badCards = cardTrickDictionary.Where(x => x.Value > cardTrickDictionary.Values.Min()).Select(y => y.Key);
+                foreach (var card in badCards)
+                {
+                    var count = results.RemoveAll(x =>
+                    {
+                        return x.Item1.StartsWith(playedCards.Concat(new List<Card> { card }).Select(x1 => x1.Face));
+                    });
                 }
                 return bestValue;
             }

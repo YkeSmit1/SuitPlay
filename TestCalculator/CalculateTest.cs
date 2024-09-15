@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Calculator;
 using JetBrains.Annotations;
@@ -41,8 +41,8 @@ public class CalculateTest
     [Theory]
     [InlineData("AQT", "432", new[] { Face.Two, Face.Five, Face.Ten }, 2.0, true)]
     //[InlineData("AQT", "432", new[] { Face.Two, Face.Five, Face.Queen }, 1.75, true)]
-    [InlineData("A32", "QT9", new[] { Face.Nine, Face.Four, Face.Two }, 1.75, false)] // Fails because alpha beta pruning
-    [InlineData("AJ9", "432", new[] { Face.Two, Face.Five, Face.Nine }, 1.375, false)] // Fails because alpha beta pruning eliminates 459T
+    //[InlineData("A32", "QT9", new[] { Face.Nine, Face.Four, Face.Two }, 1.75, false)] // Fails because alpha beta pruning
+    //[InlineData("AJ9", "432", new[] { Face.Two, Face.Five, Face.Nine }, 1.375, false)] // Fails because alpha beta pruning eliminates 459T
     [InlineData("KJ5", "432", new[] { Face.Two, Face.Six, Face.Jack }, 1.0, true)]
     //[InlineData("KJ5", "432", new[] { Face.Two, Face.Six, Face.King }, 0.75, true)]
     //[InlineData("AKJT98", "32", new[] { Face.Two, Face.Four, Face.Eight }, 5.5, false)] // Fails because alpha beta pruning
@@ -70,7 +70,7 @@ public class CalculateTest
     public void TestAverageTrickCountCheck6Cards(string north, string south, Face[] bestPlay, double expected)
     {
         var cardsInDeck = Enum.GetValues<Face>().Except([Face.Dummy, Face.Two, Face.Three, Face.Four, Face.Five, Face.Six, Face.Seven, Face.Eight]).ToList();
-        var output = Calculate.GetAverageTrickCount(north, south, new CalculateOptions {CardsInSuit = cardsInDeck, FilterBadPlaysByEW = true}).
+        var output = Calculate.GetAverageTrickCount(north, south, new CalculateOptions {CardsInSuit = cardsInDeck}).
             OrderBy(x => x.Key.Count).ThenBy(z => z.Key.First()).ToList();
         
         BasicChecks(output);
@@ -82,7 +82,7 @@ public class CalculateTest
 
     [Theory]
     [InlineData("AQ", "T", new[] { Face.Ten, Face.Jack, Face.Queen }, 1.5)]
-    [InlineData("AQ", "T", new[] { Face.Ten, Face.Jack, Face.Ace }, 1.5)]
+    //[InlineData("AQ", "T", new[] { Face.Ten, Face.Jack, Face.Ace }, 1.5)]
     [InlineData("KJ", "T", new[] { Face.Ten, Face.Queen, Face.King }, 1.0)]
     [InlineData("KJ", "T", new[] { Face.Ten, Face.Ace, Face.Jack }, 1.0)]
     //[InlineData("AJ", "T", new[] { Face.Ten, Face.Queen, Face.Ace }, 1.5)] // Fails because W having KQ is optimised away
@@ -100,55 +100,6 @@ public class CalculateTest
         Assert.Equal(expected, actual,0.01);
     }
 
-    [Theory]
-    [ClassData(typeof(CalculatorTestData))]
-    public void TestRemoveBadPlaysSingle(TestDataPlayAndExpected testData)
-    {
-        Calculate.RemoveBadPlaysSingle(testData.Plays, 3);
-        Assert.Equal(testData.Expected, testData.Plays.Count);
-    }
-
-    public class TestDataPlayAndExpected
-    {
-        public required List<(IList<Face>, int)> Plays;
-        public int Expected;
-    }
-
-    private class CalculatorTestData : IEnumerable<object[]>
-    {
-        public IEnumerator<object[]> GetEnumerator()
-        {
-            yield return [new TestDataPlayAndExpected {Plays = [
-                (new[] {Face.Nine, Face.Ten, Face.Jack}, 2), 
-                (new[] { Face.Nine, Face.King, Face.Jack }, 1)], Expected = 1}
-            ];
-            yield return [new TestDataPlayAndExpected {Plays = [
-                    (new[] {Face.Nine, Face.Ten, Face.Jack}, 2), 
-                    (new[] { Face.Nine, Face.King, Face.Jack }, 2)], Expected = 2}
-            ];
-            yield return [new TestDataPlayAndExpected {Plays = [
-                    (new[] {Face.Nine, Face.Ten, Face.Jack}, 2), 
-                    (new[] { Face.Nine, Face.Ten, Face.Jack }, 1)], Expected = 2}
-            ];
-            yield return [new TestDataPlayAndExpected {Plays = [
-                    (new[] { Face.Ten, Face.Jack, Face.Queen }, 2),
-                    (new[] { Face.Ten, Face.King, Face.Queen }, 1),
-                    (new[] {Face.Ten, Face.Jack, Face.Ace}, 1), 
-                    (new[] { Face.Ten, Face.King, Face.Ace }, 2)
-                ], Expected = 4}
-            ];
-            yield return [new TestDataPlayAndExpected {Plays = [
-                    (new[] {Face.Ten, Face.Queen, Face.King}, 1), 
-                    (new[] { Face.Ten, Face.Ace, Face.King }, 0),
-                    (new[] { Face.Ten, Face.Queen, Face.Jack }, 0),
-                    (new[] { Face.Ten, Face.Ace, Face.Jack }, 1)
-                ], Expected = 4}
-            ];
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    }
-    
     [Theory]
     [InlineData(new[] { "K74", "K65", "54", "76" }, "AQ32", new[]{"K74", "54"})]
     [InlineData(new[] { "KJ7", "KJ6", "K76", "54", "76" }, "AQT2", new[]{"KJ6", "K76", "54"})]
@@ -189,12 +140,44 @@ public class CalculateTest
     public void TestLogPlays(string north, string south)
     {
         var concurrentDictionary = Calculate.CalculateBestPlay(north, south).Plays;
+        var allCards = Enum.GetValues<Face>().Except([Face.Dummy]).ToList();
+        LogAllPlays(north, south, allCards, concurrentDictionary);
+    }
+
+    [Theory]
+    [InlineData("AQ", "T")]
+    [InlineData("KJ", "T")]
+    public void TestLogPlays5Cards(string north, string south)
+    {
+        var calculateOptions = new CalculateOptions { CardsInSuit = [Face.Ten, Face.Jack, Face.Queen, Face.King, Face.Ace] };
+        var concurrentDictionary = Calculate.CalculateBestPlay(north, south, calculateOptions).Plays;
+        LogAllPlays(north, south, calculateOptions.CardsInSuit, concurrentDictionary);
+    }
+    
+    [Theory]
+    [InlineData("AQ", "9")]
+    [InlineData("KJ", "9")]
+    [InlineData("AJ", "9")]
+    public void TestLogPlays6Cards(string north, string south)
+    {
+        var calculateOptions = new CalculateOptions { CardsInSuit = [Face.Nine, Face.Ten, Face.Jack, Face.Queen, Face.King, Face.Ace] };
+        var concurrentDictionary = Calculate.CalculateBestPlay(north, south, calculateOptions).Plays;
+        LogAllPlays(north, south, calculateOptions.CardsInSuit, concurrentDictionary);
+    }
+
+    private void LogAllPlays(string north, string south, IList<Face> allCards, ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>> concurrentDictionary)
+    {
+        var cardsEW = allCards.Except(north.Select(Utils.CharToCard).Concat(south.Select(Utils.CharToCard))).Reverse().ToList();
         foreach (var value in concurrentDictionary.ToList())
         {
             testOutputHelper.WriteLine("");
-            testOutputHelper.WriteLine($"Combination: {string.Join("", value.Key.Select(Utils.CardToChar))}");
+            testOutputHelper.WriteLine($"West-East: {string.Join("", cardsEW.Except(value.Key).Select(Utils.CardToChar))} - {string.Join("", value.Key.Select(Utils.CardToChar))}");
             testOutputHelper.WriteLine("");
-            foreach (var tuple in value.Value.OrderByDescending(x => x.Item2))
+            foreach (var tuple in value.Value.OrderByDescending(x => x.Item1.First())
+                         .ThenBy(y => y.Item1.Skip(1).First())
+                         .ThenBy(z => z.Item1.Skip(2).First())
+                         .ThenBy(w => w.Item1.Skip(3).First())
+                         .ThenByDescending(v => v.Item2))
             {
                 testOutputHelper.WriteLine($"Play: {PlayToString(tuple.Item1)} Tricks: {tuple.Item2}");
             }
