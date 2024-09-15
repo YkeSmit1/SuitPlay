@@ -32,7 +32,7 @@ public enum Face
 [DebuggerDisplay("{Suit,nq} {Face,nq}")]
 public class Card
 {
-    protected bool Equals(Card other)
+    private bool Equals(Card other)
     {
         return Suit == other.Suit && Face == other.Face;
     }

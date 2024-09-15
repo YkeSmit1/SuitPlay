@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using MoreLinq;
 
 namespace Calculator;
 
@@ -209,25 +208,5 @@ public class Calculate
     private static Player NextPlayer(Player player)
     {
         return player == Player.West ? Player.North : player + 1;
-    }
-
-    public static List<string> PlaysToString(IEnumerable<(IList<Face>, int)> play)
-    {
-        return play.Select(PlayToString).ToList();
-    }
-
-    public static List<string> GroupingsToString(IEnumerable<IGrouping<IList<Face>, int>> play)
-    {
-        return play.Select(GroupingToString).ToList();
-    }
-
-    private static string PlayToString((IList<Face>, int) x)
-    {
-        return $"Count:{x.Item1.Count} Play:{string.Join(",", x.Item1)} Tricks:{x.Item2}";
-    }
-
-    private static string GroupingToString(IGrouping<IList<Face>, int> x)
-    {
-        return $"Count:{x.Key.Count} Play:{string.Join(",", x.Key)} Tricks:{string.Join(";", x)}";
     }
 }
