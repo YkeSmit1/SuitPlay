@@ -123,7 +123,6 @@ public partial class MainPage
 
     private Task<IEnumerable<IGrouping<IList<Face>, int>>> GetAverageTrickCount(string northHand, string southHand)
     {
-        return Task.Run(() => Calculate.GetAverageTrickCount(northHand, southHand,
-            new CalculateOptions { UsePruning = UsePruningCheckBox.IsChecked }));
+        return Task.Run(() => Calculate.GetAverageTrickCount(northHand, southHand));
     }
 }
