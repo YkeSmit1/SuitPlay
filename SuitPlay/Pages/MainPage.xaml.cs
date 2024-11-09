@@ -22,6 +22,7 @@ public partial class MainPage
     }
 
     private readonly Dictionary<(string suit, string card), string> dictionary;
+    private List<IGrouping<IList<Face>, int>> tricks;
 
     public MainPage()
     {
@@ -69,7 +70,7 @@ public partial class MainPage
             var stopWatch = Stopwatch.StartNew();
             var southHand = GetHand(((HandViewModel)South.BindingContext).Cards);
             var northHand = GetHand(((HandViewModel)North.BindingContext).Cards);
-            var tricks = await GetAverageTrickCount(northHand, southHand);
+            tricks = await GetAverageTrickCount(northHand, southHand);
             BestPlay.Text = $"{GetBestPlayText(tricks.ToList())} ({stopWatch.Elapsed:s\\:ff} seconds)";
         }
         catch (Exception exception)
@@ -121,8 +122,21 @@ public partial class MainPage
         return play;
     }    
 
-    private Task<IEnumerable<IGrouping<IList<Face>, int>>> GetAverageTrickCount(string northHand, string southHand)
+    private Task<List<IGrouping<IList<Face>, int>>> GetAverageTrickCount(string northHand, string southHand)
     {
-        return Task.Run(() => Calculate.GetAverageTrickCount(northHand, southHand));
+        return Task.Run(() => Calculate.GetAverageTrickCount2(northHand, southHand).ToList());
     }
+
+    private async void Button_OnClicked(object sender, EventArgs e)
+    {
+        var overviewList = tricks.Where(y => y.Key.Count > 2 && y.Key.All(z => z != Face.Dummy)).Select(x => new OverviewItem
+            { FirstTrick = PlayToString(x.Key), Average = x.Average(), Count = x.Count() }).ToList();
+        await Shell.Current.GoToAsync(nameof(OverviewPage), new Dictionary<string, object> { ["OverviewList"] = overviewList });
+    }
+    
+    private static string PlayToString(IList<Face> tuple)
+    {
+        return string.Join("", tuple.Select(Utils.CardToChar));
+    }
+    
 }

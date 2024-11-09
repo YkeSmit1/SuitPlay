@@ -19,6 +19,16 @@ public class Calculate
 
     private static readonly Player[] PlayersNS = [Player.North, Player.South];
     private static Options options;
+    
+    public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount2(string north, string south)
+    {
+        var result = CalculateBestPlay(north, south);
+        var valueTuples = result.Trees.Values.SelectMany(x => x);
+        var groupedTricks = valueTuples.GroupBy(x => x.Item1.Take(3).ToList(), x => x.Item2, new ListComparer<Face>());
+        var averageTrickCountOrdered = groupedTricks.OrderByDescending(z => z.Average());
+        return averageTrickCountOrdered;
+    }
+    
 
     public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount(string north, string south, Options calculateOptions = null)
     {

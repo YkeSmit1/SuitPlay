@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="using:SuitPlay.ViewModels"
+             x:Class="SuitPlay.Pages.OverviewPage">
+    <ContentPage.BindingContext>
+        <viewModels:OverviewViewModel/>
+    </ContentPage.BindingContext>
+    <ContentPage.Content>
+        <Grid>
+            <ScrollView>
+                <CollectionView ItemsSource="{Binding OverviewList}" x:DataType="viewModels:OverviewViewModel">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="viewModels:OverviewItem">
+                            <StackLayout Orientation="Horizontal" Margin="10">
+                                <Label Text="{Binding FirstTrick, StringFormat='Tricks: {0}'}" Margin="10, 2, 10, 2"></Label>
+                                <Label Text="{Binding Average, StringFormat='Average: {0:F2}'}" Margin="10, 2, 10, 2"></Label>
+                                <Label Text="{Binding Count, StringFormat='Count: {0}'}" Margin="10, 2, 10, 2"></Label>
+                            </StackLayout>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </ScrollView>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>
