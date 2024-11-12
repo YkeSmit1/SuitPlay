@@ -55,7 +55,8 @@ public static class Utils
     {
         return card switch
         {
-            Face.Dummy => 'X',
+            Face.SmallCard => 'x',
+            Face.Dummy => '_',
             Face.Two => '2',
             Face.Three => '3',
             Face.Four => '4',

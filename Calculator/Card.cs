@@ -13,6 +13,7 @@ public enum Suit
 
 public enum Face
 {
+    SmallCard,
     Dummy,
     Two,
     Three,

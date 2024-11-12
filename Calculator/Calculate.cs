@@ -24,11 +24,22 @@ public class Calculate
     {
         var result = CalculateBestPlay(north, south);
         var valueTuples = result.Trees.Values.SelectMany(x => x);
-        var groupedTricks = valueTuples.GroupBy(x => x.Item1.Take(3).ToList(), x => x.Item2, new ListComparer<Face>());
+        var valueTuples2 = ReplaceWithSmallCards(valueTuples);
+        var groupedTricks = valueTuples2.GroupBy(x => x.Item1.Take(3).ToList(), 
+            x => x.Item2, new ListComparer<Face>());
         var averageTrickCountOrdered = groupedTricks.OrderByDescending(z => z.Average());
         return averageTrickCountOrdered;
+
+        IEnumerable<(IEnumerable<Face>, int)> ReplaceWithSmallCards(IEnumerable<(IList<Face>, int)> enumerable)
+        {   
+            return enumerable.Select(x => (x.Item1.Select(ReplaceIfPossible), x.Item2));
+
+            Face ReplaceIfPossible(Face x)
+            {
+                return x < Face.Nine ? Face.SmallCard : x;
+            }
+        }
     }
-    
 
     public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount(string north, string south, Options calculateOptions = null)
     {
@@ -42,7 +53,7 @@ public class Calculate
     public static Result CalculateBestPlay(string north, string south, Options calculateOptions = null)
     {
         options = calculateOptions ?? Options.DefaultCalculateOptions;
-        var allCards = options.CardsInSuit ?? Enum.GetValues<Face>().Except([Face.Dummy]).ToList();
+        var allCards = options.CardsInSuit ?? Enum.GetValues<Face>().SkipUntil(x => x == Face.Two).ToList();
         var cardsN = north.Select(Utils.CharToCard).ToList();
         var cardsS = south.Select(Utils.CharToCard).ToList();
         var cardsEW = allCards.Except(cardsN).Except(cardsS).Reverse().ToList();

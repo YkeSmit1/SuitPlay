@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Calculator;
 using JetBrains.Annotations;
+using MoreLinq;
 using Xunit.Abstractions;
 
 namespace TestCalculator;
@@ -133,7 +134,7 @@ public class CalculateTest
     public void TestLogPlays(string north, string south)
     {
         var concurrentDictionary = Calculate.CalculateBestPlay(north, south).Plays;
-        var allCards = Enum.GetValues<Face>().Except([Face.Dummy]).ToList();
+        var allCards = Enum.GetValues<Face>().SkipUntil(x => x == Face.Two).ToList();
         LogAllPlays(north, south, allCards, concurrentDictionary);
     }
 
