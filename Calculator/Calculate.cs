@@ -23,22 +23,15 @@ public class Calculate
     public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount2(string north, string south)
     {
         var result = CalculateBestPlay(north, south);
-        var valueTuples = result.Trees.Values.SelectMany(x => x);
-        var valueTuples2 = ReplaceWithSmallCards(valueTuples);
-        var groupedTricks = valueTuples2.GroupBy(x => x.Item1.Take(3).ToList(), 
+        var flattenedResults = result.Trees.Values.SelectMany(x => x);
+        var cardsNS = (north + south).Select(Utils.CharToCard).OrderBy(x => x);
+        var chunksNS = cardsNS.Segment((item, prevItem, idx) => (int)item - (int)prevItem > 1).ToList();
+        var resultsWithSmallCards = flattenedResults.Select(x =>
+            (x.Item1.Select(y => y < chunksNS.Skip(1).First().First() ? Face.SmallCard : y), x.Item2));
+        var groupedTricks = resultsWithSmallCards.GroupBy(x => x.Item1.Take(3).ToList(), 
             x => x.Item2, new ListComparer<Face>());
         var averageTrickCountOrdered = groupedTricks.OrderByDescending(z => z.Average());
         return averageTrickCountOrdered;
-
-        IEnumerable<(IEnumerable<Face>, int)> ReplaceWithSmallCards(IEnumerable<(IList<Face>, int)> enumerable)
-        {   
-            return enumerable.Select(x => (x.Item1.Select(ReplaceIfPossible), x.Item2));
-
-            Face ReplaceIfPossible(Face x)
-            {
-                return x < Face.Nine ? Face.SmallCard : x;
-            }
-        }
     }
 
     public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount(string north, string south, Options calculateOptions = null)
