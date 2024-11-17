@@ -25,7 +25,7 @@ public class Calculate
         var result = CalculateBestPlay(north, south);
         var flattenedResults = result.Trees.Values.SelectMany(x => x);
         var cardsNS = (north + south).Select(Utils.CharToCard).OrderBy(x => x);
-        var chunksNS = cardsNS.Segment((item, prevItem, idx) => (int)item - (int)prevItem > 1).ToList();
+        var chunksNS = cardsNS.Segment((item, prevItem, _) => (int)item - (int)prevItem > 1).ToList();
         var resultsWithSmallCards = flattenedResults.Select(x =>
             (x.Item1.Select(y => y < chunksNS.Skip(1).First().First() ? Face.SmallCard : y), x.Item2));
         var groupedTricks = resultsWithSmallCards.GroupBy(x => x.Item1.Take(3).ToList(), 
@@ -162,9 +162,26 @@ public class Calculate
 
         IEnumerable<Card> GetAvailableCards(IList<Card> playedCards, Player player)
         {
-            if (player >= Player.None)
+            if (player == Player.None)
                 return [];
+            
             var availableCards = initialCards[player].Except(playedCards).ToList();
+            if (availableCards.Count == 0)
+                return [];
+            
+            // if (playedCards.Count % 4 == 1)
+            // {
+            //     var lastTrick = playedCards.Chunk(4).Last();
+            //     return availableCards.Where(x => availableCards.All(y => (int)x.Face <= (int)y.Face || (int)x.Face > (int)lastTrick.First().Face ));
+            // }
+            
+            // if (playedCards.Count % 4 == 3)
+            // {
+            //     var lastTrick = playedCards.Chunk(4).Last();
+            //     var highestCards = availableCards.Where(x => x.Face > lastTrick.Max(y => y.Face)).ToList();
+            //     return highestCards.Count > 0 ? [highestCards.MinBy(x => x.Face)] : [availableCards.MinBy(x => x.Face)];
+            // }
+            
             var cardsOtherTeam = player is Player.North or Player.South ? cardsEW : cardsNS;
             var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeam);
 

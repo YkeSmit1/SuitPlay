@@ -9,7 +9,15 @@
     </ContentPage.BindingContext>
     <ContentPage.Content>
         <Grid>
-            <ScrollView>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <HorizontalStackLayout Grid.Row="0">
+                <Label Text="Number of plays:"></Label>
+                <Label Text="{Binding Path=OverviewList.Count}"></Label>
+            </HorizontalStackLayout>
+            <ScrollView Grid.Row="1">
                 <CollectionView ItemsSource="{Binding OverviewList}" x:DataType="viewModels:OverviewViewModel">
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="viewModels:OverviewItem">
