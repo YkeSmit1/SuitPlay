@@ -185,7 +185,7 @@ public partial class MainPage
         {
             var north = ((HandViewModel)North.BindingContext).Cards.Select(x => x.Face);
             var south = ((HandViewModel)South.BindingContext).Cards.Select(x => x.Face);
-            return Enum.GetValues<Face>().SkipUntil(x => x == Face.Two).Except(east).Except(north).Except(south).ToList();
+            return Enum.GetValues<Face>().SkipUntil(x => x == Face.Two).Except(east).Except(north).Except(south).Reverse().ToList();
         }
     }
 

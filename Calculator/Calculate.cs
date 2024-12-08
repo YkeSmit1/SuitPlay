@@ -14,7 +14,6 @@ public class Calculate
     public class Result
     {
         public ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>> Trees { get; } = new();
-        public ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>> Plays { get; } = new();
     }
 
     private static readonly Player[] PlayersNS = [Player.North, Player.South];
@@ -34,15 +33,6 @@ public class Calculate
         return averageTrickCountOrdered;
     }
 
-    public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount(string north, string south, Options calculateOptions = null)
-    {
-        var result = CalculateBestPlay(north, south, calculateOptions);
-        var groupedTricks = result.Trees.Values.SelectMany(x => x).GroupBy(
-            x => x.Item1, x => x.Item2, new ListComparer<Face>());
-        var averageTrickCountOrdered = groupedTricks.OrderBy(x => x.Key.Count).ThenBy(z => z.Key.First());
-        return averageTrickCountOrdered;
-    }
-
     public static Result CalculateBestPlay(string north, string south, Options calculateOptions = null)
     {
         options = calculateOptions ?? Options.DefaultCalculateOptions;
@@ -58,7 +48,6 @@ public class Calculate
             var cardsW = cardsEW.Except(cardsE);
             var calculateBestPlayForCombination = CalculateBestPlayForCombination(cardsN, cardsS, cardsE, cardsW);
             result.Trees[cardsE] = calculateBestPlayForCombination.tree;
-            result.Plays[cardsE] = calculateBestPlayForCombination.results;
         });
 
         return result;

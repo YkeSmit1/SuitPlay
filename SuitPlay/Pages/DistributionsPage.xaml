@@ -21,12 +21,11 @@
                             <Label Text="{Binding East, Converter={StaticResource CardsToStringConverter}}" Margin="10, 2, 10, 2"></Label>
                             <Label Text="{Binding Occurrences}" Margin="10, 2, 10, 2"></Label>
                             <Label Text="{Binding Probability, StringFormat='{0:F2}%'}" Margin="10, 2, 10, 2"></Label>
-                            <CollectionView ItemsSource="{Binding Path=Tricks }">
+                            <CollectionView ItemsSource="{Binding Path=Tricks }"
+                                            ItemsLayout="HorizontalList">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="viewModels:TricksItem">
-                                        <HorizontalStackLayout>
-                                            <Label Text="{Binding NrOfTricks}"></Label>
-                                        </HorizontalStackLayout>
+                                        <Label Text="{Binding NrOfTricks}"></Label>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
