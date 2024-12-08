@@ -1,5 +1,5 @@
 ﻿using System.Collections.ObjectModel;
-using Common;
+using Calculator;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SuitPlay.ViewModels
@@ -32,12 +32,12 @@ namespace SuitPlay.ViewModels
             {
                 foreach (var card in suit.x)
                 {
-                    var valueTuple = (Util.GetSuitDescriptionASCII(suit.Item2), card.ToString());
+                    var valueTuple = (Utils.GetSuitDescriptionASCII(suit.Item2), card.ToString());
                     Cards.Add(new UiCard
                         {
                             Rect = new Rect(index * settings.CardDistance, 0, settings.CardWidth, settings.CardHeight),
                             Source = dictionary[valueTuple],
-                            Face = Util.GetFaceFromDescription(card),
+                            Face = Utils.GetFaceFromDescription(card),
                             Suit = suit.Item2
                         }
                     );

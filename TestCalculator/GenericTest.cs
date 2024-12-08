@@ -1,5 +1,4 @@
 ﻿using Calculator;
-using Common;
 using Xunit.Abstractions;
 
 namespace TestCalculator;

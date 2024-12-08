@@ -34,6 +34,22 @@ public partial class MainPage
         South.OnImageTapped += TapGestureRecognizer_OnTapped;
         South.OnHandTapped += TapGestureRecognizerSelect_OnTapped;
         InitCards();
+        LoadSettings();
+
+        SelectedHandView = North;
+        
+    }
+
+    private void LoadSettings()
+    {
+        ((HandViewModel)North.BindingContext).ShowHand($",{Preferences.Get("North", "")},,", "default", dictionary);
+        ((HandViewModel)South.BindingContext).ShowHand($",{Preferences.Get("South", "")},,", "default", dictionary);
+    }
+    
+    private void SaveSettings()
+    {
+        Preferences.Set("North", Utils.CardListToString(((HandViewModel)North.BindingContext).Cards.Select(x => x.Face).ToList()));
+        Preferences.Set("South", Utils.CardListToString(((HandViewModel)South.BindingContext).Cards.Select(x => x.Face).ToList()));
     }
 
     private void InitCards()
@@ -41,7 +57,6 @@ public partial class MainPage
         ((HandViewModel)Cards.BindingContext).ShowHand(",AKQJT98765432,,", "default", dictionary);
         ((HandViewModel)North.BindingContext).Cards.Clear();
         ((HandViewModel)South.BindingContext).Cards.Clear();
-        SelectedHandView = North;
     }
 
     private void TapGestureRecognizer_OnTapped(object sender, TappedEventArgs e)
@@ -49,6 +64,7 @@ public partial class MainPage
         var card = (UiCard)((Image)sender).BindingContext;
         ((HandViewModel)((HandView)e.Parameter)?.BindingContext)?.RemoveCard(card);
         ((HandViewModel)((HandView)e.Parameter == Cards ? SelectedHandView : Cards).BindingContext).AddCard(card);
+        SaveSettings();
     }
     
     private void TapGestureRecognizerSelect_OnTapped(object sender, TappedEventArgs e)
@@ -63,9 +79,9 @@ public partial class MainPage
 
     private async void CalculateButton_OnClicked(object sender, EventArgs e)
     {
-        CalculateButton.IsEnabled = false;
         try
         {
+            CalculateButton.IsEnabled = false;
             BestPlay.Text = "Calculating...\nAverage";
             var stopWatch = Stopwatch.StartNew();
             var southHand = GetHand(((HandViewModel)South.BindingContext).Cards);
@@ -81,14 +97,12 @@ public partial class MainPage
         {
             CalculateButton.IsEnabled = true;
         }
-        
-        return;
+    }
 
-        string GetHand(IEnumerable<UiCard> observableCollection)
-        {
-            return observableCollection.Aggregate("",
-                (current, card) => current + dictionary.Single(x => x.Value == card.Source).Key.card);
-        }
+    private string GetHand(IEnumerable<UiCard> observableCollection)
+    {
+        return observableCollection.Aggregate("",
+            (current, card) => current + dictionary.Single(x => x.Value == card.Source).Key.card);
     }
 
     private static string GetBestPlayText(IReadOnlyCollection<IGrouping<IList<Face>, int>> tricks)
@@ -127,16 +141,61 @@ public partial class MainPage
         return Task.Run(() => Calculate.GetAverageTrickCount2(northHand, southHand).ToList());
     }
 
-    private async void Button_OnClicked(object sender, EventArgs e)
+    private async void ButtonOverview_OnClicked(object sender, EventArgs e)
     {
-        var overviewList = tricks.Where(y => y.Key.Count > 2 && y.Key.All(z => z != Face.Dummy)).Select(x => new OverviewItem
-            { FirstTrick = PlayToString(x.Key), Average = x.Average(), Count = x.Count() }).ToList();
-        await Shell.Current.GoToAsync(nameof(OverviewPage), new Dictionary<string, object> { ["OverviewList"] = overviewList });
+        try
+        {
+            var overviewList = tricks.Where(y => y.Key.Count > 2 && y.Key.All(z => z != Face.Dummy)).Select(x => new OverviewItem
+                { FirstTrick = PlayToString(x.Key), Average = x.Average(), Count = x.Count() }).ToList();
+            await Shell.Current.GoToAsync(nameof(OverviewPage), new Dictionary<string, object> { ["OverviewList"] = overviewList });
+        }
+        catch (Exception exception)
+        {
+            await DisplayAlert("Error", exception.Message, "OK");
+        }
+    }
+    
+    private async void ButtonDistributions_OnClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            var northHand = GetHand(((HandViewModel)North.BindingContext).Cards);
+            var southHand = GetHand(((HandViewModel)South.BindingContext).Cards);
+            var bestPlay = await GetCalculateBestPlay(northHand, southHand);
+            var distributionList = bestPlay.Trees.Select(x =>
+            {
+                var westHand = GetWestHand(x.Key);
+                return new DistributionItem
+                {
+                    East = x.Key, 
+                    West = westHand,
+                    Occurrences = Utils.GetDistributionOccurrence(x.Key.Count, westHand.Count),
+                    Probability = Utils.GetDistributionProbability(x.Key.Count, westHand.Count) * 100,
+                    Tricks = x.Value.Take(20).Select(y => new TricksItem {Line = 'A', NrOfTricks = y.Item2}).ToList()
+                };
+            });
+            await Shell.Current.GoToAsync(nameof(DistributionsPage), new Dictionary<string, object> { ["DistributionList"] = distributionList });
+        }
+        catch (Exception exception)
+        {
+            await DisplayAlert("Error", exception.Message, "OK");
+        }
+        
+        List<Face> GetWestHand(List<Face> east)
+        {
+            var north = ((HandViewModel)North.BindingContext).Cards.Select(x => x.Face);
+            var south = ((HandViewModel)South.BindingContext).Cards.Select(x => x.Face);
+            return Enum.GetValues<Face>().SkipUntil(x => x == Face.Two).Except(east).Except(north).Except(south).ToList();
+        }
+    }
+
+    private Task<Calculate.Result> GetCalculateBestPlay(string northHand, string southHand)
+    {
+        return Task.Run(() => Calculate.CalculateBestPlay(northHand, southHand));
     }
     
     private static string PlayToString(IList<Face> tuple)
     {
         return string.Join("", tuple.Select(Utils.CardToChar));
     }
-    
 }

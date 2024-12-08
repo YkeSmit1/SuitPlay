@@ -82,4 +82,53 @@ public static class Utils
         var res = combinations * (nominator / denominator);
         return res;
     }
+
+    public static int GetDistributionOccurrence(int a, int b)
+    {
+        return (int)(Alias.Factorial(a + b) / (Alias.Factorial(a) * Alias.Factorial(b)));
+    }
+
+    public static string CardListToString(List<Face> cards)
+    {
+        return string.Join("", cards.Select(CardToChar));
+    }
+    
+    public static List<Face> StringToCardList(string cards)
+    {
+        return cards.Split("").Select(x => x[0]).Select(CharToCard).ToList();
+    }
+    
+    public static Face GetFaceFromDescription(char c)
+    {
+        return c switch
+        {
+            'A' => Face.Ace,
+            '2' => Face.Two,
+            '3' => Face.Three,
+            '4' => Face.Four,
+            '5' => Face.Five,
+            '6' => Face.Six,
+            '7' => Face.Seven,
+            '8' => Face.Eight,
+            '9' => Face.Nine,
+            'T' => Face.Ten,
+            'J' => Face.Jack,
+            'Q' => Face.Queen,
+            'K' => Face.King,
+            _ => throw new ArgumentOutOfRangeException(nameof(c), c, null),
+        };
+    }
+    
+    public static string GetSuitDescriptionASCII(Suit suit)
+    {
+        return suit switch
+        {
+            Suit.Clubs => "C",
+            Suit.Diamonds => "D",
+            Suit.Hearts => "H",
+            Suit.Spades => "S",
+            Suit.NoTrump => "NT",
+            _ => throw new ArgumentOutOfRangeException(nameof(suit), suit, null),
+        };
+    }
 }
