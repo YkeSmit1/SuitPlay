@@ -42,8 +42,8 @@ public partial class MainPage
 
     private void LoadSettings()
     {
-        ((HandViewModel)North.BindingContext).ShowHand($",{Preferences.Get("North", "")},,", "default", dictionary);
-        ((HandViewModel)South.BindingContext).ShowHand($",{Preferences.Get("South", "")},,", "default", dictionary);
+        ((HandViewModel)North.BindingContext).ShowHand($"{Preferences.Get("North", "")}", "default", dictionary);
+        ((HandViewModel)South.BindingContext).ShowHand($"{Preferences.Get("South", "")}", "default", dictionary);
     }
     
     private void SaveSettings()
@@ -54,7 +54,7 @@ public partial class MainPage
 
     private void InitCards()
     {
-        ((HandViewModel)Cards.BindingContext).ShowHand(",AKQJT98765432,,", "default", dictionary);
+        ((HandViewModel)Cards.BindingContext).ShowHand("AKQJT98765432", "default", dictionary);
         ((HandViewModel)North.BindingContext).Cards.Clear();
         ((HandViewModel)South.BindingContext).Cards.Clear();
     }

@@ -25,24 +25,19 @@ namespace SuitPlay.ViewModels
             var settings = CardImageSettings.GetCardImageSettings(cardProfile);
             Cards.Clear();
 
-            var suits = hand.Split(',').Select((x, index) => (x, (Suit)(3 - index)));
             var index = 0;
 
-            foreach (var suit in suits)
+            foreach (var card in hand)
             {
-                foreach (var card in suit.x)
-                {
-                    var valueTuple = (Utils.GetSuitDescriptionASCII(suit.Item2), card.ToString());
-                    Cards.Add(new UiCard
-                        {
-                            Rect = new Rect(index * settings.CardDistance, 0, settings.CardWidth, settings.CardHeight),
-                            Source = dictionary[valueTuple],
-                            Face = Utils.GetFaceFromDescription(card),
-                            Suit = suit.Item2
-                        }
-                    );
-                    index++;
-                }
+                var valueTuple = (Utils.GetSuitDescriptionASCII(Suit.Hearts), card.ToString());
+                Cards.Add(new UiCard
+                    {
+                        Rect = new Rect(index * settings.CardDistance, 0, settings.CardWidth, settings.CardHeight),
+                        Source = dictionary[valueTuple],
+                        Face = Utils.GetFaceFromDescription(card),
+                    }
+                );
+                index++;
             }
         }
 
