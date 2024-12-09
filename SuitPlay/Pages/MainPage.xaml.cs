@@ -35,15 +35,17 @@ public partial class MainPage
         South.OnHandTapped += TapGestureRecognizerSelect_OnTapped;
         InitCards();
         LoadSettings();
-
         SelectedHandView = North;
-        
     }
 
     private void LoadSettings()
     {
-        ((HandViewModel)North.BindingContext).ShowHand($"{Preferences.Get("North", "")}", "default", dictionary);
-        ((HandViewModel)South.BindingContext).ShowHand($"{Preferences.Get("South", "")}", "default", dictionary);
+        var north = Preferences.Get("North", "");
+        var south = Preferences.Get("South", "");
+        var remainingCards = "AKQJT98765432".Except(north).Except(south);
+        ((HandViewModel)North.BindingContext).ShowHand($"{north}", "default", dictionary);
+        ((HandViewModel)South.BindingContext).ShowHand($"{south}", "default", dictionary);
+        ((HandViewModel)Cards.BindingContext).ShowHand(new string(remainingCards.ToArray()), "default", dictionary);
     }
     
     private void SaveSettings()
