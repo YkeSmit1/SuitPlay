@@ -88,7 +88,7 @@ public static class Utils
         return (int)(Alias.Factorial(a + b) / (Alias.Factorial(a) * Alias.Factorial(b)));
     }
 
-    public static string CardListToString(List<Face> cards)
+    public static string CardListToString(IList<Face> cards)
     {
         return string.Join("", cards.Select(CardToChar));
     }
@@ -130,5 +130,10 @@ public static class Utils
             Suit.NoTrump => "NT",
             _ => throw new ArgumentOutOfRangeException(nameof(suit), suit, null),
         };
+    }
+
+    public static List<Face> GetAllCards()
+    {
+        return Enum.GetValues<Face>().Where(x => x >= Face.Two).ToList();
     }
 }

@@ -34,7 +34,7 @@ public class Calculate
     public static Result CalculateBestPlay(string north, string south, Options calculateOptions = null)
     {
         options = calculateOptions ?? Options.DefaultCalculateOptions;
-        var allCards = options.CardsInSuit ?? Enum.GetValues<Face>().SkipUntil(x => x == Face.Two).ToList();
+        var allCards = options.CardsInSuit ?? Utils.GetAllCards();
         var cardsN = north.Select(Utils.CharToCard).ToList();
         var cardsS = south.Select(Utils.CharToCard).ToList();
         var cardsEW = allCards.Except(cardsN).Except(cardsS).Reverse().ToList();
