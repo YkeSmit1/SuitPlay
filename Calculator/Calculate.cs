@@ -14,7 +14,6 @@ public class Calculate
     public class Result
     {
         public ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>> Trees { get; } = new();
-        public ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>> Plays { get; } = new();
     }
 
     private static readonly Player[] PlayersNS = [Player.North, Player.South];
@@ -26,27 +25,16 @@ public class Calculate
         var flattenedResults = result.Trees.Values.SelectMany(x => x);
         var cardsNS = (north + south).Select(Utils.CharToCard).OrderBy(x => x);
         var chunksNS = cardsNS.Segment((item, prevItem, _) => (int)item - (int)prevItem > 1).ToList();
-        var resultsWithSmallCards = flattenedResults.Select(x =>
-            (x.Item1.Select(y => y < chunksNS.Skip(1).First().First() ? Face.SmallCard : y), x.Item2));
-        var groupedTricks = resultsWithSmallCards.GroupBy(x => x.Item1.Take(3).ToList(), 
-            x => x.Item2, new ListComparer<Face>());
+        var resultsWithSmallCards = flattenedResults.Select(x => (x.Item1.Select(y => y < chunksNS.Skip(1).First().First() ? Face.SmallCard : y), x.Item2));
+        var groupedTricks = resultsWithSmallCards.GroupBy(x => x.Item1.Take(3).ToList(), x => x.Item2, new ListComparer<Face>());
         var averageTrickCountOrdered = groupedTricks.OrderByDescending(z => z.Average());
-        return averageTrickCountOrdered;
-    }
-
-    public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount(string north, string south, Options calculateOptions = null)
-    {
-        var result = CalculateBestPlay(north, south, calculateOptions);
-        var groupedTricks = result.Trees.Values.SelectMany(x => x).GroupBy(
-            x => x.Item1, x => x.Item2, new ListComparer<Face>());
-        var averageTrickCountOrdered = groupedTricks.OrderBy(x => x.Key.Count).ThenBy(z => z.Key.First());
         return averageTrickCountOrdered;
     }
 
     public static Result CalculateBestPlay(string north, string south, Options calculateOptions = null)
     {
         options = calculateOptions ?? Options.DefaultCalculateOptions;
-        var allCards = options.CardsInSuit ?? Enum.GetValues<Face>().SkipUntil(x => x == Face.Two).ToList();
+        var allCards = options.CardsInSuit ?? Utils.GetAllCards();
         var cardsN = north.Select(Utils.CharToCard).ToList();
         var cardsS = south.Select(Utils.CharToCard).ToList();
         var cardsEW = allCards.Except(cardsN).Except(cardsS).Reverse().ToList();
@@ -57,8 +45,7 @@ public class Calculate
             var cardsE = combination.ToList();
             var cardsW = cardsEW.Except(cardsE);
             var calculateBestPlayForCombination = CalculateBestPlayForCombination(cardsN, cardsS, cardsE, cardsW);
-            result.Trees[cardsE] = calculateBestPlayForCombination.tree;
-            result.Plays[cardsE] = calculateBestPlayForCombination.results;
+            result.Trees[cardsE] = calculateBestPlayForCombination;
         });
 
         return result;
@@ -70,7 +57,7 @@ public class Calculate
             PlayersNS.Contains(trick.MaxBy(x => x.Face).Player));
     }
 
-    private static (List<(IList<Face>, int)> tree, List<(IList<Face>, int)> results) CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
+    private static List<(IList<Face>, int)> CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
     {
         var tree = new List<(IList<Face>, int)>();
         var results = new List<(IList<Face>, int)>();
@@ -84,7 +71,7 @@ public class Calculate
         var cardsNS = initialCards[Player.North].Concat(initialCards[Player.South]).ToList();
         var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).ToList();
         FindBestMove();
-        return (tree, results);
+        return tree;
 
         void FindBestMove()
         {
@@ -145,8 +132,7 @@ public class Calculate
                 var badCards = cardTrickDictionary.Where(x => x.Value > cardTrickDictionary.Values.Min()).Select(y => y.Key);
                 foreach (var card in badCards)
                 {
-                    results.RemoveAll(x =>
-                        x.Item1.StartsWith(playedCards.Concat(new List<Card> { card }).Select(x1 => x1.Face)));
+                    results.RemoveAll(x => x.Item1.StartsWith(playedCards.Concat(new List<Card> { card }).Select(x1 => x1.Face)));
                 }
                 return bestValue;
             }

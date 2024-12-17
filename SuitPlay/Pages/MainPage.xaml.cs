@@ -35,15 +35,17 @@ public partial class MainPage
         South.OnHandTapped += TapGestureRecognizerSelect_OnTapped;
         InitCards();
         LoadSettings();
-
         SelectedHandView = North;
-        
     }
 
     private void LoadSettings()
     {
-        ((HandViewModel)North.BindingContext).ShowHand($",{Preferences.Get("North", "")},,", "default", dictionary);
-        ((HandViewModel)South.BindingContext).ShowHand($",{Preferences.Get("South", "")},,", "default", dictionary);
+        var north = Preferences.Get("North", "");
+        var south = Preferences.Get("South", "");
+        var remainingCards = PlayToString(Utils.GetAllCards()).Except(north).Except(south);
+        ((HandViewModel)North.BindingContext).ShowHand($"{north}", "default", dictionary);
+        ((HandViewModel)South.BindingContext).ShowHand($"{south}", "default", dictionary);
+        ((HandViewModel)Cards.BindingContext).ShowHand(new string(remainingCards.ToArray()), "default", dictionary);
     }
     
     private void SaveSettings()
@@ -54,7 +56,7 @@ public partial class MainPage
 
     private void InitCards()
     {
-        ((HandViewModel)Cards.BindingContext).ShowHand(",AKQJT98765432,,", "default", dictionary);
+        ((HandViewModel)Cards.BindingContext).ShowHand(PlayToString(Utils.GetAllCards()), "default", dictionary);
         ((HandViewModel)North.BindingContext).Cards.Clear();
         ((HandViewModel)South.BindingContext).Cards.Clear();
     }
@@ -162,30 +164,39 @@ public partial class MainPage
             var northHand = GetHand(((HandViewModel)North.BindingContext).Cards);
             var southHand = GetHand(((HandViewModel)South.BindingContext).Cards);
             var bestPlay = await GetCalculateBestPlay(northHand, southHand);
-            var distributionList = bestPlay.Trees.Select(x =>
+            var filteredTrees = bestPlay.Trees.OrderBy(x => x.Key.Count)
+                .ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3).ToList());
+            var allPlays = filteredTrees.SelectMany(x => x.Value).Select(y => y.Item1).Distinct(new ListComparer<Face>() ).ToList();
+            var distributionList = filteredTrees.Select(x =>
             {
                 var westHand = GetWestHand(x.Key);
+                var nrOfTricks = new int[allPlays.Count]; 
+                Array.Fill(nrOfTricks, -1);
+                foreach (var play in x.Value)
+                {
+                    nrOfTricks[allPlays.FindIndex(y => y.SequenceEqual(play.Item1))] = play.Item2;
+                }
                 return new DistributionItem
                 {
                     East = x.Key, 
                     West = westHand,
                     Occurrences = Utils.GetDistributionOccurrence(x.Key.Count, westHand.Count),
                     Probability = Utils.GetDistributionProbability(x.Key.Count, westHand.Count) * 100,
-                    Tricks = x.Value.Take(20).Select(y => new TricksItem {Line = 'A', NrOfTricks = y.Item2}).ToList()
+                    NrOfTricks = nrOfTricks.ToList(),
                 };
             });
-            await Shell.Current.GoToAsync(nameof(DistributionsPage), new Dictionary<string, object> { ["DistributionList"] = distributionList });
+            await Shell.Current.GoToAsync(nameof(DistributionsPage), new Dictionary<string, object> { ["DistributionList"] = distributionList.ToList(), ["AllPlays"] = allPlays });
         }
         catch (Exception exception)
         {
             await DisplayAlert("Error", exception.Message, "OK");
         }
-        
+
         List<Face> GetWestHand(List<Face> east)
         {
             var north = ((HandViewModel)North.BindingContext).Cards.Select(x => x.Face);
             var south = ((HandViewModel)South.BindingContext).Cards.Select(x => x.Face);
-            return Enum.GetValues<Face>().SkipUntil(x => x == Face.Two).Except(east).Except(north).Except(south).ToList();
+            return Utils.GetAllCards().Except(east).Except(north).Except(south).Reverse().ToList();
         }
     }
 
