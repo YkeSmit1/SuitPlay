@@ -5,21 +5,14 @@ namespace Calculator;
 
 public class Calculate
 {
-    public class Options
-    {
-        internal static readonly Options DefaultCalculateOptions = new();
-        public List<Face> CardsInSuit { get; init; }
-    }
-    
     public class Result
     {
         public ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>> Trees { get; } = new();
     }
 
     private static readonly Player[] PlayersNS = [Player.North, Player.South];
-    private static Options options;
     
-    public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount2(string north, string south)
+    public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount(string north, string south)
     {
         var result = CalculateBestPlay(north, south);
         var flattenedResults = result.Trees.Values.SelectMany(x => x);
@@ -31,14 +24,14 @@ public class Calculate
         return averageTrickCountOrdered;
     }
 
-    public static Result CalculateBestPlay(string north, string south, Options calculateOptions = null)
+    public static Result CalculateBestPlay(string north, string south)
     {
-        options = calculateOptions ?? Options.DefaultCalculateOptions;
-        var allCards = options.CardsInSuit ?? Utils.GetAllCards();
+        var allCards = Utils.GetAllCards();
         var cardsN = north.Select(Utils.CharToCard).ToList();
         var cardsS = south.Select(Utils.CharToCard).ToList();
         var cardsEW = allCards.Except(cardsN).Except(cardsS).Reverse().ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
+        combinations.RemoveAll(HasSimilar);
         var result = new Result();
         Parallel.ForEach(combinations, new ParallelOptions() { MaxDegreeOfParallelism = 1 }, combination =>
         {
@@ -49,6 +42,22 @@ public class Calculate
         });
 
         return result;
+        
+        bool HasSimilar(IEnumerable<Face> enumerable)
+        {
+            var faces = enumerable.ToList();
+            var cardsNS = cardsN.Concat(cardsS).OrderBy(x => x);
+            var chunksNS = cardsNS.Segment((item, prevItem, _) => (int)item - (int)prevItem > 1).ToList();
+            var segments = faces.Select(GetSegment).ToList();
+            var similarCombinations = combinations.Where(x => x.Select(GetSegment).SequenceEqual(segments));
+            var hasSimilar = similarCombinations.Any(x => x.Sum(y => (int)y) > faces.Sum(y => (int)y));
+            return hasSimilar;
+            
+            int GetSegment(Face face)
+            {
+                return chunksNS.FindIndex(x => x.First() > face);
+            }
+        }
     }
 
     public static int GetTrickCount(IEnumerable<Card> play)
@@ -60,7 +69,6 @@ public class Calculate
     private static List<(IList<Face>, int)> CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
     {
         var tree = new List<(IList<Face>, int)>();
-        var results = new List<(IList<Face>, int)>();
         var initialCards = new Dictionary<Player, IList<Card>>
         {
             [Player.North] = cards[0].Select(x => new Card { Face = x, Player = Player.North }).ToList(),
@@ -92,7 +100,6 @@ public class Calculate
                 playedCards.Chunk(4).Last().First().Face == Face.Dummy)
             {
                 var trickCount = GetTrickCount(playedCards);
-                results.Add((playedCards.Select(x => x.Face).ToList(), trickCount));
                 return trickCount;
             }
 
@@ -114,7 +121,6 @@ public class Calculate
             }
             else
             {
-                var cardTrickDictionary = new Dictionary<Card, int>();
                 var bestValue = int.MaxValue;
                 foreach (var card in GetPlayableCards(playedCards))
                 {
@@ -122,18 +128,12 @@ public class Calculate
                     var value = Minimax(playedCards, alpha, beta, true);
                     bestValue = Math.Min(bestValue, value);
                     tree.Add((playedCards.Select(x => x.Face).ToList(), value));
-                    cardTrickDictionary[card] = bestValue;
                     playedCards.RemoveAt(playedCards.Count - 1);
                     beta = Math.Min(beta, bestValue);
                     if (bestValue <= alpha)
                         break;
                 }
 
-                var badCards = cardTrickDictionary.Where(x => x.Value > cardTrickDictionary.Values.Min()).Select(y => y.Key);
-                foreach (var card in badCards)
-                {
-                    results.RemoveAll(x => x.Item1.StartsWith(playedCards.Concat(new List<Card> { card }).Select(x1 => x1.Face)));
-                }
                 return bestValue;
             }
         }
@@ -195,10 +195,7 @@ public class Calculate
 
         bool SequenceEqual(Card x, IEnumerable<Card> nsCardsLower, Card card)
         {
-            var enumerable = cardsOtherTeam.Where(y => y.Face < x.Face);
-            var equal = enumerable.SequenceEqual(nsCardsLower);
-            var sequenceEqual = equal && card.Face > x.Face;
-            return sequenceEqual;
+            return cardsOtherTeam.Where(y => y.Face < x.Face).SequenceEqual(nsCardsLower) && card.Face > x.Face;
         }
     }
 

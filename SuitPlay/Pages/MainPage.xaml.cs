@@ -140,7 +140,7 @@ public partial class MainPage
 
     private Task<List<IGrouping<IList<Face>, int>>> GetAverageTrickCount(string northHand, string southHand)
     {
-        return Task.Run(() => Calculate.GetAverageTrickCount2(northHand, southHand).ToList());
+        return Task.Run(() => Calculate.GetAverageTrickCount(northHand, southHand).ToList());
     }
 
     private async void ButtonOverview_OnClicked(object sender, EventArgs e)
@@ -180,7 +180,7 @@ public partial class MainPage
                 {
                     East = x.Key, 
                     West = westHand,
-                    Occurrences = Utils.GetDistributionOccurrence(x.Key.Count, westHand.Count),
+                    Occurrences = 0,
                     Probability = Utils.GetDistributionProbability(x.Key.Count, westHand.Count) * 100,
                     NrOfTricks = nrOfTricks.ToList(),
                 };

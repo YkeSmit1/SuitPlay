@@ -83,11 +83,6 @@ public static class Utils
         return res;
     }
 
-    public static int GetDistributionOccurrence(int a, int b)
-    {
-        return (int)(Alias.Factorial(a + b) / (Alias.Factorial(a) * Alias.Factorial(b)));
-    }
-
     public static string CardListToString(IList<Face> cards)
     {
         return string.Join("", cards.Select(CardToChar));
