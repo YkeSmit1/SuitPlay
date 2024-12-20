@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using MoreLinq;
 
 namespace Calculator;
@@ -31,7 +32,8 @@ public class Calculate
         var cardsS = south.Select(Utils.CharToCard).ToList();
         var cardsEW = allCards.Except(cardsN).Except(cardsS).Reverse().ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
-        combinations.RemoveAll(HasSimilar);
+        var cardsNS = cardsN.Concat(cardsS);
+        combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces.ToList(), cardsNS) > 0);
         var result = new Result();
         Parallel.ForEach(combinations, new ParallelOptions() { MaxDegreeOfParallelism = 1 }, combination =>
         {
@@ -42,21 +44,35 @@ public class Calculate
         });
 
         return result;
-        
-        bool HasSimilar(IEnumerable<Face> enumerable)
+    }
+
+    public static int SimilarCombinationsCount(List<IEnumerable<Face>> combinationList, List<Face> combination, IEnumerable<Face> cardsNS)
+    {
+        if (combination.Count == 0)
+            return 0;
+        var similarCombinations = SimilarCombinations(combinationList, combination, cardsNS);
+        var hasSimilar = similarCombinations.Count(x => x.Last() < combination.Last());
+        return hasSimilar;
+    }
+
+    public static IEnumerable<IEnumerable<Face>> SimilarCombinations(IEnumerable<IEnumerable<Face>> combinationList, IEnumerable<Face> combination, IEnumerable<Face> cardsNS)
+    {
+        Debug.Assert(combinationList.All(x => x.SequenceEqual(x.OrderByDescending(y => y))));
+        Debug.Assert(combination.SequenceEqual(combination.OrderByDescending(y => y)));
+        Debug.Assert(cardsNS.SequenceEqual(cardsNS.OrderByDescending(y => y)));
+        var cardsNSOrdered = cardsNS.OrderByDescending(x => x);
+        var segmentsNS = cardsNSOrdered.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
+        var segments = combination.Select(GetSegment).ToList();
+        var similarCombinations = combinationList.Where(x =>
         {
-            var faces = enumerable.ToList();
-            var cardsNS = cardsN.Concat(cardsS).OrderBy(x => x);
-            var chunksNS = cardsNS.Segment((item, prevItem, _) => (int)item - (int)prevItem > 1).ToList();
-            var segments = faces.Select(GetSegment).ToList();
-            var similarCombinations = combinations.Where(x => x.Select(GetSegment).SequenceEqual(segments));
-            var hasSimilar = similarCombinations.Any(x => x.Sum(y => (int)y) > faces.Sum(y => (int)y));
-            return hasSimilar;
-            
-            int GetSegment(Face face)
-            {
-                return chunksNS.FindIndex(x => x.First() > face);
-            }
+            var enumerable = x.Select(GetSegment);
+            return enumerable.SequenceEqual(segments);
+        });
+        return similarCombinations;
+
+        int GetSegment(Face face)
+        {
+            return segmentsNS.FindIndex(x => x.First() < face);
         }
     }
 

@@ -161,27 +161,35 @@ public partial class MainPage
     {
         try
         {
-            var northHand = GetHand(((HandViewModel)North.BindingContext).Cards);
-            var southHand = GetHand(((HandViewModel)South.BindingContext).Cards);
+            var northHandCards = ((HandViewModel)North.BindingContext).Cards.Select(y => y.Face).ToList();
+            var southHandCards = ((HandViewModel)South.BindingContext).Cards.Select(x => x.Face).ToList();
+            var cardsNSOrdered = northHandCards.Concat(southHandCards).OrderByDescending(x => x).ToList();
+            var northHand = string.Join("", northHandCards.Select(Utils.CardToChar));
+            var southHand = string.Join("", southHandCards.Select(Utils.CardToChar));
             var bestPlay = await GetCalculateBestPlay(northHand, southHand);
-            var filteredTrees = bestPlay.Trees.OrderBy(x => x.Key.Count)
+            var filteredTrees = bestPlay.Trees.OrderBy(x => string.Join("", x.Key.Select(Utils.CardToChar)))
                 .ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3).ToList());
             var allPlays = filteredTrees.SelectMany(x => x.Value).Select(y => y.Item1).Distinct(new ListComparer<Face>() ).ToList();
+            var combinations = Combinations.AllCombinations(Utils.GetAllCards().Except(cardsNSOrdered)).Select(x => x.OrderByDescending(y => y));
+
             var distributionList = filteredTrees.Select(x =>
             {
-                var westHand = GetWestHand(x.Key);
+                var westHand = Utils.GetAllCards().Except(x.Key).Except(cardsNSOrdered).Reverse().ToList();
                 var nrOfTricks = new int[allPlays.Count]; 
                 Array.Fill(nrOfTricks, -1);
                 foreach (var play in x.Value)
                 {
                     nrOfTricks[allPlays.FindIndex(y => y.SequenceEqual(play.Item1))] = play.Item2;
                 }
+
+                var similarCombinations = Calculate.SimilarCombinations(combinations, westHand, cardsNSOrdered).ToList();
+                var probability = Utils.GetDistributionProbabilitySpecific(x.Key.Count, westHand.Count) * similarCombinations.Count * 100;
                 return new DistributionItem
                 {
                     East = x.Key, 
                     West = westHand,
-                    Occurrences = 0,
-                    Probability = Utils.GetDistributionProbability(x.Key.Count, westHand.Count) * 100,
+                    Occurrences = similarCombinations.Count,
+                    Probability = probability,
                     NrOfTricks = nrOfTricks.ToList(),
                 };
             });
@@ -190,13 +198,6 @@ public partial class MainPage
         catch (Exception exception)
         {
             await DisplayAlert("Error", exception.Message, "OK");
-        }
-
-        List<Face> GetWestHand(List<Face> east)
-        {
-            var north = ((HandViewModel)North.BindingContext).Cards.Select(x => x.Face);
-            var south = ((HandViewModel)South.BindingContext).Cards.Select(x => x.Face);
-            return Utils.GetAllCards().Except(east).Except(north).Except(south).Reverse().ToList();
         }
     }
 

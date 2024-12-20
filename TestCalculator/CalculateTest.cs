@@ -27,9 +27,8 @@ public class CalculateTest
     [InlineData(new[] { "KJ7", "KJ6", "K76", "54", "76" }, "AQT2", new[]{"KJ6", "K76", "54"})]
     public void TestFilterCombinations(string[] combination, string cardsNS, string[] expected)
     {
-        var actual = Combinations.FilterCombinations(
-            combination.Select(x => x.Select(Utils.CharToCard).ToList()).ToList(),
-            cardsNS.Select(Utils.CharToCard).ToList());
+        var actual = combination.Select(x => x.Select(Utils.CharToCard)).ToList();
+        actual.RemoveAll(faces => Calculate.SimilarCombinationsCount(actual, faces.ToList(), cardsNS.Select(Utils.CharToCard)) > 0);
         Assert.Equal(expected.Select(x => x.Select(Utils.CharToCard).ToList()).ToList(), actual);
     }
     

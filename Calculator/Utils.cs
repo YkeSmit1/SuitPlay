@@ -73,6 +73,11 @@ public static class Utils
             _ => throw new ArgumentOutOfRangeException(nameof(card), card, null)
         };
     }
+    
+    public static double GetDistributionProbabilitySpecific(int a, int b)
+    {
+        return GetDistributionProbability(a, b) / GetDistributionOccurrence(a, b);
+    }
 
     public static double GetDistributionProbability(int a, int b)
     {
@@ -81,6 +86,11 @@ public static class Utils
         var denominator = Alias.Factorial(26) * Alias.Factorial(13 - a) * Alias.Factorial(13 - b);
         var res = combinations * (nominator / denominator);
         return res;
+    }
+
+    private static int GetDistributionOccurrence(int a, int b)
+    {
+        return (int)(Alias.Factorial(a + b) / (Alias.Factorial(a) * Alias.Factorial(b)));
     }
 
     public static string CardListToString(IList<Face> cards)
