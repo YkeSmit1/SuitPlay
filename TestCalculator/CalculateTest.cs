@@ -1,5 +1,6 @@
 ﻿using Calculator;
 using JetBrains.Annotations;
+using MoreLinq;
 using Xunit.Abstractions;
 
 namespace TestCalculator;
@@ -45,5 +46,21 @@ public class CalculateTest
         var actual = Calculate.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList());
         // Assert
         Assert.Equal(expectedList, actual);
+    }
+
+    [Theory]
+    [InlineData("K74", "AQ32", "Kxx")]
+    [InlineData("KJ52", "AQT3", "KJxx")]
+    [InlineData("9852", "AKQJT", "xxxx")]
+    public void TestConvertToSmallCards(string combination, string cardsNS, string expected)
+    {
+        // Arrange
+        var hand = combination.Select(Utils.CharToCard);
+        var cardsNSOrdered = cardsNS.Select(Utils.CharToCard).OrderByDescending(x => x);
+        var segmentsNS = cardsNSOrdered.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
+        // Act
+        var actual = hand.TransformToSmallCards(segmentsNS);
+        // Assert
+        Assert.Equal(expected.Select(Utils.CharToCard), actual);
     }
 }

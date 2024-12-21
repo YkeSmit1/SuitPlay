@@ -25,7 +25,7 @@
                             <CollectionView ItemsSource="{Binding AllPlays}" ItemsLayout="HorizontalList" Grid.Column="4">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
-                                        <Label x:DataType="viewModels:DistributionItem" Text="{Binding Converter={StaticResource PlaysToStringConverter}}" WidthRequest="30" HorizontalTextAlignment="Center"></Label>
+                                        <Label Text="{Binding Converter={StaticResource PlaysToStringConverter}}" WidthRequest="30" HorizontalTextAlignment="Center"></Label>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>

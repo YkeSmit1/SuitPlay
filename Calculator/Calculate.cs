@@ -57,6 +57,7 @@ public class Calculate
 
     public static IEnumerable<IEnumerable<Face>> SimilarCombinations(IEnumerable<IEnumerable<Face>> combinationList, IEnumerable<Face> combination, IEnumerable<Face> cardsNS)
     {
+        // ReSharper disable PossibleMultipleEnumeration
         Debug.Assert(combinationList.All(x => x.SequenceEqual(x.OrderByDescending(y => y))));
         Debug.Assert(combination.SequenceEqual(combination.OrderByDescending(y => y)));
         Debug.Assert(cardsNS.SequenceEqual(cardsNS.OrderByDescending(y => y)));
@@ -68,6 +69,7 @@ public class Calculate
             var enumerable = x.Select(GetSegment);
             return enumerable.SequenceEqual(segments);
         });
+        // ReSharper restore PossibleMultipleEnumeration
         return similarCombinations;
 
         int GetSegment(Face face)

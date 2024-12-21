@@ -34,6 +34,8 @@ public static class Utils
     {
         return card switch
         {
+            'x' => Face.SmallCard,
+            '_' => Face.Dummy,
             '2' => Face.Two,
             '3' => Face.Three,
             '4' => Face.Four,
@@ -140,5 +142,17 @@ public static class Utils
     public static List<Face> GetAllCards()
     {
         return Enum.GetValues<Face>().Where(x => x >= Face.Two).ToList();
+    }
+
+    public static IEnumerable<Face> TransformToSmallCards(this IEnumerable<Face> z, List<IEnumerable<Face>> segmentsNS)
+    {
+        return z.Select(x => IsSmallCard(x, segmentsNS) ? Face.SmallCard : x);
+    }
+
+    private static bool IsSmallCard(Face face, List<IEnumerable<Face>> segmentsNS)
+    {
+        if (face == Face.Dummy) return false;
+        if (segmentsNS.Count <= 1) return true;
+        return (int)face < (int)segmentsNS.SkipLast(1).Last().First();
     }
 }
