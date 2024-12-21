@@ -170,22 +170,20 @@ public partial class MainPage
             var segmentsNS = cardsNS.OrderByDescending(x => x).Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
             var filteredTrees = bestPlay.Trees.OrderBy(x => string.Join("", x.Key.Select(Utils.CardToChar)))
                 .ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)).ToList());
-            var allPlays = filteredTrees.SelectMany(x => x.Value).Select(y => y.Item1).Select(z => z.ConvertToSmallCards(segmentsNS).ToList()).Distinct(new ListComparer<Face>() ).ToList();
-            
+            var allPlays = filteredTrees.SelectMany(x => x.Value).Select(y => y.Item1.ConvertToSmallCards(segmentsNS).ToList()).Distinct(new ListComparer<Face>()).ToList();
             var combinations = Combinations.AllCombinations(Utils.GetAllCards().Except(cardsNS)).Select(x => x.OrderByDescending(y => y));
 
             var distributionList = filteredTrees.Select(x =>
             {
                 var westHand = Utils.GetAllCards().Except(x.Key).Except(cardsNS).Reverse().ToList();
-                var nrOfTricks = new int[allPlays.Count]; 
-                Array.Fill(nrOfTricks, -1);
+                var similarCombinations = Calculate.SimilarCombinations(combinations, westHand, cardsNS.OrderByDescending(y => y)).ToList();
+                var probability = Utils.GetDistributionProbabilitySpecific(x.Key.Count, westHand.Count) * similarCombinations.Count * 100;
+                var nrOfTricks = Enumerable.Repeat(-1, allPlays.Count).ToList(); 
                 foreach (var play in x.Value)
                 {
                     nrOfTricks[allPlays.FindIndex(y => y.SequenceEqual(play.Item1.ConvertToSmallCards(segmentsNS)))] = play.Item2;
                 }
-
-                var similarCombinations = Calculate.SimilarCombinations(combinations, westHand, cardsNS.OrderByDescending(y => y)).ToList();
-                var probability = Utils.GetDistributionProbabilitySpecific(x.Key.Count, westHand.Count) * similarCombinations.Count * 100;
+                
                 return new DistributionItem
                 {
                     East = x.Key.ConvertToSmallCards(segmentsNS).ToList(), 

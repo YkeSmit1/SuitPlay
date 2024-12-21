@@ -2,9 +2,9 @@
 
 using Alias = Universal.Common.Mathematics.Math;
 
-public class ListComparer<T> : IEqualityComparer<IList<T>>
+public class ListComparer<T> : IEqualityComparer<List<T>>
 {
-    public bool Equals(IList<T> left, IList<T> right)
+    public bool Equals(List<T> left, List<T> right)
     {
         if (left == null && right == null)
             return true;
@@ -13,7 +13,7 @@ public class ListComparer<T> : IEqualityComparer<IList<T>>
         return left.SequenceEqual(right);
     }
 
-    public int GetHashCode(IList<T> list)
+    public int GetHashCode(List<T> list)
     {
         return list.Aggregate(19, (current, total) => current * 31 + total.GetHashCode());
     }
@@ -95,7 +95,7 @@ public static class Utils
         return (int)(Alias.Factorial(a + b) / (Alias.Factorial(a) * Alias.Factorial(b)));
     }
 
-    public static string CardListToString(IList<Face> cards)
+    public static string CardListToString(List<Face> cards)
     {
         return string.Join("", cards.Select(CardToChar));
     }
