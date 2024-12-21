@@ -169,8 +169,9 @@ public partial class MainPage
             var bestPlay = await GetCalculateBestPlay(northHand, southHand);
             var segmentsNS = cardsNS.OrderByDescending(x => x).Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
             var filteredTrees = bestPlay.Trees.OrderBy(x => string.Join("", x.Key.Select(Utils.CardToChar)))
-                .ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3).ToList());
-            var allPlays = filteredTrees.SelectMany(x => x.Value).Select(y => y.Item1).Distinct(new ListComparer<Face>() ).ToList();
+                .ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)).ToList());
+            var allPlays = filteredTrees.SelectMany(x => x.Value).Select(y => y.Item1).Select(z => z.ConvertToSmallCards(segmentsNS).ToList()).Distinct(new ListComparer<Face>() ).ToList();
+            
             var combinations = Combinations.AllCombinations(Utils.GetAllCards().Except(cardsNS)).Select(x => x.OrderByDescending(y => y));
 
             var distributionList = filteredTrees.Select(x =>
@@ -180,15 +181,15 @@ public partial class MainPage
                 Array.Fill(nrOfTricks, -1);
                 foreach (var play in x.Value)
                 {
-                    nrOfTricks[allPlays.FindIndex(y => y.SequenceEqual(play.Item1))] = play.Item2;
+                    nrOfTricks[allPlays.FindIndex(y => y.SequenceEqual(play.Item1.ConvertToSmallCards(segmentsNS)))] = play.Item2;
                 }
 
                 var similarCombinations = Calculate.SimilarCombinations(combinations, westHand, cardsNS.OrderByDescending(y => y)).ToList();
                 var probability = Utils.GetDistributionProbabilitySpecific(x.Key.Count, westHand.Count) * similarCombinations.Count * 100;
                 return new DistributionItem
                 {
-                    East = x.Key.TransformToSmallCards(segmentsNS).ToList(), 
-                    West = westHand.TransformToSmallCards(segmentsNS).ToList(),
+                    East = x.Key.ConvertToSmallCards(segmentsNS).ToList(), 
+                    West = westHand.ConvertToSmallCards(segmentsNS).ToList(),
                     Occurrences = similarCombinations.Count,
                     Probability = probability,
                     NrOfTricks = nrOfTricks.ToList(),

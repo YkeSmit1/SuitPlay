@@ -144,7 +144,7 @@ public static class Utils
         return Enum.GetValues<Face>().Where(x => x >= Face.Two).ToList();
     }
 
-    public static IEnumerable<Face> TransformToSmallCards(this IEnumerable<Face> z, List<IEnumerable<Face>> segmentsNS)
+    public static IEnumerable<Face> ConvertToSmallCards(this IEnumerable<Face> z, List<IEnumerable<Face>> segmentsNS)
     {
         return z.Select(x => IsSmallCard(x, segmentsNS) ? Face.SmallCard : x);
     }
@@ -153,6 +153,6 @@ public static class Utils
     {
         if (face == Face.Dummy) return false;
         if (segmentsNS.Count <= 1) return true;
-        return (int)face < (int)segmentsNS.SkipLast(1).Last().First();
+        return (int)face < (int)segmentsNS.SkipLast(1).Last().Last();
     }
 }
