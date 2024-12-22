@@ -173,18 +173,23 @@ public class Calculate
             if (availableCards.Count == 0)
                 return [];
             
-            // if (playedCards.Count % 4 == 1)
-            // {
-            //     var lastTrick = playedCards.Chunk(4).Last();
-            //     return availableCards.Where(x => availableCards.All(y => (int)x.Face <= (int)y.Face || (int)x.Face > (int)lastTrick.First().Face ));
-            // }
+            if (playedCards.Count % 4 == 1)
+            {
+                var lowestCard = availableCards.MinBy(x => x.Face);
+                var lastTrick = playedCards.Chunk(4).Last();
+                var coverCards = availableCards.Where(x => (int)x.Face > (int)lastTrick.First().Face).ToList();
+                if (coverCards.Count == 0)
+                    return new List<Card> {lowestCard};
+                var coverCard = coverCards.MinBy(x => x.Face);
+                return new List<Card> {lowestCard, coverCard}.Distinct();
+            }
             
-            // if (playedCards.Count % 4 == 3)
-            // {
-            //     var lastTrick = playedCards.Chunk(4).Last();
-            //     var highestCards = availableCards.Where(x => x.Face > lastTrick.Max(y => y.Face)).ToList();
-            //     return highestCards.Count > 0 ? [highestCards.MinBy(x => x.Face)] : [availableCards.MinBy(x => x.Face)];
-            // }
+            if (playedCards.Count % 4 == 3)
+            {
+                var lastTrick = playedCards.Chunk(4).Last();
+                var highestCards = availableCards.Where(x => x.Face > lastTrick.Max(y => y.Face)).ToList();
+                return highestCards.Count > 0 ? [highestCards.MinBy(x => x.Face)] : [availableCards.MinBy(x => x.Face)];
+            }
             
             var cardsOtherTeam = player is Player.North or Player.South ? cardsEW : cardsNS;
             var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeam);

@@ -24,11 +24,9 @@
                 <Button Text="Calculate" x:Name="CalculateButton" Clicked="CalculateButton_OnClicked" Margin="20"></Button>                
             </HorizontalStackLayout>
             <Label x:Name="BestPlay" Text="Best play&#10;Average"></Label>
-            <Label Text="Options" FontSize="16"></Label>
             <HorizontalStackLayout>
-                <Button Text="Go to overview" Clicked="ButtonOverview_OnClicked"></Button>
-                <Button Text="Go to distributions" Clicked="ButtonDistributions_OnClicked"></Button>
-                
+                <Button Text="Go to overview" Clicked="ButtonOverview_OnClicked" Margin="20" WidthRequest="150"></Button>
+                <Button Text="Go to distributions" Clicked="ButtonDistributions_OnClicked" Margin="20" WidthRequest="150"></Button>
             </HorizontalStackLayout>
         </VerticalStackLayout>
     </ScrollView>

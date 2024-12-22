@@ -139,9 +139,9 @@ public static class Utils
         };
     }
 
-    public static List<Face> GetAllCards()
+    public static IEnumerable<Face> GetAllCards()
     {
-        return Enum.GetValues<Face>().Where(x => x >= Face.Two).ToList();
+        return Enum.GetValues<Face>().Where(x => x >= Face.Two);
     }
 
     public static IEnumerable<Face> ConvertToSmallCards(this IEnumerable<Face> z, List<IEnumerable<Face>> segmentsNS)
