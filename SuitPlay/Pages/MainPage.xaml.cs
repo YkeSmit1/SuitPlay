@@ -171,20 +171,22 @@ public partial class MainPage
             var filteredTrees = bestPlay.Trees.OrderBy(x => string.Join("", x.Key.Select(Utils.CardToChar)))
                 .ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)).ToList());
             var allPlays = filteredTrees.SelectMany(x => x.Value).Select(y => y.Item1.ConvertToSmallCards(segmentsNS).ToList()).Distinct(new ListComparer<Face>()).ToList();
-            var combinations = Combinations.AllCombinations(Utils.GetAllCards().Except(cardsNS)).Select(x => x.OrderByDescending(y => y)).ToList();
+            var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
+            var combinations = Combinations.AllCombinations(cardsEW).Select(x => x.OrderByDescending(y => y)).ToList();
             var combinationsInfo = combinations.ToDictionary(x => x.ToList(), y =>
             {
                 var eastHand = y.ToList();
-                var westHand = Utils.GetAllCards().Except(eastHand).Except(cardsNS).Reverse().ToList();
+                var westHand = cardsEW.Except(eastHand).Reverse().ToList();
                 var similarCombinations = Calculate.SimilarCombinations(combinations, westHand, cardsNS.OrderByDescending(z => z)).ToList();
                 var probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count) * similarCombinations.Count;
                 return (westHand, probability, similarCombinations);
 
             }, new ListComparer<Face>());
-            
-            var selectMany = filteredTrees.SelectMany(x => x.Value, (parent, child) => new { combi = parent.Key, play = child.Item1, nrOfTricks = child.Item2 });
-            var groupBy = selectMany.GroupBy(x => x.play.ConvertToSmallCards(segmentsNS).ToList(), y => new { combi2 = y.combi, nrOfTricks2 = y.nrOfTricks }, new ListComparer<Face>());
-            var averageNrOfTricks = groupBy.Select(x => x.Average(y => combinationsInfo[y.combi2].probability * y.nrOfTricks2) / x.Select(y => combinationsInfo[y.combi2].probability).Average());
+
+            var averageNrOfTricks = filteredTrees
+                .SelectMany(x => x.Value, (parent, child) => new { combi = parent.Key, play = child.Item1, nrOfTricks = child.Item2 })
+                .GroupBy(x => x.play.ConvertToSmallCards(segmentsNS).ToList(), y => new { combi2 = y.combi, nrOfTricks2 = y.nrOfTricks }, new ListComparer<Face>())
+                .Select(x => x.Average(y => combinationsInfo[y.combi2].probability * y.nrOfTricks2) / x.Select(y => combinationsInfo[y.combi2].probability).Average());
 
             var distributionList = filteredTrees.Select(x =>
             {
@@ -194,13 +196,12 @@ public partial class MainPage
                     nrOfTricks[allPlays.FindIndex(y => y.SequenceEqual(play.Item1.ConvertToSmallCards(segmentsNS)))] = play.Item2;
                 }
 
-                var combinationProbability = combinationsInfo[x.Key];
                 return new DistributionItem
                 {
                     East = x.Key.ConvertToSmallCards(segmentsNS).ToList(), 
-                    West = combinationProbability.westHand.ConvertToSmallCards(segmentsNS).ToList(),
-                    Occurrences = combinationProbability.similarCombinations.Count,
-                    Probability = combinationProbability.probability * 100,
+                    West = combinationsInfo[x.Key].westHand.ConvertToSmallCards(segmentsNS).ToList(),
+                    Occurrences = combinationsInfo[x.Key].similarCombinations.Count,
+                    Probability = combinationsInfo[x.Key].probability * 100,
                     NrOfTricks = nrOfTricks.ToList(),
                 };
             });
