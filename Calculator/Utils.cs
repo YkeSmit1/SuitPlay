@@ -2,9 +2,9 @@
 
 using Alias = Universal.Common.Mathematics.Math;
 
-public class ListComparer<T> : IEqualityComparer<List<T>>
+public class ListComparer<T> : IEqualityComparer<IList<T>>
 {
-    public bool Equals(List<T> left, List<T> right)
+    public bool Equals(IList<T> left, IList<T> right)
     {
         if (left == null && right == null)
             return true;
@@ -13,7 +13,7 @@ public class ListComparer<T> : IEqualityComparer<List<T>>
         return left.SequenceEqual(right);
     }
 
-    public int GetHashCode(List<T> list)
+    public int GetHashCode(IList<T> list)
     {
         return list.Aggregate(19, (current, total) => current * 31 + total.GetHashCode());
     }

@@ -8,10 +8,12 @@ public partial class DistributionsViewModel : ObservableObject, IQueryAttributab
 {
     [ObservableProperty] private ObservableCollection<DistributionItem> distributionItems;
     [ObservableProperty] private ObservableCollection<IList<Face>> allPlays;
+    [ObservableProperty] private ObservableCollection<double> averageNrOfTricks;
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         DistributionItems = new ObservableCollection<DistributionItem>((IEnumerable<DistributionItem>)query["DistributionList"]);
         AllPlays = new ObservableCollection<IList<Face>>((IEnumerable<IList<Face>>)query["AllPlays"]);
+        AverageNrOfTricks = new ObservableCollection<double>((IEnumerable<double>)query["AverageNrOfTricks"]);
     }
 }

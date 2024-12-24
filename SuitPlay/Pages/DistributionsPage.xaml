@@ -31,6 +31,18 @@
                             </CollectionView>
                         </Grid>
                 </CollectionView.Header>
+                <CollectionView.Footer>
+                    <Grid ColumnDefinitions="50,50,40,50,*">
+                        <Label Text="Expected value" Grid.Column="0" Grid.ColumnSpan="4"></Label>
+                        <CollectionView ItemsSource="{Binding AverageNrOfTricks}" ItemsLayout="HorizontalList" Grid.Column="4">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Label Text="{Binding StringFormat='{0:F2}'}" WidthRequest="30" HorizontalTextAlignment="Center"></Label>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
+                </CollectionView.Footer>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:DistributionItem">
                         <Grid ColumnDefinitions="50,50,40,50,*">
