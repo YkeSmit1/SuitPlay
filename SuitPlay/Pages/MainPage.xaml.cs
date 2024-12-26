@@ -170,7 +170,6 @@ public partial class MainPage
             var segmentsNS = cardsNS.OrderByDescending(x => x).Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
             var filteredTrees = bestPlay.Trees.OrderBy(x => string.Join("", x.Key.Select(Utils.CardToChar)))
                 .ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)).ToList());
-            var allPlays = filteredTrees.SelectMany(x => x.Value).Select(y => y.Item1.ConvertToSmallCards(segmentsNS).ToList()).Distinct(new ListComparer<Face>()).ToList();
             var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
             var combinations = Combinations.AllCombinations(cardsEW).Select(x => x.OrderByDescending(y => y)).ToList();
             var combinationsInfo = combinations.ToDictionary(x => x.ToList(), y =>
@@ -186,7 +185,12 @@ public partial class MainPage
             var averageNrOfTricks = filteredTrees
                 .SelectMany(x => x.Value, (parent, child) => new { combi = parent.Key, play = child.Item1, nrOfTricks = child.Item2 })
                 .GroupBy(x => x.play.ConvertToSmallCards(segmentsNS).ToList(), y => new { combi2 = y.combi, nrOfTricks2 = y.nrOfTricks }, new ListComparer<Face>())
-                .Select(x => x.Average(y => combinationsInfo[y.combi2].probability * y.nrOfTricks2) / x.Select(y => combinationsInfo[y.combi2].probability).Average());
+                .Select(x => (x, x.Average(y => combinationsInfo[y.combi2].probability * y.nrOfTricks2) / x.Select(y => combinationsInfo[y.combi2].probability).Average()))
+                .OrderByDescending(x => x.Item2).ToList();
+
+            var allPlays = filteredTrees.SelectMany(x => x.Value)
+                .Select(y => y.Item1.ConvertToSmallCards(segmentsNS).ToList()).Distinct(new ListComparer<Face>())
+                .OrderByDescending(x => averageNrOfTricks.Single(y => y.Item1.Key.SequenceEqual(x)).Item2).ToList();
 
             var distributionList = filteredTrees.Select(x =>
             {
@@ -209,7 +213,7 @@ public partial class MainPage
                 {
                     ["DistributionList"] = distributionList.ToList(), 
                     ["AllPlays"] = allPlays,
-                    ["AverageNrOfTricks"] = averageNrOfTricks
+                    ["AverageNrOfTricks"] = averageNrOfTricks.Select(x => x.Item2)
                 });
         }
         catch (Exception exception)
