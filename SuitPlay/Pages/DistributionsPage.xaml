@@ -28,9 +28,9 @@
                     </CollectionView.ItemTemplate>
                 </CollectionView>
             </Grid>
-            <CollectionView Grid.Row="1" x:DataType="viewModels:DistributionsViewModel" ItemsSource="{Binding DistributionItems}">
+            <CollectionView Grid.Row="1" ItemsSource="{Binding DistributionItems}">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="viewModels:DistributionItem">
+                    <DataTemplate>
                         <Grid ColumnDefinitions="50,50,40,50,*">
                             <Label Text="{Binding West, Converter={StaticResource CardsToStringConverter}}" Grid.Column="0" HorizontalTextAlignment="Center"></Label>
                             <Label Text="{Binding East, Converter={StaticResource CardsToStringConverter}}" Grid.Column="1" HorizontalTextAlignment="Center"></Label>
