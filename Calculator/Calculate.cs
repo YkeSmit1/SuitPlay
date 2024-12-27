@@ -177,11 +177,13 @@ public class Calculate
             {
                 var lowestCard = availableCards.MinBy(x => x.Face);
                 var lastTrick = playedCards.Chunk(4).Last();
-                var coverCards = availableCards.Where(x => (int)x.Face > (int)lastTrick.First().Face).ToList();
+                var coverCards = availableCards.Where(x => x.Face > lastTrick.First().Face).ToList();
                 if (coverCards.Count == 0)
                     return new List<Card> {lowestCard};
                 var coverCard = coverCards.MinBy(x => x.Face);
-                return new List<Card> {lowestCard, coverCard}.Distinct();
+                return coverCard.Face - lowestCard.Face == 2
+                    ? new List<Card> {coverCard}
+                    : new List<Card> {lowestCard, coverCard }.Distinct();
             }
             
             if (playedCards.Count % 4 == 3)
