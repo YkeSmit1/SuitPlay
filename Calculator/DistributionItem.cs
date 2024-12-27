@@ -1,6 +1,4 @@
-﻿using Calculator;
-
-namespace SuitPlay.ViewModels;
+﻿namespace Calculator;
 
 public class DistributionItem
 {

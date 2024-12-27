@@ -12,8 +12,9 @@ public partial class DistributionsViewModel : ObservableObject, IQueryAttributab
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        DistributionItems = new ObservableCollection<DistributionItem>((IEnumerable<DistributionItem>)query["DistributionList"]);
-        AllPlays = new ObservableCollection<IList<Face>>((IEnumerable<IList<Face>>)query["AllPlays"]);
-        AverageNrOfTricks = new ObservableCollection<double>((IEnumerable<double>)query["AverageNrOfTricks"]);
+        var result = (Calculate.Result)query["Result"];
+        DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionList);
+        AllPlays = new ObservableCollection<IList<Face>>((IEnumerable<IList<Face>>)result.AllPlays);
+        AverageNrOfTricks = new ObservableCollection<double>(result.AverageNrOfTricks.Select(x => x.Item2));
     }
 }
