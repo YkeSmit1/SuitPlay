@@ -8,16 +8,14 @@ public class Calculate
 {
     public class Result 
     {
-        public List<(IList<Face> Key, double)> AverageNrOfTricks;
-        public List<IList<Face>> AllPlays;
-        public IEnumerable<DistributionItem> DistributionList;
+        public List<PlayItem> PlayList;
+        public List<List<Face>> AllPlays;
+        public List<DistributionItem> DistributionList;
     }
     
-    public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount(List<Face> north, List<Face> south)
+    public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount(IDictionary<List<Face>, List<(IList<Face>, int)>> bestPlay, List<Face> cardsNS)
     {
-        var result = CalculateBestPlay(north, south);
-        var flattenedResults = result.Values.SelectMany(x => x);
-        var cardsNS = north.Concat(south).OrderBy(x => x);
+        var flattenedResults = bestPlay.Values.SelectMany(x => x);
         var segmentsNS = cardsNS.Segment((item, prevItem, _) => (int)item - (int)prevItem > 1).ToList();
         var resultsWithSmallCards = flattenedResults.Select(x => (x.Item1.Select(y => y < segmentsNS.Skip(1).First().First() ? Face.SmallCard : y), x.Item2));
         var groupedTricks = resultsWithSmallCards.GroupBy(x => x.Item1.Take(3).ToList(), x => x.Item2, new ListComparer<Face>());
@@ -25,61 +23,52 @@ public class Calculate
         return averageTrickCountOrdered;
     }
     
-    public static Result GetResult(List<Face> north, List<Face> south)
+    public static Result GetResult(IDictionary<List<Face>, List<(IList<Face>, int)>> bestPlay, List<Face> cardsNS)
     {   
         var result = new Result();
-        var cardsNS = north.Concat(south).ToList();
-        var bestPlay = CalculateBestPlay(north, south);
-        var segmentsNS = cardsNS.OrderByDescending(x => x).Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
-        var filteredTrees = bestPlay.OrderBy(x => string.Join("", x.Key.Select(Utils.CardToChar)))
-            .ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)).ToList());
+        var segmentsNS = cardsNS.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
+        var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)));
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
-        var combinations = Combinations.AllCombinations(cardsEW).Select(x => x.OrderByDescending(y => y)).ToList();
-        var combinationsInfo = combinations.ToDictionary(x => x.ToList(), y =>
+        var combinations = Combinations.AllCombinations(cardsEW).Select(x => x.OrderByDescending(y => y));
+        var combinationsInTree = filteredTrees.Keys.Select(x => x.OrderByDescending(y => y)).OrderBy(x => string.Join("", x.Select(Utils.CardToChar))).ToList();
+        
+        var distributionList = combinationsInTree.ToDictionary(key => key.ToList(), value =>
         {
-            var eastHand = y.ToList();
-            var westHand = cardsEW.Except(eastHand).Reverse().ToList();
-            var similarCombinations = SimilarCombinations(combinations, westHand, cardsNS.OrderByDescending(z => z)).ToList();
-            var probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count) * similarCombinations.Count;
-            return (westHand, probability, similarCombinations);
-
-        }, new ListComparer<Face>());
-
-        result.AverageNrOfTricks = filteredTrees
-            .SelectMany(x => x.Value, (parent, child) => new { combi = parent.Key, play = child.Item1, nrOfTricks = child.Item2 })
-            .GroupBy(x => x.play.ConvertToSmallCards(segmentsNS).ToList(), y => new { combi2 = y.combi, nrOfTricks2 = y.nrOfTricks }, new ListComparer<Face>())
-            .Select(x => (x.Key, x.Average(y => combinationsInfo[y.combi2].probability * y.nrOfTricks2) / x.Select(y => combinationsInfo[y.combi2].probability).Average()))
-            .OrderByDescending(x => x.Item2).ToList();
-
-        result.AllPlays = filteredTrees.SelectMany(x => x.Value)
-            .Select(y => y.Item1.ConvertToSmallCards(segmentsNS).ToList()).Distinct(new ListComparer<Face>())
-            .OrderByDescending(x => result.AverageNrOfTricks.Single(y => y.Item1.SequenceEqual(x)).Item2).ToList();
-
-        result.DistributionList = filteredTrees.Select(x =>
-        {
-            var nrOfTricks = Enumerable.Repeat(-1, result.AllPlays.Count).ToList();
-            foreach (var play in x.Value)
-            {
-                nrOfTricks[result.AllPlays.FindIndex(y => y.SequenceEqual(play.Item1.ConvertToSmallCards(segmentsNS)))] = play.Item2;
-            }
-
+            var eastHand = value.ToList();
+            var westHand = cardsEW.Except(eastHand).ToList();
+            var similarCombinationsCount = SimilarCombinations(combinations, westHand, cardsNS).Count();
             return new DistributionItem
             {
-                East = x.Key.ConvertToSmallCards(segmentsNS).ToList(), 
-                West = combinationsInfo[x.Key].westHand.ConvertToSmallCards(segmentsNS).ToList(),
-                Occurrences = combinationsInfo[x.Key].similarCombinations.Count,
-                Probability = combinationsInfo[x.Key].probability * 100,
-                NrOfTricks = nrOfTricks.ToList(),
+                West = westHand.ConvertToSmallCards(segmentsNS).ToList(),
+                East = eastHand.ConvertToSmallCards(segmentsNS).ToList(),
+                Occurrences = similarCombinationsCount,
+                Probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count) * similarCombinationsCount,
             };
-        });
+        }, new ListComparer<Face>());
+
+        var playItems = filteredTrees
+            .SelectMany(x => x.Value, (parent, child) => new { combi = parent.Key, play = child.Item1.ConvertToSmallCards(segmentsNS), nrOfTricks = child.Item2 })
+            .GroupBy(x => x.play.ToList(), y => new { combi2 = y.combi, nrOfTricks2 = y.nrOfTricks }, new ListComparer<Face>()).ToList()
+            .ToDictionary(key => key.Key, value => new PlayItem
+            {
+                Play = value.Key.ToList(),
+                NrOfTricks = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.combi2), new {combi2 = (List<Face>)[], nrOfTricks2 = -1}).nrOfTricks2).ToList(),
+                Average = value.Average(y => distributionList[y.combi2.ToList()].Probability * y.nrOfTricks2) / value.Select(y => distributionList[y.combi2].Probability).Average()
+            })
+            .OrderByDescending(x => x.Value.Average)
+            .ToDictionary(key => key.Key, value => value.Value, new ListComparer<Face>());
+
+        result.PlayList = playItems.Select(x => x.Value).ToList();
+        result.AllPlays = playItems.Select(x => x.Key).Select(x => x.ConvertToSmallCards(segmentsNS).ToList()).ToList();
+        result.DistributionList = distributionList.Select(x => x.Value).ToList();
+
         return result;
     }
-    
 
     public static IDictionary<List<Face>, List<(IList<Face>, int)>> CalculateBestPlay(List<Face> north, List<Face> south)
     {
         var allCards = Utils.GetAllCards();
-        var cardsEW = allCards.Except(north).Except(south).Reverse().ToList();
+        var cardsEW = allCards.Except(north).Except(south).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
         var cardsNS = north.Concat(south);
         combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces.ToList(), cardsNS) > 0);
@@ -104,7 +93,7 @@ public class Calculate
         return hasSimilar;
     }
 
-    public static IEnumerable<IEnumerable<Face>> SimilarCombinations(IEnumerable<IEnumerable<Face>> combinationList, IEnumerable<Face> combination, IEnumerable<Face> cardsNS)
+    private static IEnumerable<IEnumerable<Face>> SimilarCombinations(IEnumerable<IEnumerable<Face>> combinationList, IEnumerable<Face> combination, IEnumerable<Face> cardsNS)
     {
         // ReSharper disable PossibleMultipleEnumeration
         Debug.Assert(combinationList.All(x => x.SequenceEqual(x.OrderByDescending(y => y))));
@@ -113,11 +102,7 @@ public class Calculate
         var cardsNSOrdered = cardsNS.OrderByDescending(x => x);
         var segmentsNS = cardsNSOrdered.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         var segments = combination.Select(GetSegment).ToList();
-        var similarCombinations = combinationList.Where(x =>
-        {
-            var enumerable = x.Select(GetSegment);
-            return enumerable.SequenceEqual(segments);
-        });
+        var similarCombinations = combinationList.Where(x => x.Select(GetSegment).SequenceEqual(segments));
         // ReSharper restore PossibleMultipleEnumeration
         return similarCombinations;
 

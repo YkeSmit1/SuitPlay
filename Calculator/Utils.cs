@@ -95,7 +95,7 @@ public static class Utils
         return (int)(Alias.Factorial(a + b) / (Alias.Factorial(a) * Alias.Factorial(b)));
     }
 
-    public static string CardListToString(List<Face> cards)
+    public static string CardListToString(IEnumerable<Face> cards)
     {
         return string.Join("", cards.Select(CardToChar));
     }
@@ -141,7 +141,7 @@ public static class Utils
 
     public static IEnumerable<Face> GetAllCards()
     {
-        return Enum.GetValues<Face>().Where(x => x >= Face.Two);
+        return Enum.GetValues<Face>().Where(x => x >= Face.Two).Reverse();
     }
 
     public static IEnumerable<Face> ConvertToSmallCards(this IEnumerable<Face> z, List<IEnumerable<Face>> segmentsNS)

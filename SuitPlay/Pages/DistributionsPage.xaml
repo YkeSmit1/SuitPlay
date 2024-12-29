@@ -9,56 +9,54 @@
         <converters:CardsToStringConverter x:Key="CardsToStringConverter" />
         <converters:PlaysToStringConverter x:Key="PlaysToStringConverter" />
         <converters:TricksToStringConverter x:Key="TricksToStringConverter" />
+        <converters:ProbabilityConverter x:Key="ProbabilityConverter" />
     </ContentPage.Resources>
     <ContentPage.BindingContext>
         <viewModels:DistributionsViewModel/>
     </ContentPage.BindingContext>
     <ContentPage.Content>
-        <Grid RowDefinitions="auto,auto,auto" Margin="20">
-            <Grid Grid.Row="0" ColumnDefinitions="50,50,40,50,*">
+        <Grid RowDefinitions="auto,auto" ColumnDefinitions="auto,auto" Margin="20">
+            <Grid Grid.Row="0" ColumnDefinitions="50,50,40,50">
                 <Label Text="West" Grid.Column="0" HorizontalTextAlignment="Center"></Label>
                 <Label Text="East" Grid.Column="1" HorizontalTextAlignment="Center"></Label>
                 <Label Text="Occ." Grid.Column="2" HorizontalTextAlignment="Center"></Label>
                 <Label Text="Prob." Grid.Column="3" HorizontalTextAlignment="Center"></Label>
-                <CollectionView ItemsSource="{Binding AllPlays}" ItemsLayout="HorizontalList" Grid.Column="4">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <Label Text="{Binding Converter={StaticResource PlaysToStringConverter}}" WidthRequest="30" HorizontalTextAlignment="Center"></Label>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
             </Grid>
-            <CollectionView Grid.Row="1" ItemsSource="{Binding DistributionItems}">
+            <CollectionView Grid.Row="0" Grid.Column="1" ItemsSource="{Binding AllPlays}" ItemsLayout="HorizontalList">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid ColumnDefinitions="50,50,40,50,*">
-                            <Label Text="{Binding West, Converter={StaticResource CardsToStringConverter}}" Grid.Column="0" HorizontalTextAlignment="Center"></Label>
-                            <Label Text="{Binding East, Converter={StaticResource CardsToStringConverter}}" Grid.Column="1" HorizontalTextAlignment="Center"></Label>
+                        <Label Text="{Binding Converter={StaticResource PlaysToStringConverter}}" HorizontalTextAlignment="Center" WidthRequest="40"></Label>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <CollectionView Grid.Row="1" Grid.Column="0" ItemsSource="{Binding DistributionItems}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="50,50,40,50">
+                            <Label Text="{Binding West, Converter={StaticResource CardsToStringConverter}}" Grid.Column="0" HorizontalTextAlignment="Start"></Label>
+                            <Label Text="{Binding East, Converter={StaticResource CardsToStringConverter}}" Grid.Column="1" HorizontalTextAlignment="End" Margin="0,0,20,0"></Label>
                             <Label Text="{Binding Occurrences}" Grid.Column="2" HorizontalTextAlignment="Center"></Label>
-                            <Label Text="{Binding Probability, StringFormat='{0:F2}%'}" Grid.Column="3" HorizontalTextAlignment="Center"></Label>
-                            <CollectionView ItemsSource="{Binding Path=NrOfTricks }" ItemsLayout="HorizontalList" Grid.Column="4">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackLayout Orientation="Horizontal">
-                                            <Label Text="{Binding Converter={StaticResource TricksToStringConverter}}" WidthRequest="30" HorizontalTextAlignment="Center"></Label>
-                                        </StackLayout>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
+                            <Label Text="{Binding Probability, Converter={StaticResource ProbabilityConverter}, StringFormat='{0:F2}%'}" Grid.Column="3" HorizontalTextAlignment="End"></Label>
                         </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-            <Grid Grid.Row="2" ColumnDefinitions="50,50,40,50,*">
-                <Label Text="Expected value" Grid.Column="0" Grid.ColumnSpan="4"></Label>
-                <CollectionView ItemsSource="{Binding AverageNrOfTricks}" ItemsLayout="HorizontalList" Grid.Column="4">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <Label Text="{Binding StringFormat='{0:F2}'}" WidthRequest="30" HorizontalTextAlignment="Center"></Label>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-            </Grid>
+            <CollectionView Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Path=PlayItems }" ItemsLayout="HorizontalList">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <StackLayout Orientation="Vertical">
+                            <StackLayout BindableLayout.ItemsSource="{Binding NrOfTricks}" Orientation="Vertical">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate>
+                                        <Label Text="{Binding Converter={StaticResource TricksToStringConverter}}" HorizontalTextAlignment="Center" WidthRequest="40" HeightRequest="20"></Label>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </StackLayout>
+                            <Label Text="{Binding Average, StringFormat='{0:F2}'}" HorizontalTextAlignment="Center" WidthRequest="40"></Label>
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

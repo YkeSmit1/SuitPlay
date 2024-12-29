@@ -1,13 +1,12 @@
 ﻿using System.Globalization;
-using Calculator;
 
 namespace SuitPlay.Converters;
 
-public class CardsToStringConverter : IValueConverter
+public class ProbabilityConverter:IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return Utils.CardListToString((List<Face>)value);
+        return value != null ? (double)value * 100 : 0.0;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

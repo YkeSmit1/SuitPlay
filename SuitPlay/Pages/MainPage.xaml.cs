@@ -88,7 +88,12 @@ public partial class MainPage
             var stopWatch = Stopwatch.StartNew();
             var northHand = ((HandViewModel)North.BindingContext).Cards.Select(x => x.Face).ToList();
             var southHand = ((HandViewModel)South.BindingContext).Cards.Select(x => x.Face).ToList();
-            tricks = await Task.Run(() => Calculate.GetAverageTrickCount(northHand, southHand).ToList());
+            tricks = await Task.Run(() =>
+            {
+                var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
+                var cardsNS = northHand.Concat(southHand).OrderBy(x => x).ToList();
+                return Calculate.GetAverageTrickCount(bestPlay, cardsNS).ToList();
+            });
             BestPlay.Text = $"{GetBestPlayText(tricks.ToList())} ({stopWatch.Elapsed:s\\:ff} seconds)";
         }
         catch (Exception exception)
@@ -150,9 +155,14 @@ public partial class MainPage
     {
         try
         {
-            var northHandCards = ((HandViewModel)North.BindingContext).Cards.Select(y => y.Face).ToList();
-            var southHandCards = ((HandViewModel)South.BindingContext).Cards.Select(x => x.Face).ToList();
-            var result = Task.Run(() => Calculate.GetResult(northHandCards, southHandCards));
+            var northHand = ((HandViewModel)North.BindingContext).Cards.Select(y => y.Face).ToList();
+            var southHand = ((HandViewModel)South.BindingContext).Cards.Select(x => x.Face).ToList();
+            var result = Task.Run(() =>
+            {
+                var calculateBestPlay = Calculate.CalculateBestPlay(northHand, southHand);
+                var cardsNS = northHand.Concat(southHand).OrderByDescending(z => z).ToList();
+                return Calculate.GetResult(calculateBestPlay, cardsNS);
+            });
             await Shell.Current.GoToAsync(nameof(DistributionsPage), new Dictionary<string, object> { ["Result"] = await result });
         }
         catch (Exception exception)
