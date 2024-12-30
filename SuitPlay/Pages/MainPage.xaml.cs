@@ -42,7 +42,7 @@ public partial class MainPage
     {
         var north = Preferences.Get("North", "");
         var south = Preferences.Get("South", "");
-        var remainingCards = PlayToString(Utils.GetAllCards().Reverse()).Except(north).Except(south);
+        var remainingCards = PlayToString(Utils.GetAllCards()).Except(north).Except(south);
         ((HandViewModel)North.BindingContext).ShowHand($"{north}", "default", dictionary);
         ((HandViewModel)South.BindingContext).ShowHand($"{south}", "default", dictionary);
         ((HandViewModel)Cards.BindingContext).ShowHand(new string(remainingCards.ToArray()), "default", dictionary);
@@ -56,7 +56,7 @@ public partial class MainPage
 
     private void InitCards()
     {
-        ((HandViewModel)Cards.BindingContext).ShowHand(PlayToString(Utils.GetAllCards().Reverse()), "default", dictionary);
+        ((HandViewModel)Cards.BindingContext).ShowHand(PlayToString(Utils.GetAllCards()), "default", dictionary);
         ((HandViewModel)North.BindingContext).Cards.Clear();
         ((HandViewModel)South.BindingContext).Cards.Clear();
     }
@@ -77,6 +77,7 @@ public partial class MainPage
     private void ResetButton_OnClicked(object sender, EventArgs e)
     {
         InitCards();
+        SaveSettings();
     }
 
     private async void CalculateButton_OnClicked(object sender, EventArgs e)
