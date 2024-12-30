@@ -76,7 +76,7 @@ public class Calculate
         var allCards = Utils.GetAllCards();
         var cardsEW = allCards.Except(north).Except(south).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
-        var cardsNS = north.Concat(south);
+        var cardsNS = north.Concat(south).OrderByDescending(x => x);
         combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces.ToList(), cardsNS) > 0);
         var result = new ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>>();
         Parallel.ForEach(combinations, new ParallelOptions() { MaxDegreeOfParallelism = 1 }, combination =>
