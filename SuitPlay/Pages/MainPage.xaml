@@ -25,7 +25,7 @@
             </HorizontalStackLayout>
             <Label x:Name="BestPlay" Text="Best play&#10;Average"></Label>
             <HorizontalStackLayout>
-                <Button Text="Go to overview" Clicked="ButtonOverview_OnClicked" Margin="20" WidthRequest="150"></Button>
+                <Button x:Name="OverviewButton" Text="Go to overview" Clicked="ButtonOverview_OnClicked" Margin="20" WidthRequest="150" IsEnabled="False"></Button>
                 <Button Text="Go to distributions" Clicked="ButtonDistributions_OnClicked" Margin="20" WidthRequest="150"></Button>
             </HorizontalStackLayout>
         </VerticalStackLayout>

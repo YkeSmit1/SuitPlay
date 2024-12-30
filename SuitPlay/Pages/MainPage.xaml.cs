@@ -67,6 +67,7 @@ public partial class MainPage
         ((HandViewModel)((HandView)e.Parameter)?.BindingContext)?.RemoveCard(card);
         ((HandViewModel)((HandView)e.Parameter == Cards ? SelectedHandView : Cards).BindingContext).AddCard(card);
         SaveSettings();
+        OverviewButton.IsEnabled = false;
     }
     
     private void TapGestureRecognizerSelect_OnTapped(object sender, TappedEventArgs e)
@@ -78,6 +79,7 @@ public partial class MainPage
     {
         InitCards();
         SaveSettings();
+        OverviewButton.IsEnabled = false;
     }
 
     private async void CalculateButton_OnClicked(object sender, EventArgs e)
@@ -95,6 +97,7 @@ public partial class MainPage
                 var cardsNS = northHand.Concat(southHand).OrderBy(x => x).ToList();
                 return Calculate.GetAverageTrickCount(bestPlay, cardsNS).ToList();
             });
+            OverviewButton.IsEnabled = true;
             BestPlay.Text = $"{GetBestPlayText(tricks.ToList())} ({stopWatch.Elapsed:s\\:ff} seconds)";
         }
         catch (Exception exception)
