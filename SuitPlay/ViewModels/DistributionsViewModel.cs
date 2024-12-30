@@ -9,6 +9,7 @@ public partial class DistributionsViewModel : ObservableObject, IQueryAttributab
     [ObservableProperty] private ObservableCollection<DistributionItem> distributionItems;
     [ObservableProperty] private ObservableCollection<List<Face>> allPlays;
     [ObservableProperty] private ObservableCollection<PlayItem> playItems;
+    [ObservableProperty] private ObservableCollection<int> possibleNrOfTricks;
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -16,5 +17,6 @@ public partial class DistributionsViewModel : ObservableObject, IQueryAttributab
         DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionList);
         AllPlays = new ObservableCollection<List<Face>>(result.AllPlays);
         PlayItems = new ObservableCollection<PlayItem>(result.PlayList);
+        PossibleNrOfTricks = new ObservableCollection<int>(result.PossibleNrOfTricks);
     }
 }

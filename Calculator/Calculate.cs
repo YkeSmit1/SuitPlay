@@ -11,6 +11,7 @@ public class Calculate
         public List<PlayItem> PlayList;
         public List<List<Face>> AllPlays;
         public List<DistributionItem> DistributionList;
+        public List<int> PossibleNrOfTricks;
     }
     
     public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount(IDictionary<List<Face>, List<(IList<Face>, int)>> bestPlay, List<Face> cardsNS)
@@ -46,6 +47,8 @@ public class Calculate
             };
         }, new ListComparer<Face>());
 
+        var possibleNrOfTricks = filteredTrees.SelectMany(x => x.Value).Select(x => x.Item2).Distinct().OrderByDescending(x => x).SkipLast(1);
+
         var playItems = filteredTrees
             .SelectMany(x => x.Value, (parent, child) => new { combi = parent.Key, play = child.Item1.ConvertToSmallCards(segmentsNS), nrOfTricks = child.Item2 })
             .GroupBy(x => x.play.ToList(), y => new { combi2 = y.combi, nrOfTricks2 = y.nrOfTricks }, new ListComparer<Face>()).ToList()
@@ -53,7 +56,9 @@ public class Calculate
             {
                 Play = value.Key.ToList(),
                 NrOfTricks = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.combi2), new {combi2 = (List<Face>)[], nrOfTricks2 = -1}).nrOfTricks2).ToList(),
-                Average = value.Average(y => distributionList[y.combi2.ToList()].Probability * y.nrOfTricks2) / value.Select(y => distributionList[y.combi2].Probability).Average()
+                Average = value.Average(x => distributionList[x.combi2].Probability * x.nrOfTricks2) / value.Select(x => distributionList[x.combi2].Probability).Average(),
+                Probabilities = possibleNrOfTricks.Select(y => value.Where(x => x.nrOfTricks2 >= y).Sum(x => distributionList[x.combi2].Probability) / value.Sum(x => distributionList[x.combi2].Probability)).ToList(), 
+                
             })
             .OrderByDescending(x => x.Value.Average)
             .ToDictionary(key => key.Key, value => value.Value, new ListComparer<Face>());
@@ -61,6 +66,7 @@ public class Calculate
         result.PlayList = playItems.Select(x => x.Value).ToList();
         result.AllPlays = playItems.Select(x => x.Key).Select(x => x.ConvertToSmallCards(segmentsNS).ToList()).ToList();
         result.DistributionList = distributionList.Select(x => x.Value).ToList();
+        result.PossibleNrOfTricks = possibleNrOfTricks.ToList();
 
         return result;
     }
