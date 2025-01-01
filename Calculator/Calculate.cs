@@ -14,15 +14,6 @@ public class Calculate
         public List<int> PossibleNrOfTricks;
     }
     
-    public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount(IDictionary<List<Face>, List<(IList<Face>, int)>> bestPlay, List<Face> cardsNS)
-    {
-        var flattenedResults = bestPlay.Values.SelectMany(x => x);
-        var resultsWithSmallCards = flattenedResults.Select(x => (x.Item1.ConvertToSmallCards(cardsNS), x.Item2));
-        var groupedTricks = resultsWithSmallCards.GroupBy(x => x.Item1.Take(3).ToList(), x => x.Item2, new ListEqualityComparer<Face>());
-        var averageTrickCountOrdered = groupedTricks.OrderByDescending(z => z.Average());
-        return averageTrickCountOrdered;
-    }
-    
     public static Result GetResult(Dictionary<List<Face>, IEnumerable<(IList<Face>, int)>> filteredTrees, List<Face> cardsNS)
     {   
         var result = new Result();

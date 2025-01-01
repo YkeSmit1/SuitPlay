@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using Calculator;
-using MoreLinq;
 using SuitPlay.ViewModels;
 using SuitPlay.Views;
 
@@ -22,7 +21,7 @@ public partial class MainPage
     }
 
     private readonly Dictionary<(string suit, string card), string> dictionary;
-    private List<IGrouping<IList<Face>, int>> tricks;
+    private IDictionary<List<Face>, List<(IList<Face>, int)>> bestPlay;    
 
     public MainPage()
     {
@@ -50,8 +49,8 @@ public partial class MainPage
     
     private void SaveSettings()
     {
-        Preferences.Set("North", Utils.CardListToString(((HandViewModel)North.BindingContext).Cards.Select(x => x.Face).ToList()));
-        Preferences.Set("South", Utils.CardListToString(((HandViewModel)South.BindingContext).Cards.Select(x => x.Face).ToList()));
+        Preferences.Set("North", Utils.CardListToString(GetHand(North)));
+        Preferences.Set("South", Utils.CardListToString(GetHand(South)));
     }
 
     private void InitCards()
@@ -68,6 +67,7 @@ public partial class MainPage
         ((HandViewModel)((HandView)e.Parameter == Cards ? SelectedHandView : Cards).BindingContext).AddCard(card);
         SaveSettings();
         OverviewButton.IsEnabled = false;
+        DistributionsButton.IsEnabled = false;
     }
     
     private void TapGestureRecognizerSelect_OnTapped(object sender, TappedEventArgs e)
@@ -80,6 +80,7 @@ public partial class MainPage
         InitCards();
         SaveSettings();
         OverviewButton.IsEnabled = false;
+        DistributionsButton.IsEnabled = false;
     }
 
     private async void CalculateButton_OnClicked(object sender, EventArgs e)
@@ -89,16 +90,14 @@ public partial class MainPage
             CalculateButton.IsEnabled = false;
             BestPlay.Text = "Calculating...\nAverage";
             var stopWatch = Stopwatch.StartNew();
-            var northHand = ((HandViewModel)North.BindingContext).Cards.Select(x => x.Face).ToList();
-            var southHand = ((HandViewModel)South.BindingContext).Cards.Select(x => x.Face).ToList();
-            tricks = await Task.Run(() =>
-            {
-                var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
-                var cardsNS = northHand.Concat(southHand).OrderByDescending(x => x).ToList();
-                return Calculate.GetAverageTrickCount(bestPlay, cardsNS).ToList();
-            });
+            var northHand = GetHand(North);
+            var southHand = GetHand(South);
+            bestPlay = await Task.Run(() => Calculate.CalculateBestPlay(northHand, southHand));
+            stopWatch.Stop();
+            var result = await GetResult(northHand, southHand);
+            BestPlay.Text = $"{GetBestPlayText(result)} ({stopWatch.Elapsed:s\\:ff} seconds)";
             OverviewButton.IsEnabled = true;
-            BestPlay.Text = $"{GetBestPlayText(tricks.ToList())} ({stopWatch.Elapsed:s\\:ff} seconds)";
+            DistributionsButton.IsEnabled = true;
         }
         catch (Exception exception)
         {
@@ -110,43 +109,25 @@ public partial class MainPage
         }
     }
 
-    private static string GetBestPlayText(IReadOnlyCollection<IGrouping<IList<Face>, int>> tricks)
+    private static string GetBestPlayText(Calculate.Result results)
     {
-        var bestPlay = FindBestPlay(tricks);
-        if (bestPlay.Count < 3)
-        {
-            return "Unable to calculate first trick";
-        }
-        var bestFirstTrickAsString = string.Join(",", bestPlay);
-        var average = tricks.Single(x => x.Key.SequenceEqual(bestPlay)).Average();
-        var bestPlayText = $"First trick: {bestFirstTrickAsString}\nAverage tricks:{average:0.##}";
+        var bestPlay = FindBestPlay(results);
+        var bestPlayText = $"First trick: {PlayToString(bestPlay.Play)}\nAverage tricks:{bestPlay.Average:0.##}";
         return bestPlayText;
-    }
-    
-    private static List<Face> FindBestPlay(IReadOnlyCollection<IGrouping<IList<Face>, int>> tricks)
-    {
-        var play = new List<Face>();
-        while (play.Count < 3)
+        
+        static PlayItem FindBestPlay(Calculate.Result result)
         {
-            var trickWithNextCard = tricks.Where(x => x.Key.Count == play.Count + 1 && x.Key.StartsWith(play)).ToList();
-            if (trickWithNextCard.Count == 0)
-                break;
-            play.Add(play.Count % 2 == 0 ? GetOurCard() : GetTheirCard());
-            continue;
-
-            Face GetOurCard() => trickWithNextCard.OrderByDescending(x => x.Average()).First().Key.Last();
-            Face GetTheirCard() => trickWithNextCard.Where(x => x.Key.Last() != Face.Dummy).OrderBy(y => y.Key.Last()).First().Key.Last();
+            return result.PlayList.Where(x => x.Play.Skip(1).First() == Face.SmallCard).MaxBy(x => x.Average);
         }
-
-        return play;
     }
 
     private async void ButtonOverview_OnClicked(object sender, EventArgs e)
     {
         try
         {
-            var overviewList = tricks.Where(y => y.Key.Count > 2 && y.Key.All(z => z != Face.Dummy)).Select(x => new OverviewItem
-                { FirstTrick = PlayToString(x.Key), Average = x.Average(), Count = x.Count() }).ToList();
+            var result = await GetResult(GetHand(North), GetHand(South));
+            var overviewList = result.PlayList.Where(y => y.Play.Count > 2 && y.Play.All(z => z != Face.Dummy)).Select(x => new OverviewItem
+                { FirstTrick = PlayToString(x.Play), Average = x.Average, Count = x.NrOfTricks.Count }).ToList();
             await Shell.Current.GoToAsync(nameof(OverviewPage), new Dictionary<string, object> { ["OverviewList"] = overviewList });
         }
         catch (Exception exception)
@@ -159,16 +140,7 @@ public partial class MainPage
     {
         try
         {
-            var northHand = ((HandViewModel)North.BindingContext).Cards.Select(y => y.Face).ToList();
-            var southHand = ((HandViewModel)South.BindingContext).Cards.Select(x => x.Face).ToList();
-            var result = Task.Run(() =>
-            {
-                var calculateBestPlay = Calculate.CalculateBestPlay(northHand, southHand);
-                var cardsNS = northHand.Concat(southHand).OrderByDescending(z => z).ToList();
-                var filteredTrees = calculateBestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)));
-                
-                return Calculate.GetResult(filteredTrees, cardsNS);
-            });
+            var result = GetResult(GetHand(North), GetHand(South));
             await Shell.Current.GoToAsync(nameof(DistributionsPage), new Dictionary<string, object> { ["Result"] = await result });
         }
         catch (Exception exception)
@@ -176,7 +148,24 @@ public partial class MainPage
             await DisplayAlert("Error", exception.Message, "OK");
         }
     }
-    
+
+    private List<Face> GetHand(HandView handView)
+    {
+        return ((HandViewModel)handView.BindingContext).Cards.Select(y => y.Face).ToList();
+    }
+
+    private Task<Calculate.Result> GetResult(List<Face> northHand, List<Face> southHand)
+    {
+        var result = Task.Run(() =>
+        {
+            var cardsNS = northHand.Concat(southHand).OrderByDescending(z => z).ToList();
+            var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)));
+                
+            return Calculate.GetResult(filteredTrees, cardsNS);
+        });
+        return result;
+    }
+
     private static string PlayToString(IEnumerable<Face> tuple)
     {
         return string.Join("", tuple.Select(Utils.CardToChar));
