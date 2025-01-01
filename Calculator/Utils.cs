@@ -4,7 +4,7 @@ namespace Calculator;
 
 using Alias = Universal.Common.Mathematics.Math;
 
-public class ListComparer<T> : IEqualityComparer<IList<T>>
+public class ListEqualityComparer<T> : IEqualityComparer<IList<T>>
 {
     public bool Equals(IList<T> left, IList<T> right)
     {
@@ -18,6 +18,22 @@ public class ListComparer<T> : IEqualityComparer<IList<T>>
     public int GetHashCode(IList<T> list)
     {
         return list.Aggregate(19, (current, total) => current * 31 + total.GetHashCode());
+    }
+}
+
+public class FaceListComparer : IComparer<IList<Face>>
+{
+    public int Compare(IList<Face> left, IList<Face> right)
+    {
+        if (left == null)
+            return 1;
+        if (right == null)
+            return -1;
+        for (var i = 0; i < left.Count && i < right.Count; i++) {
+            var c = left[i].CompareTo(right[i]);
+            if (c != 0) return c;
+        }
+        return left.Count.CompareTo(right.Count);
     }
 }
 

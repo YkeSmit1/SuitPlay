@@ -17,7 +17,7 @@
     </ContentPage.BindingContext>
     <ContentPage.Content>
         <Grid RowDefinitions="auto,auto,auto" ColumnDefinitions="auto,auto" Margin="20">
-            <Grid Grid.Row="0" ColumnDefinitions="50,50,40,50">
+            <Grid Grid.Row="0" ColumnDefinitions="70,70,40,50">
                 <Label Text="West" Grid.Column="0" HorizontalTextAlignment="Center"></Label>
                 <Label Text="East" Grid.Column="1" HorizontalTextAlignment="Center"></Label>
                 <Label Text="Occ." Grid.Column="2" HorizontalTextAlignment="Center"></Label>
@@ -33,7 +33,7 @@
             <CollectionView Grid.Row="1" Grid.Column="0" ItemsSource="{Binding DistributionItems}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid ColumnDefinitions="50,50,40,50">
+                        <Grid ColumnDefinitions="70,70,40,50">
                             <Label Text="{Binding West, Converter={StaticResource CardsToStringConverter}}" Grid.Column="0" HorizontalTextAlignment="Start"></Label>
                             <Label Text="{Binding East, Converter={StaticResource CardsToStringConverter}}" Grid.Column="1" HorizontalTextAlignment="End" Margin="0,0,20,0"></Label>
                             <Label Text="{Binding Occurrences}" Grid.Column="2" HorizontalTextAlignment="Center"></Label>

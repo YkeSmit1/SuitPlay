@@ -19,7 +19,7 @@ public class Calculate
         var flattenedResults = bestPlay.Values.SelectMany(x => x);
         var segmentsNS = cardsNS.Segment((item, prevItem, _) => (int)item - (int)prevItem > 1).ToList();
         var resultsWithSmallCards = flattenedResults.Select(x => (x.Item1.Select(y => y < segmentsNS.Skip(1).First().First() ? Face.SmallCard : y), x.Item2));
-        var groupedTricks = resultsWithSmallCards.GroupBy(x => x.Item1.Take(3).ToList(), x => x.Item2, new ListComparer<Face>());
+        var groupedTricks = resultsWithSmallCards.GroupBy(x => x.Item1.Take(3).ToList(), x => x.Item2, new ListEqualityComparer<Face>());
         var averageTrickCountOrdered = groupedTricks.OrderByDescending(z => z.Average());
         return averageTrickCountOrdered;
     }
@@ -30,7 +30,7 @@ public class Calculate
         var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)));
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
         var combinations = Combinations.AllCombinations(cardsEW).Select(x => x.OrderByDescending(y => y));
-        var combinationsInTree = filteredTrees.Keys.Select(x => x.OrderByDescending(y => y)).OrderBy(x => string.Join("", x.Select(Utils.CardToChar))).ToList();
+        var combinationsInTree = filteredTrees.Keys.Select(x => x.OrderByDescending(y => y)).OrderBy(x => x.ToList(), new FaceListComparer()).ToList();
         
         var distributionList = combinationsInTree.ToDictionary(key => key.ToList(), value =>
         {
@@ -44,13 +44,13 @@ public class Calculate
                 Occurrences = similarCombinationsCount,
                 Probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count) * similarCombinationsCount,
             };
-        }, new ListComparer<Face>());
+        }, new ListEqualityComparer<Face>());
 
         var possibleNrOfTricks = filteredTrees.SelectMany(x => x.Value).Select(x => x.Item2).Distinct().OrderByDescending(x => x).SkipLast(1);
 
         var playItems = filteredTrees
             .SelectMany(x => x.Value, (parent, child) => new { combi = parent.Key, play = child.Item1.ConvertToSmallCards(cardsNS), nrOfTricks = child.Item2 })
-            .GroupBy(x => x.play.ToList(), y => new { combi2 = y.combi, nrOfTricks2 = y.nrOfTricks }, new ListComparer<Face>()).ToList()
+            .GroupBy(x => x.play.ToList(), y => new { combi2 = y.combi, nrOfTricks2 = y.nrOfTricks }, new ListEqualityComparer<Face>()).ToList()
             .ToDictionary(key => key.Key, value => new PlayItem
             {
                 Play = value.Key.ToList(),
@@ -60,7 +60,7 @@ public class Calculate
                 
             })
             .OrderByDescending(x => x.Value.Average)
-            .ToDictionary(key => key.Key, value => value.Value, new ListComparer<Face>());
+            .ToDictionary(key => key.Key, value => value.Value, new ListEqualityComparer<Face>());
 
         result.PlayList = playItems.Select(x => x.Value).ToList();
         result.AllPlays = playItems.Select(x => x.Key).Select(x => x.ConvertToSmallCards(cardsNS).ToList()).ToList();
