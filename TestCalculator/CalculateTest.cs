@@ -52,15 +52,14 @@ public class CalculateTest
     [InlineData("K74", "AQ32", "Kxx")]
     [InlineData("KJ52", "AQT3", "KJxx")]
     [InlineData("9852", "AKQJT", "xxxx")]
-    [InlineData("268", "AQT985432", "xx8")]
+    [InlineData("268", "AQT97543", "xx8")]
     public void TestConvertToSmallCards(string combination, string cardsNS, string expected)
     {
         // Arrange
         var hand = combination.Select(Utils.CharToCard);
-        var cardsNSOrdered = cardsNS.Select(Utils.CharToCard).OrderByDescending(x => x);
-        var segmentsNS = cardsNSOrdered.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
+        var cardsNSOrdered = cardsNS.Select(Utils.CharToCard);
         // Act
-        var actual = hand.ConvertToSmallCards(segmentsNS);
+        var actual = hand.ConvertToSmallCards(cardsNSOrdered);
         // Assert
         Assert.Equal(expected.Select(Utils.CharToCard), actual);
     }

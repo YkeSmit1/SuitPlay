@@ -1,4 +1,6 @@
-﻿namespace Calculator;
+﻿using MoreLinq;
+
+namespace Calculator;
 
 using Alias = Universal.Common.Mathematics.Math;
 
@@ -144,9 +146,11 @@ public static class Utils
         return Enum.GetValues<Face>().Where(x => x >= Face.Two).Reverse();
     }
 
-    public static IEnumerable<Face> ConvertToSmallCards(this IEnumerable<Face> z, List<IEnumerable<Face>> segmentsNS)
+    public static IEnumerable<Face> ConvertToSmallCards(this IEnumerable<Face> cards, IEnumerable<Face> cardsNS)
     {
-        return z.Select(x => IsSmallCard(x, segmentsNS) ? Face.SmallCard : x);
+        var enumerable = cardsNS.ToList();
+        var segmentsNS = enumerable.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
+        return cards.Select(x => !enumerable.Contains(x) && IsSmallCard(x, segmentsNS) ? Face.SmallCard : x);
     }
 
     private static bool IsSmallCard(Face face, List<IEnumerable<Face>> segmentsNS)

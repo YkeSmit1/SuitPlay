@@ -27,7 +27,6 @@ public class Calculate
     public static Result GetResult(IDictionary<List<Face>, List<(IList<Face>, int)>> bestPlay, List<Face> cardsNS)
     {   
         var result = new Result();
-        var segmentsNS = cardsNS.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)));
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
         var combinations = Combinations.AllCombinations(cardsEW).Select(x => x.OrderByDescending(y => y));
@@ -40,8 +39,8 @@ public class Calculate
             var similarCombinationsCount = SimilarCombinations(combinations, westHand, cardsNS).Count();
             return new DistributionItem
             {
-                West = westHand.ConvertToSmallCards(segmentsNS).ToList(),
-                East = eastHand.ConvertToSmallCards(segmentsNS).ToList(),
+                West = westHand.ConvertToSmallCards(cardsNS).ToList(),
+                East = eastHand.ConvertToSmallCards(cardsNS).ToList(),
                 Occurrences = similarCombinationsCount,
                 Probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count) * similarCombinationsCount,
             };
@@ -50,12 +49,12 @@ public class Calculate
         var possibleNrOfTricks = filteredTrees.SelectMany(x => x.Value).Select(x => x.Item2).Distinct().OrderByDescending(x => x).SkipLast(1);
 
         var playItems = filteredTrees
-            .SelectMany(x => x.Value, (parent, child) => new { combi = parent.Key, play = child.Item1.ConvertToSmallCards(segmentsNS), nrOfTricks = child.Item2 })
+            .SelectMany(x => x.Value, (parent, child) => new { combi = parent.Key, play = child.Item1.ConvertToSmallCards(cardsNS), nrOfTricks = child.Item2 })
             .GroupBy(x => x.play.ToList(), y => new { combi2 = y.combi, nrOfTricks2 = y.nrOfTricks }, new ListComparer<Face>()).ToList()
             .ToDictionary(key => key.Key, value => new PlayItem
             {
                 Play = value.Key.ToList(),
-                NrOfTricks = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.combi2), new {combi2 = (List<Face>)[], nrOfTricks2 = -1}).nrOfTricks2).ToList(),
+                NrOfTricks = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.combi2), new { combi2 = (List<Face>) [], nrOfTricks2 = -1 }).nrOfTricks2).ToList(),
                 Average = value.Average(x => distributionList[x.combi2].Probability * x.nrOfTricks2) / value.Select(x => distributionList[x.combi2].Probability).Average(),
                 Probabilities = possibleNrOfTricks.Select(y => value.Where(x => x.nrOfTricks2 >= y).Sum(x => distributionList[x.combi2].Probability) / value.Sum(x => distributionList[x.combi2].Probability)).ToList(), 
                 
@@ -64,7 +63,7 @@ public class Calculate
             .ToDictionary(key => key.Key, value => value.Value, new ListComparer<Face>());
 
         result.PlayList = playItems.Select(x => x.Value).ToList();
-        result.AllPlays = playItems.Select(x => x.Key).Select(x => x.ConvertToSmallCards(segmentsNS).ToList()).ToList();
+        result.AllPlays = playItems.Select(x => x.Key).Select(x => x.ConvertToSmallCards(cardsNS).ToList()).ToList();
         result.DistributionList = distributionList.Select(x => x.Value).ToList();
         result.PossibleNrOfTricks = possibleNrOfTricks.ToList();
 
