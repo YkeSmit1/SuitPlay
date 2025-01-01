@@ -17,17 +17,15 @@ public class Calculate
     public static IEnumerable<IGrouping<IList<Face>, int>> GetAverageTrickCount(IDictionary<List<Face>, List<(IList<Face>, int)>> bestPlay, List<Face> cardsNS)
     {
         var flattenedResults = bestPlay.Values.SelectMany(x => x);
-        var segmentsNS = cardsNS.Segment((item, prevItem, _) => (int)item - (int)prevItem > 1).ToList();
-        var resultsWithSmallCards = flattenedResults.Select(x => (x.Item1.Select(y => y < segmentsNS.Skip(1).First().First() ? Face.SmallCard : y), x.Item2));
+        var resultsWithSmallCards = flattenedResults.Select(x => (x.Item1.ConvertToSmallCards(cardsNS), x.Item2));
         var groupedTricks = resultsWithSmallCards.GroupBy(x => x.Item1.Take(3).ToList(), x => x.Item2, new ListEqualityComparer<Face>());
         var averageTrickCountOrdered = groupedTricks.OrderByDescending(z => z.Average());
         return averageTrickCountOrdered;
     }
     
-    public static Result GetResult(IDictionary<List<Face>, List<(IList<Face>, int)>> bestPlay, List<Face> cardsNS)
+    public static Result GetResult(Dictionary<List<Face>, IEnumerable<(IList<Face>, int)>> filteredTrees, List<Face> cardsNS)
     {   
         var result = new Result();
-        var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)));
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
         var combinations = Combinations.AllCombinations(cardsEW).Select(x => x.OrderByDescending(y => y));
         var combinationsInTree = filteredTrees.Keys.Select(x => x.OrderByDescending(y => y)).OrderBy(x => x.ToList(), new FaceListComparer()).ToList();

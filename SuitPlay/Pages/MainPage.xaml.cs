@@ -94,7 +94,7 @@ public partial class MainPage
             tricks = await Task.Run(() =>
             {
                 var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
-                var cardsNS = northHand.Concat(southHand).OrderBy(x => x).ToList();
+                var cardsNS = northHand.Concat(southHand).OrderByDescending(x => x).ToList();
                 return Calculate.GetAverageTrickCount(bestPlay, cardsNS).ToList();
             });
             OverviewButton.IsEnabled = true;
@@ -165,7 +165,9 @@ public partial class MainPage
             {
                 var calculateBestPlay = Calculate.CalculateBestPlay(northHand, southHand);
                 var cardsNS = northHand.Concat(southHand).OrderByDescending(z => z).ToList();
-                return Calculate.GetResult(calculateBestPlay, cardsNS);
+                var filteredTrees = calculateBestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)));
+                
+                return Calculate.GetResult(filteredTrees, cardsNS);
             });
             await Shell.Current.GoToAsync(nameof(DistributionsPage), new Dictionary<string, object> { ["Result"] = await result });
         }
