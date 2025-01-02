@@ -14,7 +14,7 @@ public class Calculate
         public List<int> PossibleNrOfTricks;
     }
     
-    public static Result GetResult(Dictionary<List<Face>, IEnumerable<(IList<Face>, int)>> filteredTrees, List<Face> cardsNS)
+    public static Result GetResult(Dictionary<List<Face>, IEnumerable<(IList<Face> play, int nrOfTricks)>> filteredTrees, List<Face> cardsNS)
     {   
         var result = new Result();
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
@@ -35,18 +35,17 @@ public class Calculate
             };
         }, new ListEqualityComparer<Face>());
 
-        var possibleNrOfTricks = filteredTrees.SelectMany(x => x.Value).Select(x => x.Item2).Distinct().OrderByDescending(x => x).SkipLast(1);
+        var possibleNrOfTricks = filteredTrees.SelectMany(x => x.Value).Select(x => x.nrOfTricks).Distinct().OrderByDescending(x => x).SkipLast(1);
 
         var playItems = filteredTrees
-            .SelectMany(x => x.Value, (parent, child) => new { combi = parent.Key, play = child.Item1.ConvertToSmallCards(cardsNS), nrOfTricks = child.Item2 })
-            .GroupBy(x => x.play.ToList(), y => new { combi2 = y.combi, nrOfTricks2 = y.nrOfTricks }, new ListEqualityComparer<Face>()).ToList()
+            .SelectMany(x => x.Value, (parent, child) => (combi: parent.Key, play: child.play.ConvertToSmallCards(cardsNS), child.nrOfTricks))
+            .GroupBy(x => x.play.ToList(), y => (y.combi, y.nrOfTricks), new ListEqualityComparer<Face>()).ToList()
             .ToDictionary(key => key.Key, value => new PlayItem
             {
                 Play = value.Key.ToList(),
-                NrOfTricks = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.combi2), new { combi2 = (List<Face>) [], nrOfTricks2 = -1 }).nrOfTricks2).ToList(),
-                Average = value.Average(x => distributionList[x.combi2].Probability * x.nrOfTricks2) / value.Select(x => distributionList[x.combi2].Probability).Average(),
-                Probabilities = possibleNrOfTricks.Select(y => value.Where(x => x.nrOfTricks2 >= y).Sum(x => distributionList[x.combi2].Probability) / value.Sum(x => distributionList[x.combi2].Probability)).ToList(), 
-                
+                NrOfTricks = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.combi), ([], -1)).nrOfTricks).ToList(),
+                Average = value.Average(x => GetProbability(x) * x.nrOfTricks) / value.Select(GetProbability).Average(),
+                Probabilities = possibleNrOfTricks.Select(y => value.Where(x => x.nrOfTricks >= y).Sum(GetProbability) / value.Sum(GetProbability)).ToList(),
             })
             .OrderByDescending(x => x.Value.Average)
             .ToDictionary(key => key.Key, value => value.Value, new ListEqualityComparer<Face>());
@@ -57,6 +56,8 @@ public class Calculate
         result.PossibleNrOfTricks = possibleNrOfTricks.ToList();
 
         return result;
+
+        double GetProbability((List<Face> combi, int nrOfTricks) x) => distributionList[x.combi].Probability;
     }
 
     public static IDictionary<List<Face>, List<(IList<Face>, int)>> CalculateBestPlay(List<Face> north, List<Face> south)

@@ -4,7 +4,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:SuitPlay.ViewModels"
              xmlns:converters="clr-namespace:SuitPlay.Converters"
-             xmlns:system="clr-namespace:System;assembly=System.Runtime"
              x:Class="SuitPlay.Pages.DistributionsPage">
     <ContentPage.Resources>
         <converters:CardsToStringConverter x:Key="CardsToStringConverter" />
