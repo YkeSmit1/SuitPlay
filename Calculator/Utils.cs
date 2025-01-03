@@ -173,6 +173,6 @@ public static class Utils
     {
         if (face == Face.Dummy) return false;
         if (segmentsNS.Count <= 1) return true;
-        return (int)face < (int)segmentsNS.SkipLast(1).Last().Last();
+        return (int)face < (int)segmentsNS[^2].Last();
     }
 }

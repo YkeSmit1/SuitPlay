@@ -117,7 +117,7 @@ public partial class MainPage
         
         static PlayItem FindBestPlay(Calculate.Result result)
         {
-            return result.PlayList.Where(x => x.Play.Skip(1).First() == Face.SmallCard).MaxBy(x => x.Average);
+            return result.PlayList.Where(x => x.Play[1] == Face.SmallCard).MaxBy(x => x.Average);
         }
     }
 
