@@ -159,8 +159,7 @@ public partial class MainPage
         var result = Task.Run(() =>
         {
             var cardsNS = northHand.Concat(southHand).OrderByDescending(z => z).ToList();
-            var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3 && x.Item1.All(z => z != Face.Dummy)));
-                
+            var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3), new ListEqualityComparer<Face>());
             return Calculate.GetResult(filteredTrees, cardsNS);
         });
         return result;

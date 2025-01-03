@@ -43,21 +43,27 @@ public class Calculate
             .ToDictionary(key => key.Key, value => new PlayItem
             {
                 Play = value.Key.ToList(),
-                NrOfTricks = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.combi), ([], -1)).nrOfTricks).ToList(),
+                NrOfTricks = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.combi), GetDefaultValue(value.Key, x.ToList())).nrOfTricks).ToList(),
                 Average = value.Average(x => GetProbability(x) * x.nrOfTricks) / value.Select(GetProbability).Average(),
                 Probabilities = possibleNrOfTricks.Select(y => value.Where(x => x.nrOfTricks >= y).Sum(GetProbability) / value.Sum(GetProbability)).ToList(),
             })
             .OrderByDescending(x => x.Value.Average)
             .ToDictionary(key => key.Key, value => value.Value, new ListEqualityComparer<Face>());
 
-        result.PlayList = playItems.Select(x => x.Value).ToList();
-        result.AllPlays = playItems.Select(x => x.Key).Select(x => x.ConvertToSmallCards(cardsNS).ToList()).ToList();
+        var relevantPlays = playItems.Where(x => x.Key[1] == Face.SmallCard).ToList();
+        result.PlayList = relevantPlays.Select(x => x.Value).ToList();
+        result.AllPlays = relevantPlays.Select(x => x.Key).Select(x => x.ConvertToSmallCards(cardsNS).ToList()).ToList();
         result.DistributionList = distributionList.Select(x => x.Value).ToList();
         result.PossibleNrOfTricks = possibleNrOfTricks.ToList();
 
         return result;
 
         double GetProbability((List<Face> combi, int nrOfTricks) x) => distributionList[x.combi].Probability;
+
+        (List<Face> combi, int nrOfTricks) GetDefaultValue(IList<Face> play, List<Face> combination)
+        {
+            return play[1] != Face.SmallCard ? (combination, -1) : (combination, filteredTrees[combination].Where(x => x.play.First() == play.First()).ToList().Max(x => x.nrOfTricks));
+        }
     }
 
     public static IDictionary<List<Face>, List<(IList<Face>, int)>> CalculateBestPlay(List<Face> north, List<Face> south)

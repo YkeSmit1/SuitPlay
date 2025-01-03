@@ -12,7 +12,7 @@ public partial class App : Application
         var window = new Window(new AppShell());
 
 #if WINDOWS
-        window.Width = 1000;
+        window.Width = 800;
         window.Height = 1000;
         
         var displayInfo = DeviceDisplay.Current.MainDisplayInfo;
