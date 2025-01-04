@@ -18,8 +18,8 @@ public class Calculate
     {   
         var result = new Result();
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
-        var combinations = Combinations.AllCombinations(cardsEW).Select(x => x.OrderByDescending(y => y));
-        var combinationsInTree = filteredTrees.Keys.Select(x => x.OrderByDescending(y => y)).OrderBy(x => x.ToList(), new FaceListComparer()).ToList();
+        var combinations = Combinations.AllCombinations(cardsEW);
+        var combinationsInTree = filteredTrees.Keys.OrderBy(x => x.ToList(), new FaceListComparer()).ToList();
         
         var distributionList = combinationsInTree.ToDictionary(key => key.ToList(), value =>
         {
@@ -71,8 +71,8 @@ public class Calculate
         var allCards = Utils.GetAllCards();
         var cardsEW = allCards.Except(north).Except(south).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
-        var cardsNS = north.Concat(south).OrderByDescending(x => x);
-        combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces.ToList(), cardsNS) > 0);
+        var cardsNS = north.Concat(south);
+        combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces, cardsNS) > 0);
         var result = new ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>>();
         Parallel.ForEach(combinations, new ParallelOptions() { MaxDegreeOfParallelism = 1 }, combination =>
         {
@@ -85,12 +85,13 @@ public class Calculate
         return result;
     }
 
-    public static int SimilarCombinationsCount(List<IEnumerable<Face>> combinationList, List<Face> combination, IEnumerable<Face> cardsNS)
+    public static int SimilarCombinationsCount(IEnumerable<IEnumerable<Face>> combinationList,  IEnumerable<Face> combination, IEnumerable<Face> cardsNS)
     {
-        if (combination.Count == 0)
+        var list = combination.ToList();
+        if (list.Count == 0)
             return 0;
-        var similarCombinations = SimilarCombinations(combinationList, combination, cardsNS);
-        var hasSimilar = similarCombinations.Count(x => x.Last() < combination.Last());
+        var similarCombinations = SimilarCombinations(combinationList, list, cardsNS);
+        var hasSimilar = similarCombinations.Count(x => x.Last() < list.Last());
         return hasSimilar;
     }
 

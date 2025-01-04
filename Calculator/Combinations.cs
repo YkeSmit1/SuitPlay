@@ -8,7 +8,7 @@ public static class Combinations
         var list = elements.ToList();
         for (var k = 0; k <= list.Count; k++)
         {
-            ret.AddRange(k == 0 ? [Array.Empty<T>()] : Combinations(list, k));
+            ret.AddRange(k == 0 ? [[]] : Combinations(list, k));
         }
 
         return ret;
@@ -16,7 +16,7 @@ public static class Combinations
         static IEnumerable<IEnumerable<TU>> Combinations<TU>(IEnumerable<TU> elements, int k)
         {
             var list = elements.ToList();
-            return k == 0 ? [Array.Empty<TU>()] : list.SelectMany((e, index) =>
+            return k == 0 ? [[]] : list.SelectMany((e, index) =>
                     Combinations(list.Skip(index + 1), k - 1).Select(c => new[] { e }.Concat(c)));
         }
     }   
