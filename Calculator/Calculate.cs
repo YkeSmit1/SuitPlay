@@ -14,7 +14,7 @@ public class Calculate
         public List<int> PossibleNrOfTricks;
     }
     
-    public static Result GetResult(Dictionary<List<Face>, IEnumerable<(IList<Face> play, int nrOfTricks)>> filteredTrees, List<Face> cardsNS)
+    public static Result GetResult(Dictionary<List<Face>, IEnumerable<(IList<Face> play, int nrOfTricks)>> filteredTrees, List<Face> cardsNS, string filename)
     {   
         var result = new Result();
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
@@ -56,6 +56,9 @@ public class Calculate
         result.DistributionList = distributionList.Select(x => x.Value).ToList();
         result.PossibleNrOfTricks = possibleNrOfTricks.ToList();
 
+        Utils.SaveTrees(playItems, filename);
+        
+
         return result;
 
         double GetProbability((List<Face> combi, int nrOfTricks) x) => distributionList[x.combi].Probability;
@@ -71,7 +74,7 @@ public class Calculate
         var allCards = Utils.GetAllCards();
         var cardsEW = allCards.Except(north).Except(south).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
-        var cardsNS = north.Concat(south);
+        var cardsNS = north.Concat(south).OrderByDescending(x => x);
         combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces, cardsNS) > 0);
         var result = new ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>>();
         Parallel.ForEach(combinations, new ParallelOptions() { MaxDegreeOfParallelism = 1 }, combination =>

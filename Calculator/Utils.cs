@@ -1,4 +1,5 @@
-﻿using MoreLinq;
+﻿using System.Text.Json;
+using MoreLinq;
 
 namespace Calculator;
 
@@ -174,5 +175,12 @@ public static class Utils
         if (face == Face.Dummy) return false;
         if (segmentsNS.Count <= 1) return true;
         return (int)face < (int)segmentsNS[^2].Last();
+    }
+
+    public static void SaveTrees(Dictionary<List<Face>, PlayItem> trees, string filename)
+    {
+        using var stream = new FileStream(filename, FileMode.Create);
+        var treesForJson = trees.Where(x => x.Key[1] == Face.SmallCard).ToDictionary(x => CardListToString(x.Key), x => (CardListToString(x.Value.Play), x.Value.NrOfTricks));
+        JsonSerializer.Serialize(stream, treesForJson, new JsonSerializerOptions {WriteIndented = true, IncludeFields = true});
     }
 }

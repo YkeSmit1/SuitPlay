@@ -160,7 +160,8 @@ public partial class MainPage
         {
             var cardsNS = northHand.Concat(southHand).OrderByDescending(z => z).ToList();
             var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3), new ListEqualityComparer<Face>());
-            return Calculate.GetResult(filteredTrees, cardsNS);
+            var filename = Path.Combine(FileSystem.AppDataDirectory, $"{Utils.CardListToString(northHand)}-{Utils.CardListToString(southHand)}.json");
+            return Calculate.GetResult(filteredTrees, cardsNS, filename);
         });
         return result;
     }
