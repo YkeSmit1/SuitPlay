@@ -121,7 +121,7 @@ public static class Utils
     
     public static List<Face> StringToCardList(string cards)
     {
-        return cards.Split("").Select(x => x[0]).Select(CharToCard).ToList();
+        return cards.Select(CharToCard).ToList();
     }
     
     public static Face GetFaceFromDescription(char c)

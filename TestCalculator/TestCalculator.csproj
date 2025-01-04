@@ -42,6 +42,16 @@
       <None Update="lesson2d.pbn">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="etalons\AQT98-5432.etalon.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="etalons\QT98-A432.etalon.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="etalons\" />
     </ItemGroup>
 
 </Project>

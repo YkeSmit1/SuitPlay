@@ -1,6 +1,6 @@
-﻿using Calculator;
+﻿using System.Text.Json;
+using Calculator;
 using JetBrains.Annotations;
-using MoreLinq;
 using Xunit.Abstractions;
 
 namespace TestCalculator;
@@ -62,5 +62,25 @@ public class CalculateTest
         var actual = hand.ConvertToSmallCards(cardsNSOrdered);
         // Assert
         Assert.Equal(expected.Select(Utils.CharToCard), actual);
+    }
+
+    [Theory]
+    [InlineData("AQT98", "5432")]
+    [InlineData("QT98", "A432")]
+    public void TestEqualToEtalon(string north, string south)
+    {
+        // Arrange 
+        var northHand = Utils.StringToCardList(north);
+        var southHand = Utils.StringToCardList(south);
+        var cardsNS = northHand.Concat(southHand).OrderByDescending(x => x).ToList();
+        // Act
+        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
+        var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3), new ListEqualityComparer<Face>());
+        var filename = $"{north}-{south}";
+        Calculate.GetResult(filteredTrees, cardsNS, $"{filename}.json");
+        // Assert
+        var json = File.ReadAllText($"{filename}.json");
+        var etalon = File.ReadAllText(Path.Combine("etalons", $"{filename}.etalon.json"));
+        Assert.Equal(etalon, json);
     }
 }
