@@ -133,8 +133,8 @@ public class Calculate
             [Player.East] = cards[2].Select(x => new Card { Face = x, Player = Player.East }).ToList(),
             [Player.West] = cards[3].Select(x => new Card { Face = x, Player = Player.West }).ToList()
         };
-        var cardsNS = initialCards[Player.North].Concat(initialCards[Player.South]).ToList();
-        var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).ToList();
+        var cardsNS = initialCards[Player.North].Concat(initialCards[Player.South]).OrderByDescending(x => x.Face).ToList();
+        var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).OrderByDescending(x => x.Face).ToList();
         FindBestMove();
         return tree;
 
@@ -250,16 +250,15 @@ public class Calculate
 
     public static IEnumerable<Card> AvailableCardsFiltered(List<Card> availableCards, List<Card> cardsOtherTeam)
     {
-        return availableCards.Where(card =>
+        //return availableCards.Where(card => !availableCards.Any(x => cardsOtherTeam.Where(y => y.Face < x.Face).SequenceEqual(cardsOtherTeam.Where(z => z.Face < card.Face)) && card.Face > x.Face));
+        var segmentsCardsOtherTeam = cardsOtherTeam.Segment((item, prevItem, _) => (int)prevItem.Face - (int)item.Face > 1).ToList();
+        var segmentsAvailableCards = availableCards.Segment((item, prevItem, _) => !GetSegmentOtherTeam(item).SequenceEqual(GetSegmentOtherTeam(prevItem)));
+        var availableCardsFiltered = segmentsAvailableCards.Select(x => x.Last());
+        return availableCardsFiltered;
+        
+        List<Card> GetSegmentOtherTeam(Card card)
         {
-            var nsCardsLower = cardsOtherTeam.Where(x => x.Face < card.Face);
-            var hasSimilarCard = availableCards.Any(x => SequenceEqual(x, nsCardsLower, card));
-            return !hasSimilarCard;
-        });
-
-        bool SequenceEqual(Card x, IEnumerable<Card> nsCardsLower, Card card)
-        {
-            return cardsOtherTeam.Where(y => y.Face < x.Face).SequenceEqual(nsCardsLower) && card.Face > x.Face;
+            return segmentsCardsOtherTeam.FirstOrDefault(x => card.Face > x.First().Face, []).ToList();
         }
     }
 
