@@ -181,7 +181,10 @@ public static class Utils
     public static void SaveTrees(Dictionary<List<Face>, PlayItem> trees, string filename)
     {
         using var stream = new FileStream(filename, FileMode.Create);
-        var treesForJson = trees.Where(x => x.Key[1] == Face.SmallCard).ToDictionary(x => CardListToString(x.Key), x => (CardListToString(x.Value.Play), x.Value.NrOfTricks));
+        var treesForJson = trees.Where(x => x.Key[1] == Face.SmallCard)
+            .OrderByDescending(x => x.Value.NrOfTricks.Average())
+            .ThenByDescending(x => x.Value.Play, new FaceListComparer())
+            .ToDictionary(x => CardListToString(x.Key), x => (CardListToString(x.Value.Play), x.Value.NrOfTricks));
         JsonSerializer.Serialize(stream, treesForJson, new JsonSerializerOptions {WriteIndented = true, IncludeFields = true});
     }
 }

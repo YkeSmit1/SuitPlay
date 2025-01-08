@@ -42,13 +42,16 @@
       <None Update="lesson2d.pbn">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons\AQT98-5432.etalon.json">
+      <None Update="etalons\AJ92-K843.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons\QT98-A432.etalon.json">
+      <None Update="etalons\AQT98-5432.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons\QT98-A543.etalon.json">
+      <None Update="etalons\QT98-A432.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="etalons\QT98-A543.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>

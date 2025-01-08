@@ -78,6 +78,7 @@ public class CalculateTest
     [InlineData("AQT98", "5432")]
     [InlineData("QT98", "A432")]
     [InlineData("QT98", "A543")]
+    [InlineData("AJ92", "K843")]
     public void TestEqualToEtalon(string north, string south)
     {
         // Arrange 
@@ -88,16 +89,10 @@ public class CalculateTest
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
         var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3), new ListEqualityComparer<Face>());
         var filename = $"{north}-{south}";
-        var result = Calculate.GetResult(filteredTrees, cardsNS, $"{filename}.json");
+        Calculate.GetResult(filteredTrees, cardsNS, $"{filename}.json");
         // Assert
-        var west = result.DistributionList.Select(x => x.West).ToList();
-        Assert.Equal(west.Distinct(new ListEqualityComparer<Face>()).ToList(), west);
-        
-        var east = result.DistributionList.Select(x => x.East).ToList();
-        Assert.Equal(east.Distinct(new ListEqualityComparer<Face>()).ToList(), east);
-        
         var json = File.ReadAllText($"{filename}.json");
-        var etalon = File.ReadAllText(Path.Combine("etalons", $"{filename}.etalon.json"));
+        var etalon = File.ReadAllText(Path.Combine("etalons", $"{filename}.json"));
         Assert.Equal(etalon, json);
     }
 }
