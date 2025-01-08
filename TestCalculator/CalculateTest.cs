@@ -26,11 +26,12 @@ public class CalculateTest
     [Theory]
     [InlineData(new[] { "K74", "K65", "54", "76" }, "AQ32", new[]{"K74", "54"})]
     [InlineData(new[] { "KJ7", "KJ6", "K76", "54", "76" }, "AQT2", new[]{"KJ6", "K76", "54"})]
+    [InlineData(new[] { "K76", "K75", "K65", "76", "75", "65" }, "AQT98432", new[]{"K65", "65"})]
     public void TestFilterCombinations(string[] combination, string cardsNS, string[] expected)
     {
         var actual = combination.Select(x => x.Select(Utils.CharToCard)).ToList();
         actual.RemoveAll(faces => Calculate.SimilarCombinationsCount(actual, faces.ToList(), cardsNS.Select(Utils.CharToCard)) > 0);
-        Assert.Equal(expected.Select(x => x.Select(Utils.CharToCard).ToList()).ToList(), actual);
+        Assert.Equal(expected.Select(x => x.Select(Utils.CharToCard).ToList()).ToList(), actual.Select(x => x.ToList()));
     }
     
     [Theory]

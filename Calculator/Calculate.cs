@@ -94,7 +94,9 @@ public class Calculate
         if (list.Count == 0)
             return 0;
         var similarCombinations = SimilarCombinations(combinationList, list, cardsNS);
-        var hasSimilar = similarCombinations.Count(x => x.Last() < list.Last());
+        var comp = new FaceListComparer();
+        var reversedList = list.AsEnumerable().Reverse().ToList();
+        var hasSimilar = similarCombinations.Count(x => comp.Compare(x.Reverse().ToList(), reversedList) < 0);
         return hasSimilar;
     }
 
