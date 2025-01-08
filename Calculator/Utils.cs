@@ -174,7 +174,8 @@ public static class Utils
     {
         if (face == Face.Dummy) return false;
         if (segmentsNS.Count <= 1) return true;
-        return (int)face < (int)segmentsNS[^2].Last();
+        var index = segmentsNS.Last().Last() == Face.Two ? 2 : 1;
+        return (int)face < (int)segmentsNS[^index].Last();
     }
 
     public static void SaveTrees(Dictionary<List<Face>, PlayItem> trees, string filename)

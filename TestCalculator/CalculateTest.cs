@@ -58,9 +58,11 @@ public class CalculateTest
 
     [Theory]
     [InlineData("K74", "AQ32", "Kxx")]
-    [InlineData("KJ52", "AQT3", "KJxx")]
+    [InlineData("KJ52", "AQT3", "KJ5x")]
     [InlineData("9852", "AKQJT", "xxxx")]
-    [InlineData("268", "AQT97543", "xx8")]
+    [InlineData("268", "AQT97543", "x68")]
+    [InlineData("32Q", "AQT98543", "3xQ")]
+    [InlineData("36Q", "AQT98543", "36Q")]
     public void TestConvertToSmallCards(string combination, string cardsNS, string expected)
     {
         // Arrange
@@ -72,7 +74,7 @@ public class CalculateTest
         Assert.Equal(expected.Select(Utils.CharToCard), actual);
     }
 
-    [Theory(Skip = "not ready yet")]
+    [Theory]
     [InlineData("AQT98", "5432")]
     [InlineData("QT98", "A432")]
     [InlineData("QT98", "A543")]

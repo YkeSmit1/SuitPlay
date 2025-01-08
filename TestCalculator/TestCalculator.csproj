@@ -48,6 +48,9 @@
       <None Update="etalons\QT98-A432.etalon.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="etalons\QT98-A543.etalon.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
