@@ -101,11 +101,10 @@ public class Calculate
     private static IEnumerable<IEnumerable<Face>> SimilarCombinations(IEnumerable<IEnumerable<Face>> combinationList, IEnumerable<Face> combination, IEnumerable<Face> cardsNS)
     {
         // ReSharper disable PossibleMultipleEnumeration
-        Debug.Assert(combinationList.All(x => x.SequenceEqual(x.OrderByDescending(y => y))));
-        Debug.Assert(combination.SequenceEqual(combination.OrderByDescending(y => y)));
-        Debug.Assert(cardsNS.SequenceEqual(cardsNS.OrderByDescending(y => y)));
-        var cardsNSOrdered = cardsNS.OrderByDescending(x => x);
-        var segmentsNS = cardsNSOrdered.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
+        Debug.Assert(combinationList.All(IsOrderedDescending));
+        Debug.Assert(IsOrderedDescending(combination));
+        Debug.Assert(IsOrderedDescending(cardsNS));
+        var segmentsNS = cardsNS.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         var segments = combination.Select(GetSegment).ToList();
         var similarCombinations = combinationList.Where(x => x.Select(GetSegment).SequenceEqual(segments));
         // ReSharper restore PossibleMultipleEnumeration
@@ -114,6 +113,12 @@ public class Calculate
         int GetSegment(Face face)
         {
             return segmentsNS.FindIndex(x => x.First() < face);
+        }
+        
+        static bool IsOrderedDescending(IEnumerable<Face> x)
+        {
+            var list = x.ToList();
+            return list.SequenceEqual(list.OrderByDescending(y => y));
         }
     }
 
@@ -252,13 +257,13 @@ public class Calculate
     {
         //return availableCards.Where(card => !availableCards.Any(x => cardsOtherTeam.Where(y => y.Face < x.Face).SequenceEqual(cardsOtherTeam.Where(z => z.Face < card.Face)) && card.Face > x.Face));
         var segmentsCardsOtherTeam = cardsOtherTeam.Segment((item, prevItem, _) => (int)prevItem.Face - (int)item.Face > 1).ToList();
-        var segmentsAvailableCards = availableCards.Segment((item, prevItem, _) => !GetSegmentOtherTeam(item).SequenceEqual(GetSegmentOtherTeam(prevItem)));
+        var segmentsAvailableCards = availableCards.Segment((item, prevItem, _) => GetSegment(item) != GetSegment(prevItem));
         var availableCardsFiltered = segmentsAvailableCards.Select(x => x.Last());
         return availableCardsFiltered;
         
-        List<Card> GetSegmentOtherTeam(Card card)
+        int GetSegment(Card card)
         {
-            return segmentsCardsOtherTeam.FirstOrDefault(x => card.Face > x.First().Face, []).ToList();
+            return segmentsCardsOtherTeam.FindIndex(x => x.First().Face < card.Face);
         }
     }
 
