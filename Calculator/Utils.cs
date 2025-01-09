@@ -182,8 +182,7 @@ public static class Utils
     {
         using var stream = new FileStream(filename, FileMode.Create);
         var treesForJson = trees.Where(x => x.Key[1] == Face.SmallCard)
-            .OrderByDescending(x => x.Value.NrOfTricks.Average())
-            .ThenByDescending(x => x.Value.Play, new FaceListComparer())
+            .OrderByDescending(x => x.Value.Play, new FaceListComparer())
             .ToDictionary(x => CardListToString(x.Key), x => (CardListToString(x.Value.Play), x.Value.NrOfTricks));
         JsonSerializer.Serialize(stream, treesForJson, new JsonSerializerOptions {WriteIndented = false, IncludeFields = true});
     }
