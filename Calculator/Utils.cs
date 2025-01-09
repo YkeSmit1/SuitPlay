@@ -185,6 +185,6 @@ public static class Utils
             .OrderByDescending(x => x.Value.NrOfTricks.Average())
             .ThenByDescending(x => x.Value.Play, new FaceListComparer())
             .ToDictionary(x => CardListToString(x.Key), x => (CardListToString(x.Value.Play), x.Value.NrOfTricks));
-        JsonSerializer.Serialize(stream, treesForJson, new JsonSerializerOptions {WriteIndented = true, IncludeFields = true});
+        JsonSerializer.Serialize(stream, treesForJson, new JsonSerializerOptions {WriteIndented = false, IncludeFields = true});
     }
 }
