@@ -14,7 +14,7 @@ public class Calculate
         public List<int> PossibleNrOfTricks;
     }
     
-    public static Result GetResult(Dictionary<List<Face>, IEnumerable<(IList<Face> play, int nrOfTricks)>> filteredTrees, List<Face> cardsNS, string filename)
+    public static Result GetResult(Dictionary<List<Face>, IEnumerable<(List<Face> play, int nrOfTricks)>> filteredTrees, List<Face> cardsNS, string filename)
     {   
         var result = new Result();
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
@@ -69,14 +69,14 @@ public class Calculate
         }
     }
 
-    public static IDictionary<List<Face>, List<(IList<Face>, int)>> CalculateBestPlay(List<Face> north, List<Face> south)
+    public static IDictionary<List<Face>, List<(List<Face>, int)>> CalculateBestPlay(List<Face> north, List<Face> south)
     {
         var allCards = Utils.GetAllCards();
         var cardsEW = allCards.Except(north).Except(south).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
         var cardsNS = north.Concat(south).OrderByDescending(x => x);
         combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces, cardsNS) > 0);
-        var result = new ConcurrentDictionary<List<Face>, List<(IList<Face>, int)>>();
+        var result = new ConcurrentDictionary<List<Face>, List<(List<Face>, int)>>();
         Parallel.ForEach(combinations, new ParallelOptions() { MaxDegreeOfParallelism = 1 }, combination =>
         {
             var cardsE = combination.ToList();
@@ -130,9 +130,9 @@ public class Calculate
             ((List<Player>)[Player.North, Player.South]).Contains(trick.MaxBy(x => x.Face).Player));
     }
 
-    private static List<(IList<Face>, int)> CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
+    private static List<(List<Face>, int)> CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
     {
-        var tree = new List<(IList<Face>, int)>();
+        var tree = new List<(List<Face>, int)>();
         var initialCards = new Dictionary<Player, IList<Card>>
         {
             [Player.North] = cards[0].Select(x => new Card { Face = x, Player = Player.North }).ToList(),
