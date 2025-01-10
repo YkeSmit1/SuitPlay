@@ -77,7 +77,7 @@ public class Calculate
         var cardsNS = north.Concat(south).OrderByDescending(x => x);
         combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces, cardsNS) > 0);
         var result = new ConcurrentDictionary<List<Face>, List<(List<Face>, int)>>();
-        Parallel.ForEach(combinations, new ParallelOptions() { MaxDegreeOfParallelism = 1 }, combination =>
+        Parallel.ForEach(combinations, combination =>
         {
             var cardsE = combination.ToList();
             var cardsW = cardsEW.Except(cardsE);
@@ -152,13 +152,13 @@ public class Calculate
             foreach (var card in playableCards)
             {
                 playedCards.Add(card);
-                var value = Minimax(playedCards, int.MinValue, int.MaxValue, false);
+                var value = Minimax(playedCards, false);
                 tree.Add((playedCards.Select(x => x.Face).ToList(), value));
                 playedCards.RemoveAt(playedCards.Count - 1);
             }
         }
 
-        int Minimax(IList<Card> playedCards, int alpha, int beta, bool maximizingPlayer)
+        int Minimax(IList<Card> playedCards, bool maximizingPlayer)
         {
             if (playedCards.Count(card => card.Face != Face.Dummy) == initialCards.Values.Sum(x => x.Count) ||
                 playedCards.Chunk(4).Last().First().Face == Face.Dummy)
@@ -173,30 +173,28 @@ public class Calculate
                 foreach (var card in GetPlayableCards(playedCards))
                 {
                     playedCards.Add(card);
-                    var value = Minimax(playedCards, alpha, beta, false);
+                    var value = Minimax(playedCards, false);
                     bestValue = Math.Max(bestValue, value);
                     tree.Add((playedCards.Select(x => x.Face).ToList(), value));
                     playedCards.RemoveAt(playedCards.Count - 1);
-                    alpha = Math.Max(alpha, bestValue);
-                    if (bestValue >= beta)
-                        break;
                 }
                 return bestValue;
             }
             else
             {
                 var bestValue = int.MaxValue;
+                var cardValueList = new List<(Face, int)>();
                 foreach (var card in GetPlayableCards(playedCards))
                 {
                     playedCards.Add(card);
-                    var value = Minimax(playedCards, alpha, beta, true);
+                    var value = Minimax(playedCards, true);
                     bestValue = Math.Min(bestValue, value);
-                    tree.Add((playedCards.Select(x => x.Face).ToList(), value));
+                    cardValueList.Add((card.Face, value));
                     playedCards.RemoveAt(playedCards.Count - 1);
-                    beta = Math.Min(beta, bestValue);
-                    if (bestValue <= alpha)
-                        break;
                 }
+
+                tree.AddRange(cardValueList.Where(x => x.Item2 == bestValue).Select(x =>
+                    (playedCards.Select(y => y.Face).Concat([x.Item1]).ToList(), bestValue)));
 
                 return bestValue;
             }
@@ -219,25 +217,25 @@ public class Calculate
             if (availableCards.Count == 0)
                 return [];
             
-            if (playedCards.Count % 4 == 1)
-            {
-                var lowestCard = availableCards.MinBy(x => x.Face);
-                var lastTrick = playedCards.Chunk(4).Last();
-                var coverCards = availableCards.Where(x => x.Face > lastTrick.First().Face).ToList();
-                if (coverCards.Count == 0)
-                    return new List<Card> {lowestCard};
-                var coverCard = coverCards.MinBy(x => x.Face);
-                return coverCard.Face - lowestCard.Face == 2
-                    ? new List<Card> {coverCard}
-                    : new List<Card> {lowestCard, coverCard }.Distinct();
-            }
-            
-            if (playedCards.Count % 4 == 3)
-            {
-                var lastTrick = playedCards.Chunk(4).Last();
-                var highestCards = availableCards.Where(x => x.Face > lastTrick.Max(y => y.Face)).ToList();
-                return highestCards.Count > 0 ? [highestCards.MinBy(x => x.Face)] : [availableCards.MinBy(x => x.Face)];
-            }
+            // if (playedCards.Count % 4 == 1)
+            // {
+            //     var lowestCard = availableCards.MinBy(x => x.Face);
+            //     var lastTrick = playedCards.Chunk(4).Last();
+            //     var coverCards = availableCards.Where(x => x.Face > lastTrick.First().Face).ToList();
+            //     if (coverCards.Count == 0)
+            //         return new List<Card> {lowestCard};
+            //     var coverCard = coverCards.MinBy(x => x.Face);
+            //     return coverCard.Face - lowestCard.Face == 2
+            //         ? new List<Card> {coverCard}
+            //         : new List<Card> {lowestCard, coverCard }.Distinct();
+            // }
+            //
+            // if (playedCards.Count % 4 == 3)
+            // {
+            //     var lastTrick = playedCards.Chunk(4).Last();
+            //     var highestCards = availableCards.Where(x => x.Face > lastTrick.Max(y => y.Face)).ToList();
+            //     return highestCards.Count > 0 ? [highestCards.MinBy(x => x.Face)] : [availableCards.MinBy(x => x.Face)];
+            // }
             
             var cardsOtherTeam = player is Player.North or Player.South ? cardsEW : cardsNS;
             var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeam);
