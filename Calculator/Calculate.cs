@@ -56,7 +56,7 @@ public class Calculate
         result.DistributionList = distributionList.Select(x => x.Value).ToList();
         result.PossibleNrOfTricks = possibleNrOfTricks.ToList();
 
-        Utils.SaveTrees(playItems, filename);
+        Utils.SaveTrees(playItems, combinationsInTree, filename);
         
 
         return result;

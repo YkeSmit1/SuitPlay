@@ -178,12 +178,12 @@ public static class Utils
         return (int)face < (int)segmentsNS[^index].Last();
     }
 
-    public static void SaveTrees(Dictionary<List<Face>, PlayItem> trees, string filename)
+    public static void SaveTrees(Dictionary<List<Face>, PlayItem> trees, List<List<Face>> combinationsInTree, string filename)
     {
         using var stream = new FileStream(filename, FileMode.Create);
         var treesForJson = trees.Where(x => x.Key[1] == Face.SmallCard)
             .OrderByDescending(x => x.Value.Play, new FaceListComparer())
-            .ToDictionary(x => CardListToString(x.Key), x => (CardListToString(x.Value.Play), x.Value.NrOfTricks));
-        JsonSerializer.Serialize(stream, treesForJson, new JsonSerializerOptions {WriteIndented = false, IncludeFields = true});
+            .ToDictionary(x => CardListToString(x.Key), x => x.Value.NrOfTricks);
+        JsonSerializer.Serialize(stream, (treesForJson, combinationsInTree.Select(CardListToString)), new JsonSerializerOptions {WriteIndented = false, IncludeFields = true});
     }
 }
