@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Calculator;
+﻿using Calculator;
 using JetBrains.Annotations;
 using Xunit.Abstractions;
 
@@ -20,7 +19,10 @@ public class CalculateTest
     [InlineData(new[] {Face.Ten, Face.Jack, Face.Ace, Face.Dummy, Face.Queen, Face.Dummy, Face.Nine, Face.King}, 1)]
     public void TestGetTrickCount(Face[] tricks, int expected)
     {
-        Assert.Equal(expected, Calculate.GetTrickCount(tricks.Select((x, index) => new Card { Face = x, Player = (Player)(index % 4)})));
+        var dictionary = tricks.Select((x, index) => (x, index)).
+            GroupBy(x => (Player)(x.index % 4), y => y.x).
+            ToDictionary(key => key.Key, value => value.Select(x => x).ToList());
+        Assert.Equal(expected, Calculate.GetTrickCount(tricks, dictionary));
     }
 
     [Theory]
@@ -47,11 +49,11 @@ public class CalculateTest
     public void TestFilterAvailableCards(string cardsPlayer, string cardsOtherTeam, string expected)
     {
         // Arrange
-        var cardsPlayerList = cardsPlayer.Select(x => new Card {Face = Utils.CharToCard(x)});
-        var cardsOtherTeamList = cardsOtherTeam.Select(x => new Card {Face = Utils.CharToCard(x)});
+        var cardsPlayerList = cardsPlayer.Select(Utils.CharToCard);
+        var cardsOtherTeamList = cardsOtherTeam.Select(Utils.CharToCard);
         var expectedList = expected.Select(Utils.CharToCard);
         // Act
-        var actual = Calculate.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList()).Select(x => x.Face);
+        var actual = Calculate.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList());
         // Assert
         Assert.Equal(expectedList, actual);
     }
