@@ -230,12 +230,13 @@ public class Calculate
             //         : new List<Face> {lowestCard, coverCard }.Distinct();
             // }
             //
-            // if (playedCards.Count % 4 == 3)
-            // {
-            //     var lastTrick = playedCards.Chunk(4).Last();
-            //     var highestCards = availableCards.Where(x => x > lastTrick.Max(y => y)).ToList();
-            //     return highestCards.Count > 0 ? [highestCards.Min()] : [availableCards.Min()];
-            // }
+            if (playedCards.Count % 4 == 3)
+            {
+                var lastTrick = playedCards.Chunk(4).Last();
+                var highestCardOtherTeam = ((List<Face>)[lastTrick.First(), lastTrick.Last()]).Max();
+                var highestCards = availableCards.Where(x => x > highestCardOtherTeam && highestCardOtherTeam > lastTrick[1]).ToList();
+                return highestCards.Count > 0 ? [highestCards.Min()] : [availableCards.Min()];
+            }
             
             var cardsOtherTeam = player is Player.North or Player.South ? cardsEW : cardsNS;
             var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeam);
