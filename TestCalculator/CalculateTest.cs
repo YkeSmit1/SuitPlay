@@ -90,11 +90,13 @@ public class CalculateTest
         // Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
         var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3), new ListEqualityComparer<Face>());
-        var filename = $"{north}-{south}";
-        Calculate.GetResult(filteredTrees, cardsNS, $"{filename}.json");
+        var filename = $"{north}-{south}.json";
+        var result = Calculate.GetResult(filteredTrees, cardsNS);
+        Utils.SaveTrees(result, filename);
+        
         // Assert
-        var json = File.ReadAllText($"{filename}.json");
-        var etalon = File.ReadAllText(Path.Combine("etalons", $"{filename}.json"));
+        var json = File.ReadAllText(filename);
+        var etalon = File.ReadAllText(Path.Combine("etalons", filename));
         Assert.Equal(etalon, json);
     }
 }

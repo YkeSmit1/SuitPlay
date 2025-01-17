@@ -114,7 +114,7 @@ public static class Utils
         return (int)(Alias.Factorial(a + b) / (Alias.Factorial(a) * Alias.Factorial(b)));
     }
 
-    public static string CardListToString(IEnumerable<Face> cards)
+    public static string CardsToString(IEnumerable<Face> cards)
     {
         return string.Join("", cards.Select(CardToChar));
     }
@@ -163,11 +163,11 @@ public static class Utils
         return Enum.GetValues<Face>().Where(x => x >= Face.Two).Reverse();
     }
 
-    public static IEnumerable<Face> ConvertToSmallCards(this IEnumerable<Face> cards, IEnumerable<Face> cardsNS)
+    public static List<Face> ConvertToSmallCards(this IEnumerable<Face> cards, IEnumerable<Face> cardsNS)
     {
         var enumerable = cardsNS.ToList();
         var segmentsNS = enumerable.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
-        return cards.Select(x => !enumerable.Contains(x) && IsSmallCard(x, segmentsNS) ? Face.SmallCard : x);
+        return cards.Select(x => !enumerable.Contains(x) && IsSmallCard(x, segmentsNS) ? Face.SmallCard : x).ToList();
     }
 
     private static bool IsSmallCard(Face face, List<IEnumerable<Face>> segmentsNS)
@@ -178,12 +178,12 @@ public static class Utils
         return (int)face < (int)segmentsNS[^index].Last();
     }
 
-    public static void SaveTrees(Dictionary<List<Face>, PlayItem> trees, List<List<Face>> combinationsInTree, string filename)
+    public static void SaveTrees(Calculate.Result result, string filename)
     {
         using var stream = new FileStream(filename, FileMode.Create);
-        var treesForJson = trees.Where(x => x.Key[1] == Face.SmallCard)
+        var treesForJson = result.RelevantPlays
             .OrderByDescending(x => x.Value.Play, new FaceListComparer())
-            .ToDictionary(x => CardListToString(x.Key), x => x.Value.NrOfTricks);
-        JsonSerializer.Serialize(stream, (treesForJson, combinationsInTree.Select(CardListToString)), new JsonSerializerOptions {WriteIndented = false, IncludeFields = true});
+            .ToDictionary(x => CardsToString(x.Key), x => x.Value.NrOfTricks);
+        JsonSerializer.Serialize(stream, (treesForJson, result.CombinationsInTree.Select(CardsToString)), new JsonSerializerOptions { WriteIndented = false, IncludeFields = true });
     }
 }

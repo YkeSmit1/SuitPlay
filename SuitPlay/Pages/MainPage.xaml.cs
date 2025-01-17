@@ -41,7 +41,7 @@ public partial class MainPage
     {
         var north = Preferences.Get("North", "");
         var south = Preferences.Get("South", "");
-        var remainingCards = PlayToString(Utils.GetAllCards()).Except(north).Except(south);
+        var remainingCards = Utils.CardsToString(Utils.GetAllCards()).Except(north).Except(south);
         ((HandViewModel)North.BindingContext).ShowHand($"{north}", "default", dictionary);
         ((HandViewModel)South.BindingContext).ShowHand($"{south}", "default", dictionary);
         ((HandViewModel)Cards.BindingContext).ShowHand(new string(remainingCards.ToArray()), "default", dictionary);
@@ -49,13 +49,13 @@ public partial class MainPage
     
     private void SaveSettings()
     {
-        Preferences.Set("North", Utils.CardListToString(GetHand(North)));
-        Preferences.Set("South", Utils.CardListToString(GetHand(South)));
+        Preferences.Set("North", Utils.CardsToString(GetHand(North)));
+        Preferences.Set("South", Utils.CardsToString(GetHand(South)));
     }
 
     private void InitCards()
     {
-        ((HandViewModel)Cards.BindingContext).ShowHand(PlayToString(Utils.GetAllCards()), "default", dictionary);
+        ((HandViewModel)Cards.BindingContext).ShowHand(Utils.CardsToString(Utils.GetAllCards()), "default", dictionary);
         ((HandViewModel)North.BindingContext).Cards.Clear();
         ((HandViewModel)South.BindingContext).Cards.Clear();
     }
@@ -112,7 +112,7 @@ public partial class MainPage
     private static string GetBestPlayText(Calculate.Result results)
     {
         var bestPlay = FindBestPlay(results);
-        var bestPlayText = $"First trick: {PlayToString(bestPlay.Play)}\nAverage tricks:{bestPlay.Average:0.##}";
+        var bestPlayText = $"First trick: {Utils.CardsToString(bestPlay.Play)}\nAverage tricks:{bestPlay.Average:0.##}";
         return bestPlayText;
         
         static PlayItem FindBestPlay(Calculate.Result result)
@@ -127,7 +127,7 @@ public partial class MainPage
         {
             var result = await GetResult(GetHand(North), GetHand(South));
             var overviewList = result.PlayList.Where(y => y.Play.Count > 2 && y.Play.All(z => z != Face.Dummy)).Select(x => new OverviewItem
-                { FirstTrick = PlayToString(x.Play), Average = x.Average, Count = x.NrOfTricks.Count }).ToList();
+                { FirstTrick = Utils.CardsToString(x.Play), Average = x.Average, Count = x.NrOfTricks.Count }).ToList();
             await Shell.Current.GoToAsync(nameof(OverviewPage), new Dictionary<string, object> { ["OverviewList"] = overviewList });
         }
         catch (Exception exception)
@@ -149,25 +149,23 @@ public partial class MainPage
         }
     }
 
-    private List<Face> GetHand(HandView handView)
+    private static List<Face> GetHand(HandView handView)
     {
         return ((HandViewModel)handView.BindingContext).Cards.Select(y => y.Face).ToList();
     }
 
-    private Task<Calculate.Result> GetResult(List<Face> northHand, List<Face> southHand)
+    private Task<Calculate.Result> GetResult(List<Face> north, List<Face> south)
     {
         var result = Task.Run(() =>
         {
-            var cardsNS = northHand.Concat(southHand).OrderByDescending(z => z).ToList();
             var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3), new ListEqualityComparer<Face>());
-            var filename = Path.Combine(FileSystem.AppDataDirectory, $"{Utils.CardListToString(northHand)}-{Utils.CardListToString(southHand)}.json");
-            return Calculate.GetResult(filteredTrees, cardsNS, filename);
+            var cardsNS = north.Concat(south).OrderByDescending(z => z).ToList();
+            var result1 = Calculate.GetResult(filteredTrees, cardsNS);
+            var filename = Path.Combine(FileSystem.AppDataDirectory, $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json");
+            Utils.SaveTrees(result1, filename);
+            return result1;
+            
         });
         return result;
-    }
-
-    private static string PlayToString(IEnumerable<Face> tuple)
-    {
-        return string.Join("", tuple.Select(Utils.CardToChar));
     }
 }

@@ -8,7 +8,7 @@ public class PlaysToStringConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         var play = (List<Face>)value;
-        return play == null ? "no play" : $"{Utils.CardListToString(play)}";
+        return play == null ? "no play" : $"{Utils.CardsToString(play)}";
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
