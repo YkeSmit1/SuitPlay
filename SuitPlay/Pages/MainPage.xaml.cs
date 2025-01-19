@@ -158,9 +158,8 @@ public partial class MainPage
     {
         var result = Task.Run(() =>
         {
-            var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3), new ListEqualityComparer<Face>());
             var cardsNS = north.Concat(south).OrderByDescending(z => z).ToList();
-            var result1 = Calculate.GetResult(filteredTrees, cardsNS);
+            var result1 = Calculate.GetResult(bestPlay, cardsNS);
             var filename = Path.Combine(FileSystem.AppDataDirectory, $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json");
             Utils.SaveTrees(result1, filename);
             return result1;

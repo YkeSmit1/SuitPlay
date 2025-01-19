@@ -16,11 +16,11 @@ public class Calculate
         public List<List<Face>> CombinationsInTree;
     }
     
-    public static Result GetResult(Dictionary<List<Face>, IEnumerable<(List<Face> play, int nrOfTricks)>> filteredTrees, List<Face> cardsNS)
+    public static Result GetResult(IDictionary<List<Face>, List<(List<Face> play, int nrOfTricks)>> bestPlay, List<Face> cardsNS)
     {   
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
-        var combinationsInTree = filteredTrees.Keys.OrderBy(x => x.ToList(), new FaceListComparer()).ToList();
+        var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), new FaceListComparer()).ToList();
         
         var distributionList = combinationsInTree.ToDictionary(key => key.ToList(), value =>
         {
@@ -36,8 +36,9 @@ public class Calculate
             };
         }, new ListEqualityComparer<Face>());
 
-        var possibleNrOfTricks = filteredTrees.SelectMany(x => x.Value).Select(x => x.nrOfTricks).Distinct().OrderByDescending(x => x).SkipLast(1);
+        var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.nrOfTricks).Distinct().OrderByDescending(x => x).SkipLast(1);
 
+        var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3), new ListEqualityComparer<Face>());
         var playItems = filteredTrees
             .SelectMany(x => x.Value, (parent, child) => (combi: parent.Key, play: child.play.ConvertToSmallCards(cardsNS), child.nrOfTricks))
             .GroupBy(x => x.play.ToList(), y => (y.combi, y.nrOfTricks), new ListEqualityComparer<Face>()).ToList()

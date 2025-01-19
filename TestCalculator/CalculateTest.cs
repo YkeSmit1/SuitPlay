@@ -89,9 +89,8 @@ public class CalculateTest
         var cardsNS = northHand.Concat(southHand).OrderByDescending(x => x).ToList();
         // Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
-        var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3), new ListEqualityComparer<Face>());
         var filename = $"{north}-{south}.json";
-        var result = Calculate.GetResult(filteredTrees, cardsNS);
+        var result = Calculate.GetResult(bestPlay, cardsNS);
         Utils.SaveTrees(result, filename);
         
         // Assert
