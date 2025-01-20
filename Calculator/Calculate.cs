@@ -40,8 +40,8 @@ public class Calculate
 
         var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3), new ListEqualityComparer<Face>());
         var playItems = filteredTrees
-            .SelectMany(x => x.Value, (parent, child) => (combi: parent.Key, play: child.play.ConvertToSmallCards(cardsNS), child.nrOfTricks))
-            .GroupBy(x => x.play.ToList(), y => (y.combi, y.nrOfTricks), new ListEqualityComparer<Face>()).ToList()
+            .SelectMany(x => x.Value, (parent, child) => (combi: parent.Key, child.play, child.nrOfTricks))
+            .GroupBy(x => x.play.ConvertToSmallCards(cardsNS).ToList(), y => (y.combi, y.nrOfTricks), new ListEqualityComparer<Face>()).ToList()
             .ToDictionary(key => key.Key, value => new PlayItem
             {
                 Play = value.Key.ToList(),
@@ -57,7 +57,7 @@ public class Calculate
             CombinationsInTree = combinationsInTree,
             RelevantPlays = relevantPlays,
             PlayList = relevantPlays.Values.ToList(),
-            AllPlays = relevantPlays.Keys.Select(x => x.ConvertToSmallCards(cardsNS)).ToList(),
+            AllPlays = relevantPlays.Keys.ToList(),
             DistributionList = distributionList.Select(x => x.Value).ToList(),
             PossibleNrOfTricks = possibleNrOfTricks.ToList()
         };
