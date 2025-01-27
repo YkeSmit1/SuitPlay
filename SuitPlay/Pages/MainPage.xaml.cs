@@ -21,7 +21,8 @@ public partial class MainPage
     }
 
     private readonly Dictionary<(string suit, string card), string> dictionary;
-    private IDictionary<List<Face>, List<(List<Face>, int)>> bestPlay;    
+    private IDictionary<List<Face>, List<(List<Face>, int)>> bestPlay;
+    private Calculate.Result result;
 
     public MainPage()
     {
@@ -94,7 +95,7 @@ public partial class MainPage
             var southHand = GetHand(South);
             bestPlay = await Task.Run(() => Calculate.CalculateBestPlay(northHand, southHand));
             stopWatch.Stop();
-            var result = await GetResult(northHand, southHand);
+            result = await GetResult(northHand, southHand);
             BestPlay.Text = $"{GetBestPlayText(result)} ({stopWatch.Elapsed:s\\:ff} seconds)";
             OverviewButton.IsEnabled = true;
             DistributionsButton.IsEnabled = true;
@@ -125,7 +126,6 @@ public partial class MainPage
     {
         try
         {
-            var result = await GetResult(GetHand(North), GetHand(South));
             var overviewList = result.PlayList.Where(y => y.Play.Count > 2 && y.Play.All(z => z != Face.Dummy)).Select(x => new OverviewItem
                 { FirstTrick = Utils.CardsToString(x.Play), Average = x.Average, Count = x.NrOfTricks.Count }).ToList();
             await Shell.Current.GoToAsync(nameof(OverviewPage), new Dictionary<string, object> { ["OverviewList"] = overviewList });
@@ -140,8 +140,7 @@ public partial class MainPage
     {
         try
         {
-            var result = GetResult(GetHand(North), GetHand(South));
-            await Shell.Current.GoToAsync(nameof(DistributionsPage), new Dictionary<string, object> { ["Result"] = await result });
+            await Shell.Current.GoToAsync(nameof(DistributionsPage), new Dictionary<string, object> { ["Result"] = result });
         }
         catch (Exception exception)
         {
@@ -156,15 +155,13 @@ public partial class MainPage
 
     private Task<Calculate.Result> GetResult(List<Face> north, List<Face> south)
     {
-        var result = Task.Run(() =>
+        return Task.Run(() =>
         {
             var cardsNS = north.Concat(south).OrderByDescending(z => z).ToList();
-            var result1 = Calculate.GetResult(bestPlay, cardsNS);
+            var resultLocal = Calculate.GetResult(bestPlay, cardsNS);
             var filename = Path.Combine(FileSystem.AppDataDirectory, $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json");
-            Utils.SaveTrees(result1, filename);
-            return result1;
-            
+            Utils.SaveTrees(resultLocal, filename);
+            return resultLocal;
         });
-        return result;
     }
 }

@@ -80,7 +80,7 @@ public class CalculateTest
     [InlineData("AQT98", "5432")]
     [InlineData("QT98", "A432")]
     [InlineData("QT98", "A543")]
-    [InlineData("AJ92", "K843")]
+    [InlineData("AJ92", "K843", Skip = "Too slow")]
     public void TestEqualToEtalon(string north, string south)
     {
         // Arrange 

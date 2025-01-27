@@ -21,6 +21,7 @@ public class Calculate
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
         var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), new FaceListComparer()).ToList();
+        var segmentsNS = cardsNS.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         
         var distributionList = combinationsInTree.ToDictionary(key => key.ToList(), value =>
         {
@@ -39,8 +40,16 @@ public class Calculate
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.nrOfTricks).Distinct().OrderByDescending(x => x).SkipLast(1);
 
         var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3), new ListEqualityComparer<Face>());
-        var playItems = filteredTrees
+        var filteredTrees4 = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 4), new ListEqualityComparer<Face>());
+        var filteredTrees7 = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 7), new ListEqualityComparer<Face>());
+        
+        var averages7 = filteredTrees7
             .SelectMany(x => x.Value, (parent, child) => (combi: parent.Key, child.play, child.nrOfTricks))
+            .GroupBy(x => x.play, y => (y.combi, y.nrOfTricks), new ListEqualityComparer<Face>()).ToList()
+            .ToDictionary(key => key.Key, value => value.Average(x => GetProbability(x) * x.nrOfTricks) / value.Select(GetProbability).Average());
+      
+        var playItems = filteredTrees
+            .SelectMany(x => x.Value, (parent, child) => (combi: parent.Key, child.play, nrOfTricks: GetNrOfTricks(parent.Key, child.play, child.nrOfTricks)))
             .GroupBy(x => x.play.ConvertToSmallCards(cardsNS).ToList(), y => (y.combi, y.nrOfTricks), new ListEqualityComparer<Face>()).ToList()
             .ToDictionary(key => key.Key, value => new PlayItem
             {
@@ -50,8 +59,8 @@ public class Calculate
                 Probabilities = possibleNrOfTricks.Select(y => value.Where(x => x.nrOfTricks >= y).Sum(GetProbability) / value.Sum(GetProbability)).ToList(),
             })
             .OrderByDescending(x => x.Value.Average);
-        
-        var relevantPlays = playItems.Where(x => x.Key[1] == Face.SmallCard).ToDictionary(key => key.Key, value => value.Value);
+
+        var relevantPlays = playItems.Where(x => x.Key[1] == Face.SmallCard ).ToDictionary(key => key.Key, value => value.Value);
         var result = new Result
         {
             CombinationsInTree = combinationsInTree,
@@ -65,6 +74,22 @@ public class Calculate
         return result;
 
         double GetProbability((List<Face> combi, int nrOfTricks) x) => distributionList[x.combi].Probability;
+        
+        int GetNrOfTricks(List<Face> combination, List<Face> play, int defaultNrOfTricks)
+        {
+            if (!Utils.IsSmallCard(play[1], segmentsNS))
+                return defaultNrOfTricks;
+            var possiblePlays4 = filteredTrees4[combination].Where(y => y.play.Take(3).SequenceEqual(play)).ToList();
+            var bestPossiblePlay4 = possiblePlays4.MinBy(x => x.nrOfTricks).play;
+            
+            var possiblePlays7 = filteredTrees7[combination].Where(y => y.play.Take(4).SequenceEqual(bestPossiblePlay4) && Utils.IsSmallCard(y.play[5], segmentsNS) ).Select(x => x.play);
+            var averages = averages7.Where(x => possiblePlays7.Contains(x.Key, new ListEqualityComparer<Face>())).ToList();
+            if (averages.Count == 0)
+                return defaultNrOfTricks;
+            var bestPossiblePlay7 = averages.MaxBy(x => x.Value).Key;
+            var tuple = filteredTrees7[combination].Single(x => x.play.SequenceEqual(bestPossiblePlay7));
+            return tuple.nrOfTricks;
+        }
 
         (List<Face> combi, int nrOfTricks) GetDefaultValue(List<Face> play, List<Face> combination)
         {
@@ -188,9 +213,14 @@ public class Calculate
                     cardValueList.Add((card, value));
                     playedCards.RemoveAt(playedCards.Count - 1);
                 }
+                
+                var badPlays = cardValueList.Where(x => x.Item2 != bestValue).Select(x => playedCards.Concat([x.Item1]).ToList()).ToList();
+                foreach (var play in badPlays)
+                {
+                    tree.RemoveAll(x => x.Item1.StartsWith(play));
+                }
 
-                tree.AddRange(cardValueList.Where(x => x.Item2 == bestValue).Select(x =>
-                    (playedCards.Concat([x.Item1]).ToList(), bestValue)));
+                tree.AddRange(cardValueList.Where(x => x.Item2 == bestValue).Select(x => (playedCards.Concat([x.Item1]).ToList(), bestValue)));
 
                 return bestValue;
             }

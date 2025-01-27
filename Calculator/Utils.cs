@@ -170,7 +170,7 @@ public static class Utils
         return cards.Select(x => !enumerable.Contains(x) && IsSmallCard(x, segmentsNS) ? Face.SmallCard : x).ToList();
     }
 
-    private static bool IsSmallCard(Face face, List<IEnumerable<Face>> segmentsNS)
+    public static bool IsSmallCard(Face face, List<IEnumerable<Face>> segmentsNS)
     {
         if (face == Face.Dummy) return false;
         if (segmentsNS.Count <= 1) return true;
