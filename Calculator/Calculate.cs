@@ -39,15 +39,15 @@ public class Calculate
 
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.nrOfTricks).Distinct().OrderByDescending(x => x).SkipLast(1);
 
-        var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3), new ListEqualityComparer<Face>());
-        var filteredTrees4 = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 4), new ListEqualityComparer<Face>());
-        var filteredTrees7 = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 7), new ListEqualityComparer<Face>());
+        var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3).ToList(), new ListEqualityComparer<Face>());
+        var filteredTrees4 = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 4).ToList(), new ListEqualityComparer<Face>());
+        var filteredTrees7 = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 7).ToList(), new ListEqualityComparer<Face>());
         
         var averages7 = filteredTrees7
             .SelectMany(x => x.Value, (parent, child) => (combi: parent.Key, child.play, child.nrOfTricks))
             .GroupBy(x => x.play, y => (y.combi, y.nrOfTricks), new ListEqualityComparer<Face>()).ToList()
             .ToDictionary(key => key.Key, value => value.Average(x => GetProbability(x) * x.nrOfTricks) / value.Select(GetProbability).Average());
-      
+
         var playItems = filteredTrees
             .SelectMany(x => x.Value, (parent, child) => (combi: parent.Key, child.play, nrOfTricks: GetNrOfTricks(parent.Key, child.play, child.nrOfTricks)))
             .GroupBy(x => x.play.ConvertToSmallCards(cardsNS).ToList(), y => (y.combi, y.nrOfTricks), new ListEqualityComparer<Face>()).ToList()
