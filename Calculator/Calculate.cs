@@ -1,10 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Reflection;
 using MoreLinq;
 using Serilog;
-using Serilog.Core;
-using Serilog.Events;
 
 namespace Calculator;
 
@@ -86,7 +83,7 @@ public class Calculate
             var possiblePlays4 = filteredTrees4[combination].Where(y => y.play.Take(3).SequenceEqual(play)).ToList();
             var bestPossiblePlay4 = possiblePlays4.MinBy(x => x.nrOfTricks).play;
             
-            var possiblePlays7 = filteredTrees7[combination].Where(y => y.play.Take(4).SequenceEqual(bestPossiblePlay4) && Utils.IsSmallCard(y.play[5], segmentsNS) ).Select(x => x.play);
+            var possiblePlays7 = filteredTrees7[combination].Where(y => y.play.Take(4).SequenceEqual(bestPossiblePlay4) && Utils.IsSmallCard(y.play[5], segmentsNS) ).Select(x => x.play).ToList();
             var averages = averages7.Where(x => possiblePlays7.Contains(x.Key, new ListEqualityComparer<Face>())).ToList();
             if (averages.Count == 0)
                 return defaultNrOfTricks;
