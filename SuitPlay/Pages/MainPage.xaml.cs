@@ -112,14 +112,8 @@ public partial class MainPage
 
     private static string GetBestPlayText(Calculate.Result results)
     {
-        var bestPlay = FindBestPlay(results);
-        var bestPlayText = $"First trick: {Utils.CardsToString(bestPlay.Play)}\nAverage tricks:{bestPlay.Average:0.##}";
-        return bestPlayText;
-        
-        static PlayItem FindBestPlay(Calculate.Result result)
-        {
-            return result.PlayList.Where(x => x.Play[1] == Face.SmallCard).MaxBy(x => x.Average);
-        }
+        var bestPlay = results.PlayList.Where(x => x.Play[1] == Face.SmallCard).MaxBy(x => x.Average);
+        return $"First trick: {Utils.CardsToString(bestPlay.Play)}\nAverage tricks:{bestPlay.Average:0.##}";
     }
 
     private async void ButtonOverview_OnClicked(object sender, EventArgs e)

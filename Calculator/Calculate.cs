@@ -1,6 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Reflection;
 using MoreLinq;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace Calculator;
 
@@ -17,7 +21,7 @@ public class Calculate
     }
     
     public static Result GetResult(IDictionary<List<Face>, List<(List<Face> play, int nrOfTricks)>> bestPlay, List<Face> cardsNS)
-    {   
+    {
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
         var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), new FaceListComparer()).ToList();
@@ -37,7 +41,7 @@ public class Calculate
             };
         }, new ListEqualityComparer<Face>());
 
-        var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.nrOfTricks).Distinct().OrderByDescending(x => x).SkipLast(1);
+        var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.nrOfTricks).Distinct().OrderByDescending(x => x).SkipLast(1).ToList();
 
         var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3).ToList(), new ListEqualityComparer<Face>());
         var filteredTrees4 = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 4).ToList(), new ListEqualityComparer<Face>());
@@ -59,7 +63,7 @@ public class Calculate
                 Probabilities = possibleNrOfTricks.Select(y => value.Where(x => x.nrOfTricks >= y).Sum(GetProbability) / value.Sum(GetProbability)).ToList(),
             })
             .OrderByDescending(x => x.Value.Average);
-
+        
         var relevantPlays = playItems.Where(x => x.Key[1] == Face.SmallCard ).ToDictionary(key => key.Key, value => value.Value);
         var result = new Result
         {
@@ -70,7 +74,7 @@ public class Calculate
             DistributionList = distributionList.Select(x => x.Value).ToList(),
             PossibleNrOfTricks = possibleNrOfTricks.ToList()
         };
-
+        
         return result;
 
         double GetProbability((List<Face> combi, int nrOfTricks) x) => distributionList[x.combi].Probability;
@@ -97,8 +101,19 @@ public class Calculate
         }
     }
 
+    private static void SetupLogging()
+    {
+        var combine = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "log.txt");
+        Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .WriteTo.File(combine, rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+    }
+
     public static IDictionary<List<Face>, List<(List<Face>, int)>> CalculateBestPlay(List<Face> north, List<Face> south)
     {
+        SetupLogging();
         var cardsEW = Utils.GetAllCards().Except(north).Except(south).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
         var cardsNS = north.Concat(south).OrderByDescending(x => x);
@@ -111,7 +126,7 @@ public class Calculate
             var calculateBestPlayForCombination = CalculateBestPlayForCombination(north, cardsE, south, cardsW);
             result[cardsE] = calculateBestPlayForCombination;
         });
-
+        
         return result;
     }
 
