@@ -78,18 +78,20 @@ public class Calculate
         
         int GetNrOfTricks(List<Face> combination, List<Face> play, int defaultNrOfTricks)
         {
-            if (!Utils.IsSmallCard(play[1], segmentsNS))
+            if (!Utils.IsSmallCard(play[1], segmentsNS)) 
                 return defaultNrOfTricks;
-            var possiblePlays4 = filteredTrees4[combination].Where(y => y.play.Take(3).SequenceEqual(play)).ToList();
-            var bestPossiblePlay4 = possiblePlays4.MinBy(x => x.nrOfTricks).play;
-            
+            var bestPossiblePlay4 = filteredTrees4[combination].Where(y => y.play.Take(3).SequenceEqual(play)).MinBy(x => x.nrOfTricks).play;
             var possiblePlays7 = filteredTrees7[combination].Where(y => y.play.Take(4).SequenceEqual(bestPossiblePlay4) && Utils.IsSmallCard(y.play[5], segmentsNS) ).Select(x => x.play).ToList();
             var averages = averages7.Where(x => possiblePlays7.Contains(x.Key, new ListEqualityComparer<Face>())).ToList();
-            if (averages.Count == 0)
+            if (averages.Count == 0) 
                 return defaultNrOfTricks;
-            var bestPossiblePlay7 = averages.MaxBy(x => x.Value).Key;
-            var tuple = filteredTrees7[combination].Single(x => x.play.SequenceEqual(bestPossiblePlay7));
-            return tuple.nrOfTricks;
+            var bestPossiblePlay7 = averages.OrderBy(x => x.Value).Segment((item, prevItem, _) => item.Value - prevItem.Value > 0.00001).Last().ToList();
+            if (bestPossiblePlay7.Count > 1) 
+                Log.Debug("Duplicate plays found.(combination:{@combination} play:{@play})", combination, play);
+            var tuple = filteredTrees7[combination].Where(x => bestPossiblePlay7.Any(y => y.Key.SequenceEqual(x.play))).ToList();
+            if (tuple.Select(x => x.nrOfTricks).Distinct().Count() != 1) 
+                Log.Warning("Duplicate plays found with different values. (combination:{@combination} play:{@tuple})", combination, tuple);
+            return tuple.First().nrOfTricks;
         }
 
         (List<Face> combi, int nrOfTricks) GetDefaultValue(List<Face> play, List<Face> combination)
@@ -98,19 +100,9 @@ public class Calculate
         }
     }
 
-    private static void SetupLogging()
-    {
-        var combine = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "log.txt");
-        Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.Console()
-                .WriteTo.File(combine, rollingInterval: RollingInterval.Day)
-                .CreateLogger();
-    }
-
     public static IDictionary<List<Face>, List<(List<Face>, int)>> CalculateBestPlay(List<Face> north, List<Face> south)
     {
-        SetupLogging();
+        Log.Information("Calculating best play North:{@north} South:{@south}",  north, south);
         var cardsEW = Utils.GetAllCards().Except(north).Except(south).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
         var cardsNS = north.Concat(south).OrderByDescending(x => x);

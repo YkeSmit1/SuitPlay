@@ -65,10 +65,10 @@ public class CalculateTest
     [InlineData("268", "AQT97543", "x68")]
     [InlineData("32Q", "AQT98543", "3xQ")]
     [InlineData("36Q", "AQT98543", "36Q")]
-    public void TestConvertToSmallCards(string combination, string cardsNS, string expected)
+    public void TestConvertToSmallCards(string combination, string cardsNS, string expected) 
     {
         // Arrange
-        var hand = combination.Select(Utils.CharToCard);
+        var hand = combination.Select(Utils.CharToCard); 
         var cardsNSOrdered = cardsNS.Select(Utils.CharToCard);
         // Act
         var actual = hand.ConvertToSmallCards(cardsNSOrdered);
@@ -80,7 +80,7 @@ public class CalculateTest
     [InlineData("AQT98", "5432")]
     [InlineData("QT98", "A432")]
     [InlineData("QT98", "A543")]
-    [InlineData("AJ92", "K843", Skip = "Test is flaky")]
+    [InlineData("AJ92", "K843")]
     public void TestEqualToEtalon(string north, string south)
     {
         // Arrange 

@@ -82,6 +82,7 @@ public partial class MainPage
         SaveSettings();
         OverviewButton.IsEnabled = false;
         DistributionsButton.IsEnabled = false;
+        SelectedHandView = North;
     }
 
     private async void CalculateButton_OnClicked(object sender, EventArgs e)
