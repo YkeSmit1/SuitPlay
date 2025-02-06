@@ -218,12 +218,8 @@ public class Calculate
                     playedCards.RemoveAt(playedCards.Count - 1);
                 }
                 
-                var badPlays = cardValueList.Where(x => x.Item2 != bestValue).Select(x => playedCards.Concat([x.Item1]).ToList()).ToList();
-                foreach (var play in badPlays)
-                {
-                    tree.RemoveAll(x => x.Item1.StartsWith(play));
-                }
-
+                var badPlays = cardValueList.Where(x => x.Item2 != bestValue).Select(x => playedCards.Concat([x.Item1]).ToList());
+                badPlays.ForEach(play => tree.RemoveAll(x => x.Item1.StartsWith(play)));
                 tree.AddRange(cardValueList.Where(x => x.Item2 == bestValue).Select(x => (playedCards.Concat([x.Item1]).ToList(), bestValue)));
 
                 return bestValue;
