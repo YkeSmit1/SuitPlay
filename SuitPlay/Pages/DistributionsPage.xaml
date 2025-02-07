@@ -48,7 +48,7 @@
                             <StackLayout BindableLayout.ItemsSource="{Binding NrOfTricks}" Orientation="Vertical">
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate>
-                                        <Label Text="{Binding Converter={StaticResource TricksToStringConverter}}" HorizontalTextAlignment="Center" WidthRequest="40" HeightRequest="20"></Label>
+                                        <Label Text="{Binding Converter={StaticResource TricksToStringConverter}}" HorizontalTextAlignment="Center" WidthRequest="40"></Label>
                                     </DataTemplate>
                                 </BindableLayout.ItemTemplate>
                             </StackLayout>
