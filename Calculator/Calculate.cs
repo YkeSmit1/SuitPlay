@@ -85,11 +85,11 @@ public class Calculate
 
             void DoBackTracking(int i)
             {
-                var averages = plays.Where(x => x.Play.Count == i + 2 && !Utils.IsSmallCard(x.Play[1], segmentsNS))
+                var averages = plays.Where(x => x.Play.Count == i + 2 && Utils.IsSmallCard(x.Play[1], segmentsNS))
                     .GroupBy(x => x.Play, y => (combi: y.Combination, nrOfTricks: y.Tricks), new ListEqualityComparer<Face>()).ToList()
                     .Select(x => (play: x.Key, averages: x.Average(y => GetProbability(y) * y.nrOfTricks) / x.Select(GetProbability).Average())).ToList();
 
-                foreach (var item in plays.Where(x => x.Play.Count == i && !Utils.IsSmallCard(x.Play[1], segmentsNS)))
+                foreach (var item in plays.Where(x => x.Play.Count == i && Utils.IsSmallCard(x.Play[1], segmentsNS)))
                 {
                     var bestPlayEW = bestPlay[item.Combination].Where(y => y.play.Count == i + 1 && y.play.StartsWith(item.Play)).ToList().MinBy(z => z.tricks).play;
                     var bestAverages = averages.Where(x => x.play.StartsWith(bestPlayEW)).OrderBy(x => x.averages).Segment((lItem, prevItem, _) => lItem.averages - prevItem.averages > 0.00001).Last().ToList();
@@ -98,7 +98,9 @@ public class Calculate
                     var tuple = bestPlay[item.Combination].Where(x => bestAverages.Any(y => y.play.SequenceEqual(x.play))).ToList();
                     if (tuple.Select(x => x.tricks).Distinct().Count() != 1) 
                         Log.Warning("Duplicate plays found with different values. ({@item})", item);
-                    var tricks = bestPlay[item.Combination].Single(x => x.play.SequenceEqual(tuple.First().play)).tricks;
+                    var valueTuple = plays.Single(x => x.Combination.SequenceEqual(item.Combination) && x.Play.SequenceEqual(tuple.First().play));
+                    Log.Debug("Backtracking for {@item} : {@valueTuple}", item, valueTuple);
+                    var tricks = valueTuple.Tricks;
                     item.Tricks = tricks;
                 }
             }
