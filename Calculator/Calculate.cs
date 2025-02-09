@@ -16,8 +16,15 @@ public class Calculate
         public Dictionary<List<Face>, PlayItem> RelevantPlays;
         public List<List<Face>> CombinationsInTree;
     }
-    
-    public static Result GetResult(IDictionary<List<Face>, List<(List<Face> play, int nrOfTricks)>> bestPlay, List<Face> cardsNS)
+
+    private class Item(List<Face> combination, List<Face> play, int tricks)
+    {
+        public List<Face> Combination { get; } = combination;
+        public List<Face> Play { get; } = play;
+        public int Tricks { get; set; } = tricks;
+    }
+
+    public static Result GetResult(IDictionary<List<Face>, List<(List<Face> play, int tricks)>> bestPlay, List<Face> cardsNS)
     {
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
@@ -38,27 +45,13 @@ public class Calculate
             };
         }, new ListEqualityComparer<Face>());
 
-        var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.nrOfTricks).Distinct().OrderByDescending(x => x).SkipLast(1).ToList();
+        var plays = bestPlay.SelectMany(x => x.Value, (parent, child) => new Item(parent.Key, child.play, child.tricks)).ToList();
+        BackTracking();
 
-        var filteredTrees = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 3).ToList(), new ListEqualityComparer<Face>());
-        var filteredTrees4 = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 4).ToList(), new ListEqualityComparer<Face>());
-        var filteredTrees5 = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 5).ToList(), new ListEqualityComparer<Face>());
-        var filteredTrees6 = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 6).ToList(), new ListEqualityComparer<Face>());
-        var filteredTrees7 = bestPlay.ToDictionary(x => x.Key, y => y.Value.Where(x => x.Item1.Count == 7).ToList(), new ListEqualityComparer<Face>());
-        
-        var averages5 = filteredTrees5
-            .SelectMany(x => x.Value, (parent, child) => (combi: parent.Key, child.play, child.nrOfTricks))
-            .GroupBy(x => x.play, y => (y.combi, y.nrOfTricks), new ListEqualityComparer<Face>()).ToList()
-            .ToDictionary(key => key.Key, value => value.Average(x => GetProbability(x) * x.nrOfTricks) / value.Select(GetProbability).Average());
-        
-        var averages7 = filteredTrees7
-            .SelectMany(x => x.Value, (parent, child) => (combi: parent.Key, child.play, child.nrOfTricks))
-            .GroupBy(x => x.play, y => (y.combi, y.nrOfTricks), new ListEqualityComparer<Face>()).ToList()
-            .ToDictionary(key => key.Key, value => value.Average(x => GetProbability(x) * x.nrOfTricks) / value.Select(GetProbability).Average());
+        var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.tricks).Distinct().OrderByDescending(x => x).SkipLast(1).ToList();
 
-        var playItems = filteredTrees
-            .SelectMany(x => x.Value, (parent, child) => (combi: parent.Key, child.play, nrOfTricks: GetNrOfTricks(parent.Key, child.play, child.nrOfTricks)))
-            .GroupBy(x => x.play.ConvertToSmallCards(cardsNS).ToList(), y => (y.combi, y.nrOfTricks), new ListEqualityComparer<Face>()).ToList()
+        var playItems = plays.Where(x => x.Play.Count == 3)
+            .GroupBy(x => x.Play.ConvertToSmallCards(cardsNS).ToList(), y => (combi: y.Combination, nrOfTricks: y.Tricks), new ListEqualityComparer<Face>()).ToList()
             .ToDictionary(key => key.Key, value => new PlayItem
             {
                 Play = value.Key.ToList(),
@@ -82,40 +75,38 @@ public class Calculate
         return result;
 
         double GetProbability((List<Face> combi, int nrOfTricks) x) => distributionList[x.combi].Probability;
-        
-        int GetNrOfTricks(List<Face> combination, List<Face> play, int defaultNrOfTricks)
+
+        void BackTracking()
         {
-            if (!Utils.IsSmallCard(play[1], segmentsNS)) 
-                return defaultNrOfTricks;
-            var bestPossiblePlay4 = filteredTrees4[combination].Where(y => y.play.Take(3).SequenceEqual(play)).MinBy(x => x.nrOfTricks).play;
-            var possiblePlays5 = filteredTrees5[combination].Where(y => y.play.Take(4).SequenceEqual(bestPossiblePlay4)).Select(x => x.play).ToList();
-            var averagesPlay5 = averages5.Where(x => possiblePlays5.Contains(x.Key, new ListEqualityComparer<Face>())).ToList();
-            if (averagesPlay5.Count == 0) 
-                return defaultNrOfTricks;
-            var bestPossiblePlay5 = averagesPlay5.OrderBy(x => x.Value).Segment((item, prevItem, _) => item.Value - prevItem.Value > 0.00001).Last().ToList();
-            if (bestPossiblePlay5.Count > 1) 
-                Log.Debug("Duplicate plays found.(combination:{@combination} play:{@play})", combination, play);
-            var tuple5 = filteredTrees5[combination].Where(x => bestPossiblePlay5.Any(y => y.Key.SequenceEqual(x.play))).ToList();
-            if (tuple5.Select(x => x.nrOfTricks).Distinct().Count() != 1) 
-                Log.Warning("Duplicate plays found with different values. (combination:{@combination} play:{@tuple})", combination, tuple5);
-            var play5 = tuple5.First();
-            var bestPossiblePlay6 = filteredTrees6[combination].Where(y => y.play.Take(5).SequenceEqual(play5.play)).MinBy(x => x.nrOfTricks).play;
-            var possiblePlays7 = filteredTrees7[combination].Where(y => y.play.Take(6).SequenceEqual(bestPossiblePlay6)).Select(x => x.play).ToList();
-            var averagesPlay7 = averages7.Where(x => possiblePlays7.Contains(x.Key, new ListEqualityComparer<Face>())).ToList();
-            if (averagesPlay7.Count == 0) 
-                return defaultNrOfTricks;
-            var bestPossiblePlay7 = averagesPlay7.OrderBy(x => x.Value).Segment((item, prevItem, _) => item.Value - prevItem.Value > 0.00001).Last().ToList();
-            if (bestPossiblePlay7.Count > 1) 
-                Log.Debug("Duplicate plays found.(combination:{@combination} play:{@play})", combination, play);
-            var tuple7 = filteredTrees7[combination].Where(x => bestPossiblePlay7.Any(y => y.Key.SequenceEqual(x.play))).ToList();
-            if (tuple7.Select(x => x.nrOfTricks).Distinct().Count() != 1) 
-                Log.Warning("Duplicate plays found with different values. (combination:{@combination} play:{@tuple})", combination, tuple7);
-            return tuple7.First().nrOfTricks;
+            //DoBackTracking(7);
+            DoBackTracking(5);
+            DoBackTracking(3);
+            return;
+
+            void DoBackTracking(int i)
+            {
+                var averages = plays.Where(x => x.Play.Count == i + 2 && !Utils.IsSmallCard(x.Play[1], segmentsNS))
+                    .GroupBy(x => x.Play, y => (combi: y.Combination, nrOfTricks: y.Tricks), new ListEqualityComparer<Face>()).ToList()
+                    .Select(x => (play: x.Key, averages: x.Average(y => GetProbability(y) * y.nrOfTricks) / x.Select(GetProbability).Average())).ToList();
+
+                foreach (var item in plays.Where(x => x.Play.Count == i && !Utils.IsSmallCard(x.Play[1], segmentsNS)))
+                {
+                    var bestPlayEW = bestPlay[item.Combination].Where(y => y.play.Count == i + 1 && y.play.StartsWith(item.Play)).ToList().MinBy(z => z.tricks).play;
+                    var bestAverages = averages.Where(x => x.play.StartsWith(bestPlayEW)).OrderBy(x => x.averages).Segment((lItem, prevItem, _) => lItem.averages - prevItem.averages > 0.00001).Last().ToList();
+                    if (bestAverages.Count > 1) 
+                        Log.Debug("Duplicate plays found.({@item})", item);
+                    var tuple = bestPlay[item.Combination].Where(x => bestAverages.Any(y => y.play.SequenceEqual(x.play))).ToList();
+                    if (tuple.Select(x => x.tricks).Distinct().Count() != 1) 
+                        Log.Warning("Duplicate plays found with different values. ({@item})", item);
+                    var tricks = bestPlay[item.Combination].Single(x => x.play.SequenceEqual(tuple.First().play)).tricks;
+                    item.Tricks = tricks;
+                }
+            }
         }
 
         (List<Face> combi, int nrOfTricks) GetDefaultValue(List<Face> play, List<Face> combination)
         {
-            return play[1] != Face.SmallCard ? (combination, -1) : (combination, filteredTrees[combination].Where(x => x.play.First() == play.First()).ToList().Max(x => x.nrOfTricks));
+            return play[1] != Face.SmallCard ? (combination, -1) : (combination, bestPlay[combination].Where(x => x.play.First() == play.First()).ToList().Max(x => x.tricks));
         }
     }
 
