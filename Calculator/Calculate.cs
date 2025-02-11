@@ -26,6 +26,7 @@ public class Calculate
 
     public static Result GetResult(IDictionary<List<Face>, List<(List<Face> play, int tricks)>> bestPlay, List<Face> cardsNS)
     {
+        Log.Information("Start GetResult");
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
         var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), new FaceListComparer()).ToList();
@@ -46,8 +47,9 @@ public class Calculate
         }, new ListEqualityComparer<Face>());
 
         var plays = bestPlay.SelectMany(x => x.Value, (parent, child) => new Item(parent.Key, child.play, child.tricks)).ToList();
+        Log.Information("Backtracking started");
         BackTracking();
-
+        Log.Information("Backtracking ended");
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.tricks).Distinct().OrderByDescending(x => x).SkipLast(1).ToList();
 
         var playItems = plays.Where(x => x.Play.Count == 3)
@@ -72,6 +74,7 @@ public class Calculate
             PossibleNrOfTricks = possibleNrOfTricks.ToList()
         };
         
+        Log.Information("End GetResult");
         return result;
 
         double GetProbability((List<Face> combi, int nrOfTricks) x) => distributionList[x.combi].Probability;
@@ -128,6 +131,7 @@ public class Calculate
             result[cardsE] = calculateBestPlayForCombination;
         });
         
+        Log.Information("CalculateBestPlay ended");
         return result;
     }
 
