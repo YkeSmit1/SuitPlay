@@ -92,20 +92,20 @@ public class Calculate
                     .GroupBy(x => x.Play, y => (combi: y.Combination, nrOfTricks: y.Tricks), new ListEqualityComparer<Face>()).ToList()
                     .Select(x => (play: x.Key, averages: x.Average(y => GetProbability(y) * y.nrOfTricks) / x.Select(GetProbability).Average())).ToList();
 
-                foreach (var item in plays.Where(x => x.Play.Count == i && Utils.IsSmallCard(x.Play[1], segmentsNS)))
+                Parallel.ForEach(plays.Where(x => x.Play.Count == i && Utils.IsSmallCard(x.Play[1], segmentsNS)), item =>
                 {
                     var bestPlayEW = bestPlay[item.Combination].Where(y => y.play.Count == i + 1 && y.play.StartsWith(item.Play)).ToList().MinBy(z => z.tricks).play;
                     var bestAverages = averages.Where(x => x.play.StartsWith(bestPlayEW)).OrderBy(x => x.averages).Segment((lItem, prevItem, _) => lItem.averages - prevItem.averages > 0.00001).Last().ToList();
-                    if (bestAverages.Count > 1) 
+                    if (bestAverages.Count > 1)
                         Log.Debug("Duplicate plays found.({@item})", item);
                     var tuple = bestPlay[item.Combination].Where(x => bestAverages.Any(y => y.play.SequenceEqual(x.play))).ToList();
-                    if (tuple.Select(x => x.tricks).Distinct().Count() != 1) 
+                    if (tuple.Select(x => x.tricks).Distinct().Count() != 1)
                         Log.Warning("Duplicate plays found with different values. ({@item})", item);
                     var valueTuple = plays.Single(x => x.Combination.SequenceEqual(item.Combination) && x.Play.SequenceEqual(tuple.First().play));
                     Log.Debug("Backtracking for {@item} : {@valueTuple}", item, valueTuple);
                     var tricks = valueTuple.Tricks;
                     item.Tricks = tricks;
-                }
+                });
             }
         }
 
@@ -229,7 +229,7 @@ public class Calculate
                     cardValueList.Add((card, value));
                     playedCards.RemoveAt(playedCards.Count - 1);
                 }
-                
+
                 var badPlays = cardValueList.Where(x => x.Item2 != bestValue).Select(x => playedCards.Concat([x.Item1]).ToList());
                 badPlays.ForEach(play => tree.RemoveAll(x => x.Item1.StartsWith(play)));
                 tree.AddRange(cardValueList.Where(x => x.Item2 == bestValue).Select(x => (playedCards.Concat([x.Item1]).ToList(), bestValue)));
