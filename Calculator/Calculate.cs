@@ -139,7 +139,8 @@ public class Calculate
     {
         var list = combination.ToList();
         var similarCombinations = SimilarCombinations(combinationList, list, cardsNS);
-        var hasSimilar = similarCombinations.Count(x => new FaceListComparer().Compare(x.ToList(), list) < 0);
+        var reversedList = list.AsEnumerable().Reverse().ToList();
+        var hasSimilar = similarCombinations.Count(x => new FaceListComparer().Compare(x.Reverse().ToList(), reversedList) < 0);
         return hasSimilar;
     }
 

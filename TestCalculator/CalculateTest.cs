@@ -48,7 +48,7 @@ public class CalculateTest
     [InlineData("AQT98", "KJ76", "AQ8", "")]
     [InlineData("QT9", "KJ765", "Q9", "")]
     [InlineData("QT9", "KJ765", "9", "852J")]
-    public void TestFilterAvailableCards(string cardsPlayer, string cardsOtherTeam, string playedCards, string expected)
+    public void TestFilterAvailableCards(string cardsPlayer, string cardsOtherTeam, string expected, string playedCards)
     {
         // Arrange
         var cardsPlayerList = cardsPlayer.Select(Utils.CharToCard);
