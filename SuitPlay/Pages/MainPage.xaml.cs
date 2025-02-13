@@ -95,9 +95,11 @@ public partial class MainPage
             var northHand = GetHand(North);
             var southHand = GetHand(South);
             bestPlay = await Task.Run(() => Calculate.CalculateBestPlay(northHand, southHand));
-            stopWatch.Stop();
+            var calculateElapsed = stopWatch.Elapsed;
+            stopWatch.Restart();
             result = await GetResult(northHand, southHand);
-            BestPlay.Text = $"{GetBestPlayText(result)} ({stopWatch.Elapsed:s\\:ff} seconds)";
+            var backTrackingElapsed = stopWatch.Elapsed;
+            BestPlay.Text = $@"{GetBestPlayText(result)} (Calculate:{calculateElapsed:s\:ff} seconds. BackTracking:{backTrackingElapsed:s\:ff} seconds)";
             OverviewButton.IsEnabled = true;
             DistributionsButton.IsEnabled = true;
         }
