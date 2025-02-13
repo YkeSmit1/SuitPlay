@@ -138,12 +138,8 @@ public class Calculate
     public static int SimilarCombinationsCount(IEnumerable<IEnumerable<Face>> combinationList,  IEnumerable<Face> combination, IEnumerable<Face> cardsNS)
     {
         var list = combination.ToList();
-        if (list.Count == 0)
-            return 0;
         var similarCombinations = SimilarCombinations(combinationList, list, cardsNS);
-        var comp = new FaceListComparer();
-        var reversedList = list.AsEnumerable().Reverse().ToList();
-        var hasSimilar = similarCombinations.Count(x => comp.Compare(x.Reverse().ToList(), reversedList) < 0);
+        var hasSimilar = similarCombinations.Count(x => new FaceListComparer().Compare(x.ToList(), list) < 0);
         return hasSimilar;
     }
 
