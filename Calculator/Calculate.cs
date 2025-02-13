@@ -258,16 +258,15 @@ public class Calculate
             // if (playedCards.Count % 4 == 1)
             // {
             //     var lowestCard = availableCards.Min();
-            //     var lastTrick = playedCards.Chunk(4).Last();
-            //     var coverCards = availableCards.Where(x => x > lastTrick.First()).ToList();
+            //     var coverCards = availableCards.Where(x => x > playedCards.Chunk(4).Last().First()).ToList();
             //     if (coverCards.Count == 0)
-            //         return new List<Face> {lowestCard};
+            //         return [lowestCard];
             //     var coverCard = coverCards.Min();
-            //     return coverCard - lowestCard == 2
-            //         ? new List<Face> {coverCard}
-            //         : new List<Face> {lowestCard, coverCard }.Distinct();
+            //     if (coverCard == lowestCard)
+            //         return [lowestCard];
+            //     return coverCard - lowestCard == 2 ? [coverCard] : [lowestCard, coverCard];
             // }
-            //
+            
             if (playedCards.Count % 4 == 3)
             {
                 var lastTrick = playedCards.Chunk(4).Last();
@@ -277,7 +276,7 @@ public class Calculate
             }
             
             var cardsOtherTeam = player is Player.North or Player.South ? cardsEW : cardsNS;
-            var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeam);
+            var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeam, playedCards);
 
             return availableCardsFiltered.ToList();
         }
@@ -292,10 +291,11 @@ public class Calculate
         }
     }
 
-    public static IEnumerable<Face> AvailableCardsFiltered(List<Face> availableCards, List<Face> cardsOtherTeam)
+    public static IEnumerable<Face> AvailableCardsFiltered(List<Face> availableCards, List<Face> cardsOtherTeam, List<Face> playedCards)
     {
-        //return availableCards.Where(card => !availableCards.Any(x => cardsOtherTeam.Where(y => y < x).SequenceEqual(cardsOtherTeam.Where(z => z < card)) && card > x));
-        var segmentsCardsOtherTeam = cardsOtherTeam.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
+        var playedCardsPreviousTricks = playedCards.SkipLast(playedCards.Count % 4);
+        var cardsOtherTeamNotPlayed = cardsOtherTeam.Except(playedCardsPreviousTricks).ToList();
+        var segmentsCardsOtherTeam = cardsOtherTeamNotPlayed.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         var segmentsAvailableCards = availableCards.Segment((item, prevItem, _) => GetSegment(item) != GetSegment(prevItem));
         var availableCardsFiltered = segmentsAvailableCards.Select(x => x.Last());
         return availableCardsFiltered;

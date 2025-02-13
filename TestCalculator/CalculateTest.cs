@@ -37,23 +37,26 @@ public class CalculateTest
     }
     
     [Theory]
-    [InlineData("K74", "AQ32", "K4")]
-    [InlineData("KJT43", "AQ92", "KT3")]
-    [InlineData("KJT76", "AQ985432", "KT6")]
-    [InlineData("KJT762", "AQ98543", "KT62")]
-    [InlineData("KJT76", "AQ98543", "KT6")]
-    [InlineData("KJT2", "AQ98543", "KT2")]
-    [InlineData("6", "AQT985432", "6")]
-    [InlineData("KJ7", "AQT985432", "KJ7")]
-    [InlineData("AQT98", "KJ76", "AQ8")]
-    public void TestFilterAvailableCards(string cardsPlayer, string cardsOtherTeam, string expected)
+    [InlineData("K74", "AQ32", "K4", "")]
+    [InlineData("KJT43", "AQ92", "KT3", "")]
+    [InlineData("KJT76", "AQ985432", "KT6", "")]
+    [InlineData("KJT762", "AQ98543", "KT62", "")]
+    [InlineData("KJT76", "AQ98543", "KT6", "")]
+    [InlineData("KJT2", "AQ98543", "KT2", "")]
+    [InlineData("6", "AQT985432", "6", "")]
+    [InlineData("KJ7", "AQT985432", "KJ7", "")]
+    [InlineData("AQT98", "KJ76", "AQ8", "")]
+    [InlineData("QT9", "KJ765", "Q9", "")]
+    [InlineData("QT9", "KJ765", "9", "852J")]
+    public void TestFilterAvailableCards(string cardsPlayer, string cardsOtherTeam, string playedCards, string expected)
     {
         // Arrange
         var cardsPlayerList = cardsPlayer.Select(Utils.CharToCard);
         var cardsOtherTeamList = cardsOtherTeam.Select(Utils.CharToCard);
         var expectedList = expected.Select(Utils.CharToCard);
+        var playedCardsList = playedCards.Select(Utils.CharToCard);
         // Act
-        var actual = Calculate.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList());
+        var actual = Calculate.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList(), playedCardsList.ToList());
         // Assert
         Assert.Equal(expectedList, actual);
     }
@@ -80,7 +83,7 @@ public class CalculateTest
     [InlineData("AQT98", "5432")]
     [InlineData("QT98", "A432")]
     [InlineData("QT98", "A543")]
-    [InlineData("AJ92", "K843", Skip = "Test is too slow")]
+    [InlineData("AJ92", "K843")]
     public void TestEqualToEtalon(string north, string south)
     {
         // Arrange 
