@@ -12,6 +12,7 @@ public class CalculateTest
     public CalculateTest(ITestOutputHelper testOutputHelper)
     {
         this.testOutputHelper = testOutputHelper;
+        Utils.SetupLogging();
     }
 
     [Theory]

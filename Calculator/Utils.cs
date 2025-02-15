@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using MoreLinq;
+using Serilog;
 
 namespace Calculator;
 
@@ -185,5 +186,15 @@ public static class Utils
             .OrderByDescending(x => x.Value.Play, new FaceListComparer())
             .ToDictionary(x => CardsToString(x.Key), x => x.Value.NrOfTricks);
         JsonSerializer.Serialize(stream, (treesForJson, result.CombinationsInTree.Select(CardsToString)), new JsonSerializerOptions { WriteIndented = false, IncludeFields = true });
+    }
+
+    public static void SetupLogging()
+    {
+        var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "log.txt");
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .WriteTo.Console()
+            .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
+            .CreateLogger();
     }
 }

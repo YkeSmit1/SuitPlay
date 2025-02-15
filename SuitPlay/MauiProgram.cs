@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using Serilog;
+﻿using Calculator;
+using Microsoft.Extensions.Logging;
 
 namespace SuitPlay;
 
@@ -19,19 +19,8 @@ public static class MauiProgram
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
-        SetupLogging();
+        Utils.SetupLogging();
 
         return builder.Build();
     }
-    
-    private static void SetupLogging()
-    {
-        var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "log.txt");
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Information()
-            .WriteTo.Console()
-            .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
-            .CreateLogger();
-    }
-    
 }
