@@ -106,7 +106,7 @@ public class Calculate
 
                 Parallel.ForEach(bestPlayFlattened.Where(x => x.Play.Count == i && Utils.IsSmallCard(x.Play[1], segmentsNS)), item =>
                 {
-                    var bestPlayEW = item.Children.First();
+                    var bestPlayEW = item.Children.MinBy(x => x.Tricks);
                     var bestAverages = averages.Where(x => x.play.StartsWith(bestPlayEW.Play)).OrderBy(x => x.averages).Segment((lItem, prevItem, _) => lItem.averages - prevItem.averages > 0.00001).Last().ToList();
                     if (bestAverages.Count > 1)
                         Log.Debug("Duplicate plays found.({@item})", item);
