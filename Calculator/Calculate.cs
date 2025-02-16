@@ -17,22 +17,15 @@ public class Calculate
         public List<List<Face>> CombinationsInTree;
     }
 
-    private class Item(List<Face> combination, List<Face> play, int tricks)
+    public class Item(List<Face> play, int tricks, List<Item> children = null)
     {
-        public List<Face> Combination { get; } = combination;
+        public List<Face> Combination { get; set; }
         public List<Face> Play { get; } = play;
         public int Tricks { get; set; } = tricks;
+        public List<Item> Children { get; } = children;
     }
 
-    public class ResultItem(List<Face> play, int tricks, List<ResultItem> children = null)
-    {
-        public List<Face> Play { get; set; } = play;
-        public int Tricks { get; set; } = tricks;
-        public List<ResultItem> Children { get; set; } = children;
-        public List<Face> Combination { get; set; }
-    }
-
-    public static Result GetResult(IDictionary<List<Face>, List<ResultItem>> bestPlay, List<Face> cardsNS)
+    public static Result GetResult(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> cardsNS)
     {
         Log.Information("Start GetResult");
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
@@ -54,7 +47,14 @@ public class Calculate
             };
         }, new ListEqualityComparer<Face>());
 
-        var plays = bestPlay.SelectMany(x => x.Value.SelectMany(GetDescendents), (parent, child) => new Item(parent.Key, child.Play, child.Tricks)).ToList();
+        foreach (var item in bestPlay)
+        {
+            item.Value.ForEach(x =>
+            {
+                x.Combination = item.Key;
+                GetDescendents(x).ForEach(y => y.Combination = item.Key);
+            }); 
+        }
         var bestPlayFlattened = bestPlay.SelectMany(x => x.Value.SelectMany(GetDescendents)).ToList();
         BackTracking();
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderByDescending(x => x).SkipLast(1).ToList();
@@ -84,7 +84,7 @@ public class Calculate
         Log.Information("End GetResult");
         return result;
 
-        IEnumerable<ResultItem> GetDescendents(ResultItem resultItem)
+        IEnumerable<Item> GetDescendents(Item resultItem)
         {
             return resultItem.Children == null ? [] : resultItem.Children.Concat(resultItem.Children.SelectMany(GetDescendents));
         }
@@ -100,7 +100,7 @@ public class Calculate
 
             void DoBackTracking(int i)
             {
-                var averages = plays.Where(x => x.Play.Count == i + 2 && Utils.IsSmallCard(x.Play[1], segmentsNS))
+                var averages = bestPlayFlattened.Where(x => x.Play.Count == i + 2 && Utils.IsSmallCard(x.Play[1], segmentsNS))
                     .GroupBy(x => x.Play, y => (combi: y.Combination, nrOfTricks: y.Tricks), new ListEqualityComparer<Face>()).ToList()
                     .Select(x => (play: x.Key, averages: x.Average(y => GetProbability(y) * y.nrOfTricks) / x.Select(GetProbability).Average())).ToList();
 
@@ -125,14 +125,14 @@ public class Calculate
         }
     }
 
-    public static IDictionary<List<Face>, List<ResultItem>> CalculateBestPlay(List<Face> north, List<Face> south)
+    public static IDictionary<List<Face>, List<Item>> CalculateBestPlay(List<Face> north, List<Face> south)
     {
         Log.Information("Calculating best play North:{@north} South:{@south}",  north, south);
         var cardsEW = Utils.GetAllCards().Except(north).Except(south).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
         var cardsNS = north.Concat(south).OrderByDescending(x => x);
         combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces, cardsNS) > 0);
-        var result = new ConcurrentDictionary<List<Face>, List<ResultItem>>(new ListEqualityComparer<Face>());
+        var result = new ConcurrentDictionary<List<Face>, List<Item>>(new ListEqualityComparer<Face>());
         Parallel.ForEach(combinations, combination =>
         {
             var cardsE = combination.ToList();
@@ -184,9 +184,9 @@ public class Calculate
             initialCards.Single(y => y.Value.Contains(trick.Max())).Key is Player.North or Player.South);
     }
 
-    private static List<ResultItem> CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
+    private static List<Item> CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
     {
-        var tree = new List<ResultItem>();
+        var tree = new List<Item>();
         var initialCards = cards.Select((x, index) => (x, index)).ToDictionary(item => (Player)item.index, item => item.x.ToList());
         var cardsNS = initialCards[Player.North].Concat(initialCards[Player.South]).OrderByDescending(x => x).ToList();
         var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).OrderByDescending(x => x).ToList();
@@ -206,19 +206,18 @@ public class Calculate
             }
         }
 
-        ResultItem Minimax(List<Face> playedCards, bool maximizingPlayer)
+        Item Minimax(List<Face> playedCards, bool maximizingPlayer)
         {
             if (playedCards.Count(card => card != Face.Dummy) == initialCards.Values.Sum(x => x.Count) ||
                 playedCards.Chunk(4).Last().First() == Face.Dummy)
             {
                 var trickCount = GetTrickCount(playedCards, initialCards);
-                return new ResultItem(playedCards.ToList(), trickCount);
+                return new Item(playedCards.ToList(), trickCount);
             }
 
             if (maximizingPlayer)
             {
-                var resultItem = new ResultItem(playedCards.ToList(), int.MinValue, []);
-                resultItem.Combination = initialCards[Player.East];
+                var resultItem = new Item (playedCards.ToList(), int.MinValue, []);
                 foreach (var card in GetPlayableCards(playedCards))
                 {
                     playedCards.Add(card);
@@ -231,8 +230,7 @@ public class Calculate
             }
             else
             {
-                var resultItem = new ResultItem(playedCards.ToList(), int.MaxValue, []);
-                resultItem.Combination = initialCards[Player.East];
+                var resultItem = new Item ( playedCards.ToList(),  int.MaxValue, []);
                 foreach (var card in GetPlayableCards(playedCards))
                 {
                     playedCards.Add(card);
