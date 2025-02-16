@@ -21,7 +21,7 @@ public partial class MainPage
     }
 
     private readonly Dictionary<(string suit, string card), string> dictionary;
-    private IDictionary<List<Face>, List<Calculate.ResultItem>> bestPlay;
+    private IDictionary<List<Face>, List<Calculate.Item>> bestPlay;
     private Calculate.Result result;
 
     public MainPage()
