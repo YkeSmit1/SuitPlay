@@ -104,7 +104,7 @@ public class Calculate
                     .GroupBy(x => x.Play, y => (combi: y.Combination, nrOfTricks: y.Tricks), new ListEqualityComparer<Face>()).ToList()
                     .Select(x => (play: x.Key, averages: x.Average(y => GetProbability(y) * y.nrOfTricks) / x.Select(GetProbability).Average())).ToList();
 
-                Parallel.ForEach(bestPlayFlattened.Where(x => x.Play.Count == i && Utils.IsSmallCard(x.Play[1], segmentsNS)), item =>
+                foreach (var item in bestPlayFlattened.Where(x => x.Play.Count == i && Utils.IsSmallCard(x.Play[1], segmentsNS)))
                 {
                     var bestPlayEW = item.Children.MinBy(x => x.Tricks);
                     var bestAverages = averages.Where(x => x.play.StartsWith(bestPlayEW.Play)).OrderBy(x => x.averages).Segment((lItem, prevItem, _) => lItem.averages - prevItem.averages > 0.00001).Last().ToList();
@@ -113,10 +113,9 @@ public class Calculate
                     var tuple = bestPlayEW.Children.Where(x => bestAverages.Any(y => y.play.SequenceEqual(x.Play))).ToList();
                     if (tuple.Select(x => x.Tricks).Distinct().Count() != 1)
                         Log.Warning("Duplicate plays found with different values. ({@item})", item);
-                    Log.Debug("Backtracking for {@item}", item);
                     var tricks = tuple.First().Tricks;
                     item.Tricks = tricks;
-                });
+                }
             }
         }
 
