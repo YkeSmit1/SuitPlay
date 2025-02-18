@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Calculator;
+using MoreLinq;
 using SuitPlay.ViewModels;
 using SuitPlay.Views;
 
@@ -115,8 +116,15 @@ public partial class MainPage
 
     private static string GetBestPlayText(Calculate.Result results)
     {
-        var bestPlay = results.PlayList.Where(x => x.Play[1] == Face.SmallCard).MaxBy(x => x.Average);
-        return $"First trick: {Utils.CardsToString(bestPlay.Play)}\nAverage tricks:{bestPlay.Average:0.##}";
+        var threeCards = results.PlayList.Where(x => x.Play[1] == Face.SmallCard && x.Play.Count == 3).MaxBy(x => x.Average);
+        var fourCards =  results.PlayList.Where(x => x.Play.StartsWith(threeCards.Play) && x.Play.Count == 4).MinBy(x => x.Average);
+        var sevenCards = results.PlayList.Where(x => x.Play.StartsWith(fourCards.Play) && x.Play.Count == 7).ToList();
+        var sevenCardsSmall = sevenCards.Where(x => x.Play[5] == Face.SmallCard).ToList();
+        var bestPlaySecondTrick = sevenCardsSmall.Count != 0 ? sevenCardsSmall.MaxBy(x => x.Average) : sevenCards.MaxBy(x => x.Average);
+        var bestPlayText = $"First trick: {Utils.CardsToString(threeCards.Play)}\n" +
+                           $"Second trick: ({Utils.CardsToString(bestPlaySecondTrick.Play.Take(4))}){Utils.CardsToString(bestPlaySecondTrick.Play.Skip(4))}\n" +
+                           $"Average tricks:{threeCards.Average:0.##}";
+        return bestPlayText;
     }
 
     private async void ButtonOverview_OnClicked(object sender, EventArgs e)

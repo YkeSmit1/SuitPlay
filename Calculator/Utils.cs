@@ -182,7 +182,7 @@ public static class Utils
     public static void SaveTrees(Calculate.Result result, string filename)
     {
         using var stream = new FileStream(filename, FileMode.Create);
-        var treesForJson = result.RelevantPlays
+        var treesForJson = result.RelevantPlays.Where(x => x.Key.Count == 3)
             .OrderByDescending(x => x.Value.Play, new FaceListComparer())
             .ToDictionary(x => CardsToString(x.Key), x => x.Value.NrOfTricks);
         JsonSerializer.Serialize(stream, (treesForJson, result.CombinationsInTree.Select(CardsToString)), new JsonSerializerOptions { WriteIndented = false, IncludeFields = true });

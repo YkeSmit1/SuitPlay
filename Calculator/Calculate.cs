@@ -59,7 +59,7 @@ public class Calculate
         BackTracking();
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderByDescending(x => x).SkipLast(1).ToList();
 
-        var playItems = bestPlayFlattened.Where(x => x.Play.Count == 3)
+        var playItems = bestPlayFlattened.Where(x => x.Play.Count is 3 or 4 or 7)
             .GroupBy(x => x.Play.ConvertToSmallCards(cardsNS).ToList(), y => (combi: y.Combination, nrOfTricks: y.Tricks), new ListEqualityComparer<Face>()).ToList()
             .ToDictionary(key => key.Key, value => new PlayItem
             {
