@@ -1,5 +1,8 @@
-﻿using Calculator;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using Calculator;
 using JetBrains.Annotations;
+using MoreLinq;
 using Xunit.Abstractions;
 
 namespace TestCalculator;
@@ -7,6 +10,7 @@ namespace TestCalculator;
 [TestSubject(typeof(Calculate))]
 public class CalculateTest
 {
+    private static readonly JsonSerializerOptions JsonSerializerOptions  = new() { WriteIndented = false, IncludeFields = true };
     [UsedImplicitly] private readonly ITestOutputHelper testOutputHelper;
 
     public CalculateTest(ITestOutputHelper testOutputHelper)
@@ -101,5 +105,30 @@ public class CalculateTest
         var json = File.ReadAllText(filename);
         var etalon = File.ReadAllText(Path.Combine("etalons", filename));
         Assert.Equal(etalon, json);
+    }
+
+    [Theory]
+    [InlineData("AQT98-5432.json", new[] {"2xQ", "Ax2", "2x8"})]
+    [InlineData("QT98-A432.json", new[] {"8x2", "Qx2"})]
+    [InlineData("AJ92-K843.json", new[] {"Ax3", "Kx2", "3xJ"})]
+    public void CompareWithOld(string fileName, string[] plays)
+    {
+        using var fileStreamOld = new FileStream(Path.Combine("etalons-suitplay", fileName), FileMode.Open);
+        var resultsOld = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStreamOld, JsonSerializerOptions);
+        
+        using var fileStreamNew = new FileStream(Path.Combine("etalons", fileName), FileMode.Open);
+        var resultsNew = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStreamNew, JsonSerializerOptions);
+
+        Assert.Equal(resultsOld.Item2, resultsNew.Item2);
+        var combinations = resultsOld.Item2.ToList();
+        foreach (var play in plays)
+        {
+            var zipped = resultsOld.treesForJson[play].Zip(resultsNew.treesForJson[play]);
+            foreach (var tuple in zipped.Index()) 
+            {
+                if (tuple.Value.First != tuple.Value.Second)
+                    testOutputHelper.WriteLine($"Values not equal. file:{fileName} play:{play} East:{combinations[tuple.Key]} old:{tuple.Value.First} new:{tuple.Value.Second} ");
+            }
+        }
     }
 }
