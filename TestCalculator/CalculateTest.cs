@@ -110,7 +110,7 @@ public class CalculateTest
     [Theory]
     [InlineData("AQT98-5432.json", new[] {"2xQ", "Ax2", "2x8"})]
     [InlineData("QT98-A432.json", new[] {"8x2", "Qx2"})]
-    [InlineData("AJ92-K843.json", new[] {"Ax3", "Kx2", "3xJ"})]
+    [InlineData("AJ92-K843.json", new[] {"Kx2", "Ax3", "3xJ"})]
     public void CompareWithOld(string fileName, string[] plays)
     {
         using var fileStreamOld = new FileStream(Path.Combine("etalons-suitplay", fileName), FileMode.Open);
