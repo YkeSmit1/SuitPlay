@@ -100,7 +100,7 @@ public partial class MainPage
             stopWatch.Restart();
             result = await GetResult(northHand, southHand);
             var backTrackingElapsed = stopWatch.Elapsed;
-            BestPlay.Text = $@"{GetBestPlayText(result)} (Calculate:{calculateElapsed:s\:ff} seconds. BackTracking:{backTrackingElapsed:s\:ff} seconds)";
+            BestPlay.Text = $@"{GetBestPlayText(result.PlayList)} (Calculate:{calculateElapsed:s\:ff} seconds. BackTracking:{backTrackingElapsed:s\:ff} seconds)";
             OverviewButton.IsEnabled = true;
             DistributionsButton.IsEnabled = true;
         }
@@ -114,11 +114,11 @@ public partial class MainPage
         }
     }
 
-    private static string GetBestPlayText(Calculate.Result results)
+    private static string GetBestPlayText(List<PlayItem> playList)
     {
-        var threeCards = results.PlayList.Where(x => x.Play[1] == Face.SmallCard && x.Play.Count == 3).MaxBy(x => x.Average);
-        var fourCards =  results.PlayList.Where(x => x.Play.StartsWith(threeCards.Play) && x.Play.Count == 4).MinBy(x => x.Average);
-        var sevenCards = results.PlayList.Where(x => x.Play.StartsWith(fourCards.Play) && x.Play.Count == 7).ToList();
+        var threeCards = playList.Where(x => x.Play[1] == Face.SmallCard && x.Play.Count == 3).MaxBy(x => x.Average);
+        var fourCards =  playList.Where(x => x.Play.StartsWith(threeCards.Play) && x.Play.Count == 4).MinBy(x => x.Average);
+        var sevenCards = playList.Where(x => x.Play.StartsWith(fourCards.Play) && x.Play.Count == 7).ToList();
         var sevenCardsSmall = sevenCards.Where(x => x.Play[5] == Face.SmallCard).ToList();
         var bestPlaySecondTrick = sevenCardsSmall.Count != 0 ? sevenCardsSmall.MaxBy(x => x.Average) : sevenCards.MaxBy(x => x.Average);
         var bestPlayText = $"First trick: {Utils.CardsToString(threeCards.Play)}\n" +

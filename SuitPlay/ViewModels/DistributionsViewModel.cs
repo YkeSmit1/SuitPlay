@@ -15,8 +15,8 @@ public partial class DistributionsViewModel : ObservableObject, IQueryAttributab
     {
         var result = (Calculate.Result)query["Result"];
         DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionList);
-        AllPlays = new ObservableCollection<List<Face>>(result.AllPlays);
-        PlayItems = new ObservableCollection<PlayItem>(result.PlayList);
+        AllPlays = new ObservableCollection<List<Face>>(result.AllPlays.Where(x => x.Count == 3));
+        PlayItems = new ObservableCollection<PlayItem>(result.PlayList.Where(x => x.Play.Count == 3));
         PossibleNrOfTricks = new ObservableCollection<int>(result.PossibleNrOfTricks);
     }
 }
