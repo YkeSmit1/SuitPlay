@@ -89,7 +89,7 @@ public class Calculate
             return resultItem.Children == null ? [] : resultItem.Children.Concat(resultItem.Children.SelectMany(GetDescendents));
         }
         
-        double GetProbability((List<Face> combi, int nrOfTricks) x) => distributionList[x.combi].Probability;
+        double GetProbability((List<Face> combi, int nrOfTricks) x) => distributionList[x.combi].Probability * distributionList[x.combi].Occurrences;
 
         void BackTracking()
         {
