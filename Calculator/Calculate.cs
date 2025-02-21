@@ -280,7 +280,7 @@ public class Calculate
                 var lastTrick = playedCards.Chunk(4).Last();
                 var highestCardOtherTeam = ((List<Face>)[lastTrick.First(), lastTrick.Last()]).Max();
                 var highestCards = availableCards.Where(x => x > highestCardOtherTeam && highestCardOtherTeam > lastTrick[1]).ToList();
-                return highestCards.Count > 0 ? [highestCards.Min()] : [availableCards.Min()];
+                if (highestCards.Count > 0) return [highestCards.Min()];
             }
             
             var cardsOtherTeam = player is Player.North or Player.South ? cardsEW : cardsNS;
