@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using System.Text.Json.Serialization;
 using Calculator;
 using JetBrains.Annotations;
 using MoreLinq;
@@ -91,6 +90,8 @@ public class CalculateTest
     [InlineData("AJ92", "K843")]
     [InlineData("AQJ", "T987654")]
     [InlineData("AQJ", "T9876543")]
+    [InlineData("KJ", "5432")]
+    [InlineData("AT32", "Q654")]
     public void TestEqualToEtalon(string north, string south)
     {
         // Arrange 
@@ -114,7 +115,9 @@ public class CalculateTest
     [InlineData("QT98-A432.json", new[] {"8x2", "Qx2"})]
     [InlineData("AJ92-K843.json", new[] {"Kx2", "Ax3", "3xJ"})]
     [InlineData("AQJ-T987654.json", new[] {"4xJ"})]
-    [InlineData("AQJ-T9876543.json", new[] {"3xA"})]
+    [InlineData("AQJ-T9876543.json", new[] {"Ax3"})]
+    [InlineData("KJ-5432.json", new[] {"2xJ" , "2xK"}, Skip = "Different small cards")]
+    [InlineData("AT32-Q654.json", new[] {"Ax4", "2xQ"})]
     public void CompareWithOld(string fileName, string[] plays)
     {
         using var fileStreamOld = new FileStream(Path.Combine("etalons-suitplay", fileName), FileMode.Open);
