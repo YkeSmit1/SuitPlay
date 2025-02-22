@@ -89,6 +89,8 @@ public class CalculateTest
     [InlineData("QT98", "A432")]
     [InlineData("QT98", "A543")]
     [InlineData("AJ92", "K843")]
+    [InlineData("AQJ", "T987654")]
+    [InlineData("AQJ", "T9876543")]
     public void TestEqualToEtalon(string north, string south)
     {
         // Arrange 
@@ -111,6 +113,8 @@ public class CalculateTest
     [InlineData("AQT98-5432.json", new[] {"2xQ", "Ax2", "2x8"})]
     [InlineData("QT98-A432.json", new[] {"8x2", "Qx2"})]
     [InlineData("AJ92-K843.json", new[] {"Kx2", "Ax3", "3xJ"})]
+    [InlineData("AQJ-T987654.json", new[] {"4xJ"})]
+    [InlineData("AQJ-T9876543.json", new[] {"3xA"})]
     public void CompareWithOld(string fileName, string[] plays)
     {
         using var fileStreamOld = new FileStream(Path.Combine("etalons-suitplay", fileName), FileMode.Open);
