@@ -61,12 +61,16 @@ public class Calculate
 
         var playItems = bestPlayFlattened.Where(x => x.Play.Count is 3 or 4 or 7)
             .GroupBy(x => x.Play.ConvertToSmallCards(cardsNS).ToList(), y => y, new ListEqualityComparer<Face>()).ToList()
-            .ToDictionary(key => key.Key, value => new PlayItem
+            .ToDictionary(key => key.Key, value =>
             {
-                Play = value.Key.ToList(),
-                NrOfTricks = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.Combination), GetDefaultValue(value.Key, x.ToList())).Tricks).ToList(),
-                Average = value.Average(x => GetProbability(x) * x.Tricks) / value.Select(GetProbability).Average(),
-                Probabilities = possibleNrOfTricks.Select(y => value.Where(x => x.Tricks >= y).Sum(GetProbability) / value.Sum(GetProbability)).ToList(),
+                var allCombinations = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.Combination), GetDefaultValue(value.Key, x))).ToList();
+                return new PlayItem
+                {
+                    Play = value.Key.ToList(),
+                    NrOfTricks = allCombinations.Select(x => x.Tricks).ToList(),
+                    Average = allCombinations.Average(x => GetProbability(x) * x.Tricks) / allCombinations.Select(GetProbability).Average(),
+                    Probabilities = possibleNrOfTricks.Select(y => allCombinations.Where(x => x.Tricks >= y).Sum(GetProbability) / allCombinations.Sum(GetProbability)).ToList(),
+                };
             })
             .OrderByDescending(x => x.Value.Average);
         
