@@ -60,13 +60,13 @@ public class Calculate
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderByDescending(x => x).SkipLast(1).ToList();
 
         var playItems = bestPlayFlattened.Where(x => x.Play.Count is 3 or 4 or 7)
-            .GroupBy(x => x.Play.ConvertToSmallCards(cardsNS).ToList(), y => (combi: y.Combination, nrOfTricks: y.Tricks), new ListEqualityComparer<Face>()).ToList()
+            .GroupBy(x => x.Play.ConvertToSmallCards(cardsNS).ToList(), y => y, new ListEqualityComparer<Face>()).ToList()
             .ToDictionary(key => key.Key, value => new PlayItem
             {
                 Play = value.Key.ToList(),
-                NrOfTricks = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.combi), GetDefaultValue(value.Key, x.ToList())).nrOfTricks).ToList(),
-                Average = value.Average(x => GetProbability(x) * x.nrOfTricks) / value.Select(GetProbability).Average(),
-                Probabilities = possibleNrOfTricks.Select(y => value.Where(x => x.nrOfTricks >= y).Sum(GetProbability) / value.Sum(GetProbability)).ToList(),
+                NrOfTricks = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.Combination), GetDefaultValue(value.Key, x.ToList())).Tricks).ToList(),
+                Average = value.Average(x => GetProbability(x) * x.Tricks) / value.Select(GetProbability).Average(),
+                Probabilities = possibleNrOfTricks.Select(y => value.Where(x => x.Tricks >= y).Sum(GetProbability) / value.Sum(GetProbability)).ToList(),
             })
             .OrderByDescending(x => x.Value.Average);
         
@@ -89,7 +89,7 @@ public class Calculate
             return resultItem.Children == null ? [] : resultItem.Children.Concat(resultItem.Children.SelectMany(GetDescendents));
         }
         
-        double GetProbability((List<Face> combi, int nrOfTricks) x) => distributionList[x.combi].Probability * distributionList[x.combi].Occurrences;
+        double GetProbability(Item x) => distributionList[x.Combination].Probability * distributionList[x.Combination].Occurrences;
 
         void BackTracking()
         {
@@ -101,8 +101,8 @@ public class Calculate
             void DoBackTracking(int i)
             {
                 var averages = bestPlayFlattened.Where(x => x.Play.Count == i + 2 && Utils.IsSmallCard(x.Play[1], segmentsNS))
-                    .GroupBy(x => x.Play, y => (combi: y.Combination, nrOfTricks: y.Tricks), new ListEqualityComparer<Face>()).ToList()
-                    .Select(x => (play: x.Key, averages: x.Average(y => GetProbability(y) * y.nrOfTricks) / x.Select(GetProbability).Average())).ToList();
+                    .GroupBy(x => x.Play, y => y, new ListEqualityComparer<Face>()).ToList()
+                    .Select(x => (play: x.Key, averages: x.Average(y => GetProbability(y) * y.Tricks) / x.Select(GetProbability).Average())).ToList();
 
                 foreach (var item in bestPlayFlattened.Where(x => x.Play.Count == i && Utils.IsSmallCard(x.Play[1], segmentsNS)))
                 {
@@ -119,9 +119,9 @@ public class Calculate
             }
         }
 
-        (List<Face> combi, int nrOfTricks) GetDefaultValue(List<Face> play, List<Face> combination)
+        Item GetDefaultValue(List<Face> play, List<Face> combination)
         {
-            return play[1] != Face.SmallCard ? (combination, -1) : (combination, bestPlay[combination].Where(x => x.Play.First() == play.First()).ToList().Max(x => x.Tricks));
+            return bestPlay[combination].Where(x => x.Play.First() == play.First()).ToList().MaxBy(x => x.Tricks);
         }
     }
 
