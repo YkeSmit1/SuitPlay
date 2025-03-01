@@ -7,6 +7,9 @@ namespace Calculator;
 
 public class Calculate
 {
+    private static readonly ListEqualityComparer<Face> ListEqualityComparer = new();
+    private static readonly FaceListComparer FaceListComparer = new();
+
     public class Result 
     {
         public List<PlayItem> PlayList;
@@ -30,7 +33,7 @@ public class Calculate
         Log.Information("Start GetResult");
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
-        var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), new FaceListComparer()).ToList();
+        var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), FaceListComparer).ToList();
         var segmentsNS = cardsNS.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         
         var distributionList = combinationsInTree.ToDictionary(key => key.ToList(), value =>
@@ -45,7 +48,7 @@ public class Calculate
                 Occurrences = similarCombinationsCount,
                 Probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count) * similarCombinationsCount,
             };
-        }, new ListEqualityComparer<Face>());
+        }, ListEqualityComparer);
 
         foreach (var item in bestPlay)
         {
@@ -60,7 +63,7 @@ public class Calculate
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderByDescending(x => x).SkipLast(1).ToList();
 
         var playItems = bestPlayFlattened.Where(x => x.Play.Count is 3 or 4 or 7)
-            .GroupBy(x => x.Play.ConvertToSmallCards(cardsNS).ToList(), y => y, new ListEqualityComparer<Face>()).ToList()
+            .GroupBy(x => x.Play.ConvertToSmallCards(cardsNS).ToList(), y => y, ListEqualityComparer).ToList()
             .ToDictionary(key => key.Key, value =>
             {
                 var allCombinations = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.Combination), GetDefaultValue(value.Key, x))).ToList();
@@ -105,7 +108,7 @@ public class Calculate
             void DoBackTracking(int i)
             {
                 var averages = bestPlayFlattened.Where(x => x.Play.Count == i + 2 && Utils.IsSmallCard(x.Play[1], segmentsNS))
-                    .GroupBy(x => x.Play, y => y, new ListEqualityComparer<Face>()).ToList()
+                    .GroupBy(x => x.Play, y => y, ListEqualityComparer).ToList()
                     .Select(x => (play: x.Key, averages: x.Average(y => GetProbability(y) * y.Tricks) / x.Select(GetProbability).Average())).ToList();
 
                 foreach (var item in bestPlayFlattened.Where(x => x.Play.Count == i && Utils.IsSmallCard(x.Play[1], segmentsNS)))
@@ -136,7 +139,7 @@ public class Calculate
         var combinations = Combinations.AllCombinations(cardsEW);
         var cardsNS = north.Concat(south).OrderByDescending(x => x);
         combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces, cardsNS) > 0);
-        var result = new ConcurrentDictionary<List<Face>, List<Item>>(new ListEqualityComparer<Face>());
+        var result = new ConcurrentDictionary<List<Face>, List<Item>>(ListEqualityComparer);
         Parallel.ForEach(combinations, combination =>
         {
             var cardsE = combination.ToList();
@@ -154,7 +157,7 @@ public class Calculate
         var list = combination.ToList();
         var similarCombinations = SimilarCombinations(combinationList, list, cardsNS);
         var reversedList = list.AsEnumerable().Reverse().ToList();
-        var hasSimilar = similarCombinations.Count(x => new FaceListComparer().Compare(x.Reverse().ToList(), reversedList) < 0);
+        var hasSimilar = similarCombinations.Count(x => FaceListComparer.Compare(x.Reverse().ToList(), reversedList) < 0);
         return hasSimilar;
     }
 

@@ -50,6 +50,9 @@ public enum Player
 
 public static class Utils
 {
+    private static readonly FaceListComparer FaceListComparer = new();
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new() { WriteIndented = false, IncludeFields = true };
+
     public static Face CharToCard(char card)
     {
         return card switch
@@ -183,9 +186,9 @@ public static class Utils
     {
         using var stream = new FileStream(filename, FileMode.Create);
         var treesForJson = result.RelevantPlays.Where(x => x.Key.Count == 3)
-            .OrderByDescending(x => x.Value.Play, new FaceListComparer())
+            .OrderByDescending(x => x.Value.Play, FaceListComparer)
             .ToDictionary(x => CardsToString(x.Key), x => x.Value.NrOfTricks);
-        JsonSerializer.Serialize(stream, (treesForJson, result.CombinationsInTree.Select(CardsToString)), new JsonSerializerOptions { WriteIndented = false, IncludeFields = true });
+        JsonSerializer.Serialize(stream, (treesForJson, result.CombinationsInTree.Select(CardsToString)), JsonSerializerOptions);
     }
 
     public static void SetupLogging()
