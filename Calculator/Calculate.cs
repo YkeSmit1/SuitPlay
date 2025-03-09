@@ -64,7 +64,7 @@ public class Calculate
         BackTracking();
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderDescending().SkipLast(1).ToList();
 
-        var playItems = bestPlayFlattened.Where(x => x.Play.Count is 3 or 4 or 7 && x.Children.Count > 0)
+        var playItems = bestPlayFlattened.Where(x => x.Play.Count is 3 or 4 or 7 /*&& x.Children.All(y => y.Children.Count > 0)*/)
             .GroupBy(x => x.Play.ConvertToSmallCards(cardsNS).ToList(), y => y, ListEqualityComparer).ToList()
             .ToDictionary(key => key.Key, value =>
             {
@@ -115,7 +115,7 @@ public class Calculate
 
                 foreach (var item in bestPlayFlattened.Where(x => x.Play.Count == i && Utils.IsSmallCard(x.Play[1], segmentsNS)))
                 {
-                    if (item.Children.Count == 0) continue;
+                    if (item.Children.All(x => x.Children.Count == 0)) continue;
                     var bestPlayEW = item.Children.GroupBy(x => x.Tricks).OrderBy(x => x.Key).First().MinBy(x => x.Play[i]);
                     var bestAverages = averages.Where(x => x.play.StartsWith(bestPlayEW.Play)).OrderBy(x => x.averages).Segment((lItem, prevItem, _) => lItem.averages - prevItem.averages > 0.00001).Last().ToList();
                     if (bestAverages.Count > 1)
@@ -245,19 +245,15 @@ public class Calculate
                 foreach (var card in GetPlayableCards(playedCards))
                 {
                     playedCards.Add(card);
-                    if (playedCards.Count % 4 == 0 && transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out var tricks))
-                    {
-                        resultItem.Tricks = tricks;
-                    }
-                    else
-                    {
-                        var value = Minimax(playedCards, true);
-                        resultItem.Tricks = Math.Min(resultItem.Tricks, value.Tricks);
-                        resultItem.Children.Add(value);
-                        if (playedCards.Count % 4 == 0) 
-                            transpositionTable.Add(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), resultItem.Tricks);
-                    }
+                    var value = playedCards.Count % 4 == 0 && transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out var tricks)
+                        ? new Item(playedCards.ToList(), tricks, [])
+                        : Minimax(playedCards, true);
 
+                    resultItem.Tricks = Math.Min(resultItem.Tricks, value.Tricks);
+                    if (playedCards.Count % 4 == 0 && !transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out _))
+                        transpositionTable.Add(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), resultItem.Tricks);
+
+                    resultItem.Children.Add(value);
                     playedCards.RemoveAt(playedCards.Count - 1);
                 }
 

@@ -122,6 +122,8 @@ public partial class MainPage
         var textTrickOne = GetTrickText(threeCards.Play);
         var fourCards =  playList.Where(x => x.Play.StartsWith(threeCards.Play) && x.Play.Count == 4).MinBy(x => x.Average);
         var sevenCards = playList.Where(x => x.Play.StartsWith(fourCards.Play) && x.Play.Count == 7).ToList();
+        if (sevenCards.Count == 0)
+            return "Unable to calculate best play";
         var sevenCardsSmall = sevenCards.Where(x => x.Play[5] == Face.SmallCard).ToList();
         var bestPlaySecondTrick = sevenCardsSmall.Count != 0 ? sevenCardsSmall.MaxBy(x => x.Average) : sevenCards.MaxBy(x => x.Average);
         var textTrickTwo = GetTrickText(bestPlaySecondTrick.Play.Skip(4).Take(3).ToList());
