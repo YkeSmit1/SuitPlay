@@ -95,12 +95,13 @@ public partial class MainPage
             var stopWatch = Stopwatch.StartNew();
             var northHand = GetHand(North);
             var southHand = GetHand(South);
+            var northSouth = northHand.Concat(southHand).OrderDescending().ToList();
             bestPlay = await Task.Run(() => Calculate.CalculateBestPlay(northHand, southHand));
             var calculateElapsed = stopWatch.Elapsed;
             stopWatch.Restart();
             result = await GetResult(northHand, southHand);
             var backTrackingElapsed = stopWatch.Elapsed;
-            BestPlay.Text = $@"{GetBestPlayText(result.PlayList)} (Calculate:{calculateElapsed:s\:ff} seconds. BackTracking:{backTrackingElapsed:s\:ff} seconds)";
+            BestPlay.Text = $@"{GetBestPlayText(result.PlayList, northSouth)} (Calculate:{calculateElapsed:s\:ff} seconds. BackTracking:{backTrackingElapsed:s\:ff} seconds)";
             OverviewButton.IsEnabled = true;
             DistributionsButton.IsEnabled = true;
         }
@@ -114,17 +115,30 @@ public partial class MainPage
         }
     }
 
-    private static string GetBestPlayText(List<PlayItem> playList)
+    private static string GetBestPlayText(List<PlayItem> playList, List<Face> northSouth)
     {
+        var segmentsNS = northSouth.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         var threeCards = playList.Where(x => x.Play[1] == Face.SmallCard && x.Play.Count == 3).MaxBy(x => x.Average);
+        var textTrickOne = GetTrickText(threeCards.Play);
         var fourCards =  playList.Where(x => x.Play.StartsWith(threeCards.Play) && x.Play.Count == 4).MinBy(x => x.Average);
         var sevenCards = playList.Where(x => x.Play.StartsWith(fourCards.Play) && x.Play.Count == 7).ToList();
         var sevenCardsSmall = sevenCards.Where(x => x.Play[5] == Face.SmallCard).ToList();
         var bestPlaySecondTrick = sevenCardsSmall.Count != 0 ? sevenCardsSmall.MaxBy(x => x.Average) : sevenCards.MaxBy(x => x.Average);
-        var bestPlayText = $"First trick: {Utils.CardsToString(threeCards.Play)}\n" +
-                           $"Second trick: ({Utils.CardsToString(bestPlaySecondTrick.Play.Take(4))}){Utils.CardsToString(bestPlaySecondTrick.Play.Skip(4))}\n" +
+        var textTrickTwo = GetTrickText(bestPlaySecondTrick.Play.Skip(4).Take(3).ToList());
+        var bestPlayText = $"{textTrickOne.text} {textTrickOne.card}\n" +
+                           $"Then, {textTrickTwo.text} {textTrickTwo.card}\n" +
+                           $"Sequence:{Utils.CardsToString(bestPlaySecondTrick.Play)}\n)" +
                            $"Average tricks:{threeCards.Average:0.##}";
         return bestPlayText;
+        
+        (string text, Face card) GetTrickText(List<Face> trick)
+        {
+            if (segmentsNS.First().Contains(trick[0]))
+                return ("Play the", trick[0]);
+            if (segmentsNS.First().Contains(trick[2]))
+                return ("Play the", trick[2]);
+            return trick[0] < trick[2] ? ("Play to the", trick[2]) : ("Run the", trick[0]);
+        }
     }
 
     private async void ButtonOverview_OnClicked(object sender, EventArgs e)
@@ -162,7 +176,7 @@ public partial class MainPage
     {
         return Task.Run(() =>
         {
-            var cardsNS = north.Concat(south).OrderByDescending(z => z).ToList();
+            var cardsNS = north.Concat(south).OrderDescending().ToList();
             var resultLocal = Calculate.GetResult(bestPlay, cardsNS);
             var filename = Path.Combine(FileSystem.AppDataDirectory, $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json");
             Utils.SaveTrees(resultLocal, filename);

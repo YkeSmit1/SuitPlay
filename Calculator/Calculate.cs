@@ -62,9 +62,9 @@ public class Calculate
         Log.Information("BestPlay has {count:n} items", bestPlayFlattened.Count);
 
         BackTracking();
-        var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderByDescending(x => x).SkipLast(1).ToList();
+        var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderDescending().SkipLast(1).ToList();
 
-        var playItems = bestPlayFlattened.Where(x => x.Play.Count is 3 or 4 or 7)
+        var playItems = bestPlayFlattened.Where(x => x.Play.Count is 3 or 4 or 7 && x.Children.Count > 0)
             .GroupBy(x => x.Play.ConvertToSmallCards(cardsNS).ToList(), y => y, ListEqualityComparer).ToList()
             .ToDictionary(key => key.Key, value =>
             {
@@ -140,7 +140,7 @@ public class Calculate
         Log.Information("Calculating best play North:{@north} South:{@south}",  north, south);
         var cardsEW = Utils.GetAllCards().Except(north).Except(south).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
-        var cardsNS = north.Concat(south).OrderByDescending(x => x);
+        var cardsNS = north.Concat(south).OrderDescending();
         combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces, cardsNS) > 0);
         var result = new ConcurrentDictionary<List<Face>, List<Item>>(ListEqualityComparer);
         Parallel.ForEach(combinations, combination =>
@@ -184,7 +184,7 @@ public class Calculate
         static bool IsOrderedDescending(IEnumerable<Face> x)
         {
             var list = x.ToList();
-            return list.SequenceEqual(list.OrderByDescending(y => y));
+            return list.SequenceEqual(list.OrderDescending());
         }
     }
 
@@ -199,8 +199,8 @@ public class Calculate
         var tree = new List<Item>();
         var transpositionTable = new Dictionary<List<Face>, int>(new ListEqualityComparer<Face>());
         var initialCards = cards.Select((x, index) => (x, index)).ToDictionary(item => (Player)item.index, item => item.x.ToList());
-        var cardsNS = initialCards[Player.North].Concat(initialCards[Player.South]).OrderByDescending(x => x).ToList();
-        var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).OrderByDescending(x => x).ToList();
+        var cardsNS = initialCards[Player.North].Concat(initialCards[Player.South]).OrderDescending().ToList();
+        var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).OrderDescending().ToList();
         FindBestMove();
         return tree;
 

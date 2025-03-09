@@ -96,7 +96,7 @@ public class CalculateTest
         // Arrange 
         var northHand = Utils.StringToCardList(north);
         var southHand = Utils.StringToCardList(south);
-        var cardsNS = northHand.Concat(southHand).OrderByDescending(x => x).ToList();
+        var cardsNS = northHand.Concat(southHand).OrderDescending().ToList();
         // Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
         var filename = $"{north}-{south}.json";
