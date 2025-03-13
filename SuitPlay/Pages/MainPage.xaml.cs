@@ -118,19 +118,13 @@ public partial class MainPage
     private static string GetBestPlayText(List<PlayItem> playList, List<Face> northSouth)
     {
         var segmentsNS = northSouth.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
-        var threeCards = playList.Where(x => x.Play[1] == Face.SmallCard && x.Play.Count == 3).MaxBy(x => x.Average);
-        var textTrickOne = GetTrickText(threeCards.Play);
-        var fourCards =  playList.Where(x => x.Play.StartsWith(threeCards.Play) && x.Play.Count == 4).MinBy(x => x.Average);
-        var sevenCards = playList.Where(x => x.Play.StartsWith(fourCards.Play) && x.Play.Count == 7).ToList();
-        if (sevenCards.Count == 0)
-            return "Unable to calculate best play";
-        var sevenCardsSmall = sevenCards.Where(x => x.Play[5] == Face.SmallCard).ToList();
-        var bestPlaySecondTrick = sevenCardsSmall.Count != 0 ? sevenCardsSmall.MaxBy(x => x.Average) : sevenCards.MaxBy(x => x.Average);
-        var textTrickTwo = GetTrickText(bestPlaySecondTrick.Play.Skip(4).Take(3).ToList());
+        var bestPlay = playList.Where(x => x.Play.Count == 7 && x.Play[1] == Face.SmallCard).MaxBy(x => x.Average);
+        var textTrickOne = GetTrickText(bestPlay.Play.Take(3).ToList());
+        var textTrickTwo = GetTrickText(bestPlay.Play.Skip(4).Take(3).ToList());
         var bestPlayText = $"{textTrickOne.text} {textTrickOne.card}\n" +
                            $"Then, {textTrickTwo.text} {textTrickTwo.card}\n" +
-                           $"Sequence:{Utils.CardsToString(bestPlaySecondTrick.Play)}\n)" +
-                           $"Average tricks:{threeCards.Average:0.##}";
+                           $"Sequence:{Utils.CardsToString(bestPlay.Play)}\n" +
+                           $"Average tricks:{bestPlay.Average:0.##}";
         return bestPlayText;
         
         (string text, Face card) GetTrickText(List<Face> trick)
