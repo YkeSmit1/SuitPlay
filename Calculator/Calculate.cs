@@ -22,10 +22,18 @@ public class Calculate
 
     public class Item(List<Face> play, int tricks, List<Item> children = null)
     {
+        private int tricks = tricks;
         public List<Face> Combination { get; set; }
         public List<Face> Play { get; } = play;
-        public int Tricks { get; set; } = tricks;
+
+        public int Tricks
+        {
+            get => TranspositionRef?.Tricks ?? tricks;
+            set => tricks = value;
+        }
+
         public List<Item> Children { get; } = children;
+        public Item TranspositionRef { get; init; }
     }
 
     public static Result GetResult(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> cardsNS)
@@ -115,7 +123,7 @@ public class Calculate
 
                 foreach (var item in bestPlayFlattened.Where(x => x.Play.Count == i && Utils.IsSmallCard(x.Play[1], segmentsNS)))
                 {
-                    if (item.Children.All(x => x.Children.Count == 0)) continue;
+                    if (item.Children.All(x => x.TranspositionRef != null)) continue;
                     var bestPlayEW = item.Children.GroupBy(x => x.Tricks).OrderBy(x => x.Key).First().MinBy(x => x.Play[i]);
                     var bestAverages = averages.Where(x => x.play.StartsWith(bestPlayEW.Play)).OrderBy(x => x.averages).Segment((lItem, prevItem, _) => lItem.averages - prevItem.averages > 0.00001).Last().ToList();
                     if (bestAverages.Count > 1)
@@ -246,7 +254,7 @@ public class Calculate
                 {
                     playedCards.Add(card);
                     var value = playedCards.Count % 4 == 0 && transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out var item)
-                        ? new Item(playedCards.ToList(), item.Tricks, [])
+                        ? new Item(playedCards.ToList(), 0, []) {TranspositionRef = item}
                         : Minimax(playedCards, true);
 
                     resultItem.Tricks = Math.Min(resultItem.Tricks, value.Tricks);
