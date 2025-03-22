@@ -39,6 +39,26 @@
         <DefaultLanguage>en</DefaultLanguage>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">
+      <ApplicationId>YkeSmit.BridgeSuitCalculator</ApplicationId>
+      <ApplicationIdGuid>9B8CEB8E-9437-4036-8431-2CCEAD853516</ApplicationIdGuid>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows10.0.19041.0|AnyCPU'">
+      <ApplicationId>YkeSmit.BridgeSuitCalculator</ApplicationId>
+      <ApplicationIdGuid>9B8CEB8E-9437-4036-8431-2CCEAD853516</ApplicationIdGuid>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
+      <ApplicationId>YkeSmit.BridgeSuitCalculator</ApplicationId>
+      <ApplicationIdGuid>9B8CEB8E-9437-4036-8431-2CCEAD853516</ApplicationIdGuid>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows10.0.19041.0|AnyCPU'">
+      <ApplicationId>YkeSmit.BridgeSuitCalculator</ApplicationId>
+      <ApplicationIdGuid>9B8CEB8E-9437-4036-8431-2CCEAD853516</ApplicationIdGuid>
+    </PropertyGroup>
+
     <ItemGroup>
         <!-- App Icon -->
         <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
