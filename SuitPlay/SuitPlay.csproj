@@ -37,26 +37,35 @@
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
         <DefaultLanguage>en</DefaultLanguage>
+        <GenerateAppInstallerFile>True</GenerateAppInstallerFile>
+        <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
+        <PackageCertificateThumbprint>A8BB9F2CC6C569533A526E18F9C1321FC1218B7C</PackageCertificateThumbprint>
+        <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+        <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+        <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+        <GenerateTestArtifacts>True</GenerateTestArtifacts>
+        <AppInstallerUri>c:\div</AppInstallerUri>
+        <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">
       <ApplicationId>YkeSmit.BridgeSuitCalculator</ApplicationId>
-      <ApplicationIdGuid>9B8CEB8E-9437-4036-8431-2CCEAD853516</ApplicationIdGuid>
+      <ApplicationIdGuid></ApplicationIdGuid>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows10.0.19041.0|AnyCPU'">
       <ApplicationId>YkeSmit.BridgeSuitCalculator</ApplicationId>
-      <ApplicationIdGuid>9B8CEB8E-9437-4036-8431-2CCEAD853516</ApplicationIdGuid>
+      <ApplicationIdGuid></ApplicationIdGuid>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
       <ApplicationId>YkeSmit.BridgeSuitCalculator</ApplicationId>
-      <ApplicationIdGuid>9B8CEB8E-9437-4036-8431-2CCEAD853516</ApplicationIdGuid>
+      <ApplicationIdGuid></ApplicationIdGuid>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows10.0.19041.0|AnyCPU'">
       <ApplicationId>YkeSmit.BridgeSuitCalculator</ApplicationId>
-      <ApplicationIdGuid>9B8CEB8E-9437-4036-8431-2CCEAD853516</ApplicationIdGuid>
+      <ApplicationIdGuid></ApplicationIdGuid>
     </PropertyGroup>
 
     <ItemGroup>
