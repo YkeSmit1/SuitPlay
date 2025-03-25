@@ -11,7 +11,7 @@
   <mp:PhoneIdentity PhoneProductId="03EEEBCE-DA95-4AAF-A9DE-05F7A407B51F" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>BridgeSuitCalculator</DisplayName>
+    <DisplayName>Bridge Suit Calculator</DisplayName>
     <PublisherDisplayName>Yke Smit</PublisherDisplayName>
     <Logo>$placeholder$.png</Logo>
   </Properties>
