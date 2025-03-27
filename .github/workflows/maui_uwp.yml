@@ -9,6 +9,7 @@ on:
   pull_request:
     branches: [ "master" ]
   workflow_dispatch:
+
 jobs:
   build:
 
@@ -36,6 +37,7 @@ jobs:
     - name: Test
       run: dotnet test --verbosity normal
     - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v4
       with:
-        path: .\**\AppPackages\**\*.*      
+        name: distribute
+        path: ./**/*.msix
