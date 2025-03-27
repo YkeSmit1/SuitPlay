@@ -30,4 +30,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: distribute
-        path: .\suitplay\bin\Release\net8.0-android\com.companyname.suitplay-Signed.apk
+        path: |
+          ./**/*.aab
+          ./**/*.apk
+          ./**/*.keystore
