@@ -16,6 +16,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Setup Keystore File
+      run: |
+        echo "${{ secrets.KEYSTORE_FILE }}" > suitplay.keystore.asc
+        gpg -d --passphrase "${{ secrets.KEYSTORE_PASSWORD_GPG }}" --batch suitplay.keystore.asc > suitplay.keystore          
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -26,10 +30,10 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build suitplay\suitplay.csproj -c Release -f net8.0-android 
+      run: dotnet build suitplay\suitplay.csproj -c Release -f net8.0-android /p:AndroidSigningKeyStore=myapp.keystore /p:AndroidSigningKeyAlias=bidtrainer /p:AndroidSigningKeyPass="${{ secrets.KEYSTORE_PASSWORD }}" /p:AndroidSigningStorePass="${{ secrets.KEYSTORE_PASSWORD_ALIAS }}"
     - uses: actions/upload-artifact@v4
       with:
-        name: distribute
+        name: distribute_suitplay_android
         path: |
           ./**/*.aab
           ./**/*.apk
