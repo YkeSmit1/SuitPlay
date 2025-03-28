@@ -50,7 +50,7 @@
 
     <ItemGroup>
         <!-- App Icon -->
-        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+        <MauiIcon Include="Resources\AppIcon\playing_cards.svg"/>
         <MauiImage Include="Resources\Images\Embedded\cardfaces2.jpg" />
 
         <!-- Splash Screen -->
