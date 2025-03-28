@@ -6,7 +6,7 @@
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   IgnorableNamespaces="uap rescap">
 
-  <Identity Name="YkeSmit.BridgeSuitCalculator" Publisher="CN=9B8CEB8E-9437-4036-8431-2CCEAD853516" Version="1.0.3.0" />
+  <Identity Name="YkeSmit.BridgeSuitCalculator" Publisher="CN=9B8CEB8E-9437-4036-8431-2CCEAD853516" Version="1.0.4.0" />
 
   <mp:PhoneIdentity PhoneProductId="03EEEBCE-DA95-4AAF-A9DE-05F7A407B51F" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
