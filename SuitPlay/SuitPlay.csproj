@@ -49,24 +49,24 @@
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">
-      <ApplicationVersion>5</ApplicationVersion>
+      <ApplicationVersion>6</ApplicationVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows10.0.19041.0|AnyCPU'">
-      <ApplicationVersion>5</ApplicationVersion>
+      <ApplicationVersion>6</ApplicationVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
-      <ApplicationVersion>5</ApplicationVersion>
+      <ApplicationVersion>6</ApplicationVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows10.0.19041.0|AnyCPU'">
-      <ApplicationVersion>5</ApplicationVersion>
+      <ApplicationVersion>6</ApplicationVersion>
     </PropertyGroup>
 
     <ItemGroup>
         <!-- App Icon -->
-        <MauiIcon Include="Resources\AppIcon\playing_cards.svg" />
+        <MauiIcon Include="Resources\AppIcon\appicon.svg" />
         <MauiImage Include="Resources\Images\Embedded\cardfaces2.jpg" />
 
         <!-- Splash Screen -->
