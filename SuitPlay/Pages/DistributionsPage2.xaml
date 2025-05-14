@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="using:SuitPlay.ViewModels"
+             xmlns:converters="using:SuitPlay.Converters"
+             x:Class="SuitPlay.Pages.DistributionsPage2">
+    <ContentPage.Resources>
+        <converters:CardsToStringConverter x:Key="CardsToStringConverter" />
+        <converters:ItemToStringConverter x:Key="ItemToStringConverter" />
+        <converters:ItemToColorConverter x:Key="ItemToColorConverter" />
+    </ContentPage.Resources>
+    <ContentPage.BindingContext>
+        <viewModels:Distributions2ViewModel/>
+    </ContentPage.BindingContext>
+    <ContentPage.Content>
+        <Grid>
+            <ScrollView Orientation="Both">
+                <StackLayout>
+                    <CollectionView ItemsSource="{Binding Path=TreeItems}" Margin="20">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <StackLayout Orientation="Horizontal">
+                                    <Label Text="{Binding WestHand, Converter={StaticResource CardsToStringConverter}}"/>
+                                    <Label Text=" - "/>
+                                    <Label Text="{Binding EastHand, Converter={StaticResource CardsToStringConverter}}"/>
+                                    <StackLayout BindableLayout.ItemsSource="{Binding Items}" Orientation="Horizontal">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate>
+                                                <Label Text="{Binding Converter={StaticResource ItemToStringConverter}}"
+                                                       Margin="5" FontSize="11" TextColor="{Binding Converter={StaticResource ItemToColorConverter}}" />
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </StackLayout>
+                                </StackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </ScrollView>
+            <Button Text="Export to csv" Clicked="Button_OnClicked"></Button>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

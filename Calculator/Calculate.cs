@@ -34,6 +34,7 @@ public class Calculate
 
         public List<Item> Children { get; } = children;
         public Item TranspositionRef { get; init; }
+        public int Line { get; set; } = 0;
     }
 
     public static Result GetResult(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> cardsNS)
@@ -265,7 +266,7 @@ public class Calculate
                     playedCards.RemoveAt(playedCards.Count - 1);
                 }
 
-                resultItem.Children.RemoveAll(x => x.Tricks < resultItem.Tricks);
+                resultItem.Children.RemoveAll(x => x.Tricks > resultItem.Tricks);
 
                 return resultItem;
             }

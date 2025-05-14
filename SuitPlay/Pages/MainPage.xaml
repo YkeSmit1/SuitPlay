@@ -27,6 +27,7 @@
             <HorizontalStackLayout>
                 <Button x:Name="OverviewButton" Text="Go to overview" Clicked="ButtonOverview_OnClicked" Margin="20" WidthRequest="150" IsEnabled="False"></Button>
                 <Button x:Name="DistributionsButton" Text="Go to distributions" Clicked="ButtonDistributions_OnClicked" Margin="20" WidthRequest="150" IsEnabled="False"></Button>
+                <Button x:Name="TreeItemsButton" Text="Go to treeItems" Clicked="TreeItemsButton_OnClicked" Margin="20" WidthRequest="150" IsEnabled="False"></Button>
             </HorizontalStackLayout>
         </VerticalStackLayout>
     </ScrollView>

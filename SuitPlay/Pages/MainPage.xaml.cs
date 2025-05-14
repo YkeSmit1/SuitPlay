@@ -24,6 +24,7 @@ public partial class MainPage
     private readonly Dictionary<(string suit, string card), string> dictionary;
     private IDictionary<List<Face>, List<Calculate.Item>> bestPlay;
     private Calculate.Result result;
+    private static readonly FaceListComparer FaceListComparer = new();
 
     public MainPage()
     {
@@ -68,10 +69,16 @@ public partial class MainPage
         ((HandViewModel)((HandView)e.Parameter)?.BindingContext)?.RemoveCard(card);
         ((HandViewModel)((HandView)e.Parameter == Cards ? SelectedHandView : Cards).BindingContext).AddCard(card);
         SaveSettings();
-        OverviewButton.IsEnabled = false;
-        DistributionsButton.IsEnabled = false;
+        EnableButtons(false);
     }
-    
+
+    private void EnableButtons(bool enable)
+    {
+        OverviewButton.IsEnabled = enable;
+        DistributionsButton.IsEnabled = enable;
+        TreeItemsButton.IsEnabled = enable;
+    }
+
     private void TapGestureRecognizerSelect_OnTapped(object sender, TappedEventArgs e)
     {
         SelectedHandView = (HandView)e.Parameter;
@@ -81,8 +88,7 @@ public partial class MainPage
     {
         InitCards();
         SaveSettings();
-        OverviewButton.IsEnabled = false;
-        DistributionsButton.IsEnabled = false;
+        EnableButtons(false);
         SelectedHandView = North;
     }
 
@@ -102,8 +108,7 @@ public partial class MainPage
             result = await GetResult(northHand, southHand);
             var backTrackingElapsed = stopWatch.Elapsed;
             BestPlay.Text = $@"{GetBestPlayText(result.PlayList, northSouth)} (Calculate:{calculateElapsed:s\:ff} seconds. BackTracking:{backTrackingElapsed:s\:ff} seconds)";
-            OverviewButton.IsEnabled = true;
-            DistributionsButton.IsEnabled = true;
+            EnableButtons(true);
         }
         catch (Exception exception)
         {
@@ -178,5 +183,63 @@ public partial class MainPage
             Utils.SaveTrees(resultLocal, filename);
             return resultLocal;
         });
+    }
+    
+    private async void TreeItemsButton_OnClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            var treeItems = ConstructTreeItems();
+            await Shell.Current.GoToAsync(nameof(DistributionsPage2), new Dictionary<string, object> { ["TreeItems"] = treeItems });
+        }
+        catch (Exception exception)
+        {
+            await DisplayAlert("Error", exception.Message, "OK");
+        }
+    }
+    
+    public class TreeItem
+    {
+        public List<Face> EastHand { get; set; }
+        public List<Face> WestHand { get; set; }
+        public List<Calculate.Item> Items { get; set; }
+    }
+
+    private List<TreeItem> ConstructTreeItems()
+    {
+        var cardsEW = Utils.GetAllCards().Except(GetHand(North).Concat(GetHand(South)).OrderDescending()).ToList();
+        var treeItems = bestPlay.OrderBy(x => x.Key, FaceListComparer).Select(x => new TreeItem
+        {
+            EastHand = x.Key,
+            WestHand = cardsEW.Except(x.Key).ToList(),
+            Items = x.Value.SelectMany(GetDescendents).Where(y => y.Children == null).OrderByDescending(z => z.Tricks).ToList()
+        }).ToList();
+        
+        var evenlyItem = treeItems.MinBy(treeItem => Math.Abs(treeItem.WestHand.Count - treeItem.EastHand.Count));
+        var counter = 1;
+        foreach (var item in evenlyItem.Items)
+        {
+            item.Line = counter++;
+        }
+        var enumerable = treeItems.Where(treeItem => treeItem != evenlyItem);
+        foreach (var treeItem in enumerable)
+        {
+            foreach (var item in treeItem.Items)
+            {
+                for (var numberOfCards = item.Play.Count - 2; numberOfCards >= 0; numberOfCards -= 2)
+                {
+                    var sameLine = evenlyItem.Items.Where(x => x.Play.Take(numberOfCards).SequenceEqual(item.Play.Take(numberOfCards))).ToList();
+                    if (sameLine.Count != 0)
+                        item.Line = sameLine.First().Line;
+                }
+            }
+        }
+        
+        return treeItems;
+
+        IEnumerable<Calculate.Item> GetDescendents(Calculate.Item resultItem)
+        {
+            return resultItem.Children == null ? [] : resultItem.Children.Concat(resultItem.Children.SelectMany(GetDescendents));
+        }
     }
 }
