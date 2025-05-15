@@ -34,7 +34,7 @@ public class Calculate
 
         public List<Item> Children { get; } = children;
         public Item TranspositionRef { get; init; }
-        public int Line { get; set; } = 0;
+        public int Line { get; set; }
     }
 
     public static Result GetResult(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> cardsNS)
@@ -124,9 +124,10 @@ public class Calculate
 
                 foreach (var item in bestPlayFlattened.Where(x => x.Play.Count == i && Utils.IsSmallCard(x.Play[1], segmentsNS)))
                 {
-                    if (item.Children.All(x => x.TranspositionRef != null)) continue;
                     var bestPlayEW = item.Children.GroupBy(x => x.Tricks).OrderBy(x => x.Key).First().MinBy(x => x.Play[i]);
-                    var bestAverages = averages.Where(x => x.play.StartsWith(bestPlayEW.Play)).OrderBy(x => x.averages).Segment((lItem, prevItem, _) => lItem.averages - prevItem.averages > 0.00001).Last().ToList();
+                    var sameAverages = averages.Where(x => x.play.StartsWith(bestPlayEW.Play)).ToList();
+                    if (sameAverages.Count == 0) continue;
+                    var bestAverages = sameAverages.OrderBy(x => x.averages).Segment((lItem, prevItem, _) => lItem.averages - prevItem.averages > 0.00001).Last().ToList();
                     if (bestAverages.Count > 1)
                         Log.Debug("Duplicate plays found.({@item})", item);
                     var tuple = bestPlayEW.Children.Where(x => bestAverages.Any(y => y.play.SequenceEqual(x.Play))).ToList();
@@ -232,6 +233,14 @@ public class Calculate
                 playedCards.Chunk(4).Last().First() == Face.Dummy)
             {
                 var trickCount = GetTrickCount(playedCards, initialCards);
+                return new Item(playedCards.ToList(), trickCount);
+            }
+            
+            if (!cardsEW.Except(playedCards).Any()) 
+            {
+                var trickCount = GetTrickCount(playedCards, initialCards) +
+                                 Math.Max(initialCards[Player.North].Count, initialCards[Player.South].Count) -
+                                 playedCards.Chunk(4).Count();
                 return new Item(playedCards.ToList(), trickCount);
             }
 

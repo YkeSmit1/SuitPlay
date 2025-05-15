@@ -226,7 +226,7 @@ public partial class MainPage
         {
             foreach (var item in treeItem.Items)
             {
-                for (var numberOfCards = item.Play.Count - 2; numberOfCards >= 0; numberOfCards -= 2)
+                for (var numberOfCards = item.Play.Count; numberOfCards > 0; numberOfCards -= 1)
                 {
                     var sameLine = evenlyItem.Items.Where(x => x.Play.Take(numberOfCards).SequenceEqual(item.Play.Take(numberOfCards))).ToList();
                     if (sameLine.Count != 0)

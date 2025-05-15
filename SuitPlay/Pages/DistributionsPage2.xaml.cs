@@ -15,6 +15,7 @@ public partial class DistributionsPage2 : ContentPage
         try
         {
             await ((Distributions2ViewModel)BindingContext).ExportViewModelToCsv();
+            await Shell.Current.DisplayAlert("Done", "Export done", "Ok");
         }
         catch (Exception exception)
         {
