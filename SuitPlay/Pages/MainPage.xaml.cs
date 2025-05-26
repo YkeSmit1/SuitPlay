@@ -207,32 +207,40 @@ public partial class MainPage
 
     private List<TreeItem> ConstructTreeItems()
     {
-        var cardsEW = Utils.GetAllCards().Except(GetHand(North).Concat(GetHand(South)).OrderDescending()).ToList();
+        var cardsNS = GetHand(North).Concat(GetHand(South)).OrderDescending().ToList();
+        var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
         var treeItems = bestPlay.OrderBy(x => x.Key, FaceListComparer).Select(x => new TreeItem
         {
-            EastHand = x.Key,
-            WestHand = cardsEW.Except(x.Key).ToList(),
-            Items = x.Value.SelectMany(GetDescendents).Where(y => y.Children == null).OrderByDescending(z => z.Tricks).ToList()
+            EastHand = x.Key.ConvertToSmallCards(cardsNS),
+            WestHand = cardsEW.Except(x.Key).ConvertToSmallCards(cardsNS),
+            Items = x.Value.SelectMany(GetDescendents)
+                .Where(y => y.Children == null && y.Play.First() is Face.Ace or Face.Two)
+                .OrderBy(z => z.Play, FaceListComparer)
+                .Select(z => new Calculate.Item(z.Play.ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
         }).ToList();
         
-        var evenlyItem = treeItems.MinBy(treeItem => Math.Abs(treeItem.WestHand.Count - treeItem.EastHand.Count));
+        var evenlyItem = treeItems.MaxBy(treeItem => treeItem.Items.Count);
         var counter = 1;
-        foreach (var item in evenlyItem.Items)
-        {
-            item.Line = counter++;
-        }
-        var enumerable = treeItems.Where(treeItem => treeItem != evenlyItem);
-        foreach (var treeItem in enumerable)
+        evenlyItem.Items.ForEach(item => item.Line = counter++);
+
+        foreach (var treeItem in treeItems.Where(treeItem => treeItem != evenlyItem))
         {
             foreach (var item in treeItem.Items)
             {
-                for (var numberOfCards = item.Play.Count; numberOfCards > 0; numberOfCards -= 1)
+                for (var numberOfCards = item.Play.Count - 1; numberOfCards > 0; numberOfCards -= 2)
                 {
+                    var samePlays = treeItem.Items.Where(x =>
+                        x.Play.Take(numberOfCards).SequenceEqual(item.Play.Take(numberOfCards)) &&
+                        x.Play[numberOfCards] != item.Play[numberOfCards] && !item.HasDuplicates).ToList();
+                    samePlays.ForEach(samePlay => samePlay.HasDuplicates = true);
+                    
                     var sameLine = evenlyItem.Items.Where(x => x.Play.Take(numberOfCards).SequenceEqual(item.Play.Take(numberOfCards))).ToList();
-                    if (sameLine.Count != 0)
+                    if (sameLine.Count != 0 && item.Line == 0)
                         item.Line = sameLine.First().Line;
                 }
             }
+
+            treeItem.Items.RemoveAll(x => x.HasDuplicates);
         }
         
         return treeItems;

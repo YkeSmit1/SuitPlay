@@ -32,9 +32,10 @@ public class Calculate
             set => tricks = value;
         }
 
-        public List<Item> Children { get; } = children;
+        public List<Item> Children { get; set; } = children;
         public Item TranspositionRef { get; init; }
         public int Line { get; set; }
+        public bool HasDuplicates { get; set; }
     }
 
     public static Result GetResult(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> cardsNS)
@@ -255,6 +256,9 @@ public class Calculate
                     resultItem.Children.Add(value);
                     playedCards.RemoveAt(playedCards.Count - 1);
                 }
+                if (playedCards.Any(x => x == Face.Dummy)) 
+                    resultItem.Children = [resultItem.Children.First(x => x.Tricks == resultItem.Tricks)];
+                    
                 return resultItem;
             }
             else

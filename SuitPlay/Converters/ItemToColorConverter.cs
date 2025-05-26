@@ -10,7 +10,8 @@ public class ItemToColorConverter : IValueConverter
         if (value is Calculate.Item item)
             return item.Line switch
             {
-                1 => Colors.Red,
+                0 => Colors.Red,
+                1 => Colors.DarkRed,
                 2 => Colors.Green,
                 3 => Colors.Aqua,
                 4 => Colors.Yellow,
