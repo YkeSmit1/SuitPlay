@@ -35,7 +35,6 @@ public class Calculate
         public List<Item> Children { get; set; } = children;
         public Item TranspositionRef { get; init; }
         public int Line { get; set; }
-        public bool HasDuplicates { get; set; }
     }
 
     public static Result GetResult(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> cardsNS)
@@ -145,6 +144,82 @@ public class Calculate
             return bestPlay[combination].Where(x => x.Play.First() == play.First()).ToList().MaxBy(x => x.Tricks);
         }
     }
+    
+    public class TreeItem
+    {
+        public List<Face> EastHand { get; set; }
+        public List<Face> WestHand { get; set; }
+        public List<Item> Items { get; init; }
+    }
+    
+    public class Item2
+    {
+        public List<Face> EastHand { get; init; }
+        public List<Face> WestHand { get; set; }
+        public int Tricks { get; set; }
+    }  
+    
+
+    public class LineItem
+    {
+        public List<Face> Line { get; set; }
+        public List<Item2> Items2 { get; set; } = [];
+        public double Average { get; set; }
+    }
+
+    public class Result2
+    {
+        public List<TreeItem> TreeItems { get; init; }
+        public List<LineItem> LineItems { get; init; }
+    }
+
+    public static Result2 GetResult2(IDictionary<List<Face>, List<Item>> play, List<Face> cardsNS)
+    {
+        var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
+        var treeItems = play.OrderBy(x => x.Key, FaceListComparer).Select(x => new TreeItem
+        {
+            EastHand = x.Key.ConvertToSmallCards(cardsNS),
+            WestHand = cardsEW.Except(x.Key).ConvertToSmallCards(cardsNS),
+            Items = x.Value.SelectMany(GetDescendents)
+                .Where(y => y.Children == null && y.Play.First() is Face.Ace or Face.Two)
+                .OrderBy(z => z.Play, FaceListComparer)
+                .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
+        }).ToList();
+        
+        var items = AssignLines();
+
+        return new Result2 {  TreeItems = treeItems, LineItems = items };
+
+        IEnumerable<Item> GetDescendents(Item resultItem)
+        {
+            return resultItem.Children == null ? [] : resultItem.Children.Concat(resultItem.Children.SelectMany(GetDescendents));
+        }
+
+        List<LineItem> AssignLines()
+        {
+            var lineItems = treeItems.SelectMany(x => x.Items)
+                .Select(y => y.Play.OnlySmallCardsEW())
+                .Distinct(ListEqualityComparer)
+                .Select(y => new LineItem() { Line = y }).Distinct()
+                .ToList();
+            foreach (var lineItem in lineItems)
+            {
+                foreach (var treeItem in treeItems)
+                {
+                    var item = treeItem.Items.Where(x => lineItem.Line.Zip(x.Play.OnlySmallCardsEW(), (a, b) => (a, b)).All(y => y.a == y.b)).ToList();
+                    var bestItem = item.MaxBy(x => x.Tricks);
+                    lineItem.Items2.Add(new Item2 { EastHand = treeItem.EastHand, WestHand = treeItem.WestHand, Tricks = bestItem.Tricks });
+                }
+            }
+
+            foreach (var lineItem in lineItems)
+            {
+                lineItem.Items2 = lineItem.Items2.OrderBy(x => x.EastHand, FaceListComparer).ToList();
+            }
+
+            return lineItems;
+        }
+    }    
 
     public static IDictionary<List<Face>, List<Item>> CalculateBestPlay(List<Face> north, List<Face> south)
     {
@@ -272,8 +347,8 @@ public class Calculate
                         : Minimax(playedCards, true);
 
                     resultItem.Tricks = Math.Min(resultItem.Tricks, value.Tricks);
-                    if (playedCards.Count % 4 == 0 && !transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out _))
-                        transpositionTable.Add(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), value);
+                    // if (playedCards.Count % 4 == 0 && !transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out _))
+                    //     transpositionTable.Add(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), value);
 
                     resultItem.Children.Add(value);
                     playedCards.RemoveAt(playedCards.Count - 1);
@@ -301,18 +376,6 @@ public class Calculate
             var availableCards = initialCards[player].Except(playedCards).ToList();
             if (availableCards.Count == 0)
                 return [];
-            
-            // if (playedCards.Count % 4 == 1)
-            // {
-            //     var lowestCard = availableCards.Min();
-            //     var coverCards = availableCards.Where(x => x > playedCards.Chunk(4).Last().First()).ToList();
-            //     if (coverCards.Count == 0)
-            //         return [lowestCard];
-            //     var coverCard = coverCards.Min();
-            //     if (coverCard == lowestCard)
-            //         return [lowestCard];
-            //     return coverCard - lowestCard == 2 ? [coverCard] : [lowestCard, coverCard];
-            // }
             
             if (playedCards.Count % 4 == 3)
             {

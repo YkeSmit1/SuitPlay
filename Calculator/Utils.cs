@@ -173,6 +173,18 @@ public static class Utils
         var segmentsNS = enumerable.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         return cards.Select(x => !enumerable.Contains(x) && IsSmallCard(x, segmentsNS) ? Face.SmallCard : x).ToList();
     }
+    
+    public static List<Face> RemoveAfterDummy(this IEnumerable<Face> cards)
+    {
+        var enumerable = cards.ToList();
+        return enumerable.IndexOf(Face.Dummy) == -1 ? enumerable : enumerable.Take(enumerable.IndexOf(Face.Dummy) + 1).ToList();
+    }
+    
+    public static List<Face> OnlySmallCardsEW(this IEnumerable<Face> cards)
+    {
+        var enumerable = cards.ToList();
+        return enumerable.TakeWhile(x => enumerable.IndexOf(x) % 2 == 0 || x == Face.SmallCard).ToList();
+    }
 
     public static bool IsSmallCard(Face face, List<IEnumerable<Face>> segmentsNS)
     {

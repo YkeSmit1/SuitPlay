@@ -24,7 +24,6 @@ public partial class MainPage
     private readonly Dictionary<(string suit, string card), string> dictionary;
     private IDictionary<List<Face>, List<Calculate.Item>> bestPlay;
     private Calculate.Result result;
-    private static readonly FaceListComparer FaceListComparer = new();
 
     public MainPage()
     {
@@ -189,65 +188,13 @@ public partial class MainPage
     {
         try
         {
-            var treeItems = ConstructTreeItems();
-            await Shell.Current.GoToAsync(nameof(DistributionsPage2), new Dictionary<string, object> { ["TreeItems"] = treeItems });
+            var cardsNS = GetHand(North).Concat(GetHand(South)).OrderDescending().ToList();
+            var lResult = Calculate.GetResult2(bestPlay, cardsNS);
+            await Shell.Current.GoToAsync(nameof(DistributionsPage2), new Dictionary<string, object> { ["Result"] = lResult });
         }
         catch (Exception exception)
         {
             await DisplayAlert("Error", exception.Message, "OK");
-        }
-    }
-    
-    public class TreeItem
-    {
-        public List<Face> EastHand { get; set; }
-        public List<Face> WestHand { get; set; }
-        public List<Calculate.Item> Items { get; set; }
-    }
-
-    private List<TreeItem> ConstructTreeItems()
-    {
-        var cardsNS = GetHand(North).Concat(GetHand(South)).OrderDescending().ToList();
-        var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
-        var treeItems = bestPlay.OrderBy(x => x.Key, FaceListComparer).Select(x => new TreeItem
-        {
-            EastHand = x.Key.ConvertToSmallCards(cardsNS),
-            WestHand = cardsEW.Except(x.Key).ConvertToSmallCards(cardsNS),
-            Items = x.Value.SelectMany(GetDescendents)
-                .Where(y => y.Children == null && y.Play.First() is Face.Ace or Face.Two)
-                .OrderBy(z => z.Play, FaceListComparer)
-                .Select(z => new Calculate.Item(z.Play.ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
-        }).ToList();
-        
-        var evenlyItem = treeItems.MaxBy(treeItem => treeItem.Items.Count);
-        var counter = 1;
-        evenlyItem.Items.ForEach(item => item.Line = counter++);
-
-        foreach (var treeItem in treeItems.Where(treeItem => treeItem != evenlyItem))
-        {
-            foreach (var item in treeItem.Items)
-            {
-                for (var numberOfCards = item.Play.Count - 1; numberOfCards > 0; numberOfCards -= 2)
-                {
-                    var samePlays = treeItem.Items.Where(x =>
-                        x.Play.Take(numberOfCards).SequenceEqual(item.Play.Take(numberOfCards)) &&
-                        x.Play[numberOfCards] != item.Play[numberOfCards] && !item.HasDuplicates).ToList();
-                    samePlays.ForEach(samePlay => samePlay.HasDuplicates = true);
-                    
-                    var sameLine = evenlyItem.Items.Where(x => x.Play.Take(numberOfCards).SequenceEqual(item.Play.Take(numberOfCards))).ToList();
-                    if (sameLine.Count != 0 && item.Line == 0)
-                        item.Line = sameLine.First().Line;
-                }
-            }
-
-            treeItem.Items.RemoveAll(x => x.HasDuplicates);
-        }
-        
-        return treeItems;
-
-        IEnumerable<Calculate.Item> GetDescendents(Calculate.Item resultItem)
-        {
-            return resultItem.Children == null ? [] : resultItem.Children.Concat(resultItem.Children.SelectMany(GetDescendents));
         }
     }
 }

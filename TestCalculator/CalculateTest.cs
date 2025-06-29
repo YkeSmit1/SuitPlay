@@ -136,4 +136,17 @@ public class CalculateTest
             }
         }
     }
+
+    [Theory]
+    [InlineData("2xAx", "2xAx")]
+    [InlineData("2xA_", "2xA")]
+    [InlineData("2xAK", "2xA")]
+    [InlineData("2_Ax", "2")]
+    [InlineData("2xAxK", "2xAxK")]
+    [InlineData("2_", "2")]
+    public void TestOnlySmallCardsEW(string play, string expected)
+    {
+        var actual = Utils.CardsToString(Utils.StringToCardList(play).OnlySmallCardsEW());
+        Assert.Equal(expected, actual);
+    }
 }
