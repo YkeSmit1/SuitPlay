@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
+using System.Text.Json;
 using MoreLinq;
 using Serilog;
 
@@ -9,6 +9,7 @@ public class Calculate
 {
     private static readonly ListEqualityComparer<Face> ListEqualityComparer = new();
     private static readonly FaceListComparer FaceListComparer = new();
+    private static readonly JsonSerializerOptions JsonSerializerOptions  = new() { WriteIndented = false, IncludeFields = true };
 
     public class Result 
     {
@@ -34,7 +35,6 @@ public class Calculate
 
         public List<Item> Children { get; set; } = children;
         public Item TranspositionRef { get; init; }
-        public int Line { get; set; }
     }
 
     public static Result GetResult(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> cardsNS)
@@ -144,52 +144,70 @@ public class Calculate
             return bestPlay[combination].Where(x => x.Play.First() == play.First()).ToList().MaxBy(x => x.Tricks);
         }
     }
-    
-    public class TreeItem
+
+    private class TreeItem
     {
-        public List<Face> EastHand { get; set; }
-        public List<Face> WestHand { get; set; }
+        public List<Face> Combination { get; init; }
         public List<Item> Items { get; init; }
     }
     
     public class Item2
     {
-        public List<Face> EastHand { get; init; }
-        public List<Face> WestHand { get; set; }
+        public List<Face> Combination { get; init; }
         public int Tricks { get; set; }
+        public bool IsSubstitute { get; init; }
+        public bool IsDifferent { get; set; }
     }  
-    
 
     public class LineItem
     {
         public List<Face> Line { get; set; }
         public List<Item2> Items2 { get; set; } = [];
         public double Average { get; set; }
+        public List<double> Probabilities { get; set; }
     }
 
     public class Result2
     {
-        public List<TreeItem> TreeItems { get; init; }
+        public List<DistributionItem> DistributionItems { get; init; }
         public List<LineItem> LineItems { get; init; }
+        public IEnumerable<int> PossibleNrOfTricks { get; init; }
     }
 
-    public static Result2 GetResult2(IDictionary<List<Face>, List<Item>> play, List<Face> cardsNS)
+    public static Result2 GetResult2(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> north, List<Face> south)
     {
+        var cardsNS = north.Concat(south).OrderDescending().ToList();
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
-        var treeItems = play.OrderBy(x => x.Key, FaceListComparer).Select(x => new TreeItem
+        var treeItems = bestPlay.OrderBy(x => x.Key, FaceListComparer).Select(x => new TreeItem
         {
-            EastHand = x.Key.ConvertToSmallCards(cardsNS),
-            WestHand = cardsEW.Except(x.Key).ConvertToSmallCards(cardsNS),
+            Combination = x.Key,
             Items = x.Value.SelectMany(GetDescendents)
                 .Where(y => y.Children == null && y.Play.First() is Face.Ace or Face.Two)
                 .OrderBy(z => z.Play, FaceListComparer)
                 .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
         }).ToList();
         
+        var combinations = Combinations.AllCombinations(cardsEW);
+        var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), FaceListComparer).ToList();
+        var distributionList = combinationsInTree.ToDictionary(key => key.ToList(), value =>
+        {
+            var eastHand = value.ToList();
+            var westHand = cardsEW.Except(eastHand).ToList();
+            var similarCombinationsCount = SimilarCombinations(combinations, westHand, cardsNS).Count();
+            return new DistributionItem
+            {
+                West = westHand.ConvertToSmallCards(cardsNS),
+                East = eastHand.ConvertToSmallCards(cardsNS),
+                Occurrences = similarCombinationsCount,
+                Probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count) * similarCombinationsCount,
+            };
+        }, ListEqualityComparer);
+        
+        var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderDescending().SkipLast(1).ToList();
         var items = AssignLines();
 
-        return new Result2 {  TreeItems = treeItems, LineItems = items };
-
+        return new Result2 {  DistributionItems = distributionList.Values.ToList(), LineItems = items, PossibleNrOfTricks = possibleNrOfTricks};
+        
         IEnumerable<Item> GetDescendents(Item resultItem)
         {
             return resultItem.Children == null ? [] : resultItem.Children.Concat(resultItem.Children.SelectMany(GetDescendents));
@@ -197,28 +215,47 @@ public class Calculate
 
         List<LineItem> AssignLines()
         {
-            var lineItems = treeItems.SelectMany(x => x.Items)
-                .Select(y => y.Play.OnlySmallCardsEW())
-                .Distinct(ListEqualityComparer)
-                .Select(y => new LineItem() { Line = y }).Distinct()
-                .ToList();
-            foreach (var lineItem in lineItems)
-            {
-                foreach (var treeItem in treeItems)
+            var filename = $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json";
+            using var fileStream = new FileStream(Path.Combine(AppContext.BaseDirectory, "etalons-suitplay", filename), FileMode.Open);
+            var results = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStream, JsonSerializerOptions);
+            var lineItems = treeItems.SelectMany(x => x.Items).Select(x => x.Play.OnlySmallCardsEW()).Distinct(ListEqualityComparer).ToList()
+                .Select(x =>
                 {
-                    var item = treeItem.Items.Where(x => lineItem.Line.Zip(x.Play.OnlySmallCardsEW(), (a, b) => (a, b)).All(y => y.a == y.b)).ToList();
-                    var bestItem = item.MaxBy(x => x.Tricks);
-                    lineItem.Items2.Add(new Item2 { EastHand = treeItem.EastHand, WestHand = treeItem.WestHand, Tricks = bestItem.Tricks });
-                }
-            }
-
-            foreach (var lineItem in lineItems)
-            {
-                lineItem.Items2 = lineItem.Items2.OrderBy(x => x.EastHand, FaceListComparer).ToList();
-            }
-
+                    var data = results.treesForJson.SingleOrDefault(a => Utils.CardsToString(x).StartsWith(a.Key), default).Value;
+                    var dataCounter = 0;
+                    var lineItem = new LineItem
+                    {
+                        Line = x,
+                        Items2 = treeItems.Select(y =>
+                        {
+                            var similarItems = y.Items.Where(z => z.Play.OnlySmallCardsEW().StartsWith(x)).ToList();
+                            var bestItem = similarItems.Count != 0 ? similarItems.MaxBy(z => z.Tricks) : y.Items.Where(z => x.Zip(z.Play.OnlySmallCardsEW(), (a, b) => (a, b)).All(u => u.a == u.b)).MaxBy(v => v.Tricks);
+                            var item2 = new Item2
+                            {
+                                Combination = y.Combination, Tricks = bestItem.Tricks,
+                                IsSubstitute = similarItems.Count == 0,
+                                IsDifferent = data != null && data.Any(z => z != 0) && bestItem.Tricks != data[dataCounter++]
+                            };
+                            return item2;
+                        }).OrderBy(y => y.Combination, FaceListComparer).ToList()
+                    };
+                    lineItem.Average = lineItem.Items2.Average(y => GetProbability(y) * y.Tricks) / lineItem.Items2.Select(GetProbability).Average();
+                    lineItem.Probabilities = possibleNrOfTricks.Select(y => lineItem.Items2.Where(z => z.Tricks >= y).Sum(GetProbability) / lineItem.Items2.Sum(GetProbability)).ToList();
+                    return lineItem;
+                }).OrderByDescending(x => x.Line, FaceListComparer).ToList();
+            
+            lineItems.RemoveAll(x => lineItems.Any(y => IsBetterLine(y, x)));
+            
             return lineItems;
+
+            static bool IsBetterLine(LineItem first, LineItem second)
+            {
+                var valueTuples = first.Items2.Zip(second.Items2).ToList();
+                return first.Line.SkipLast(1).SequenceEqual(second.Line.SkipLast(1)) && 
+                       valueTuples.Any(x => x.First.Tricks > x.Second.Tricks) && !valueTuples.Any(x => x.Second.Tricks > x.First.Tricks);
+            }
         }
+        double GetProbability(Item2 x) => distributionList[x.Combination].Probability * distributionList[x.Combination].Occurrences;
     }    
 
     public static IDictionary<List<Face>, List<Item>> CalculateBestPlay(List<Face> north, List<Face> south)
@@ -252,25 +289,14 @@ public class Calculate
 
     private static IEnumerable<IEnumerable<Face>> SimilarCombinations(IEnumerable<IEnumerable<Face>> combinationList, IEnumerable<Face> combination, IEnumerable<Face> cardsNS)
     {
-        // ReSharper disable PossibleMultipleEnumeration
-        Debug.Assert(combinationList.All(IsOrderedDescending));
-        Debug.Assert(IsOrderedDescending(combination));
-        Debug.Assert(IsOrderedDescending(cardsNS));
         var segmentsNS = cardsNS.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         var segments = combination.Select(GetSegment).ToList();
         var similarCombinations = combinationList.Where(x => x.Select(GetSegment).SequenceEqual(segments));
-        // ReSharper restore PossibleMultipleEnumeration
         return similarCombinations;
 
         int GetSegment(Face face)
         {
             return segmentsNS.FindIndex(x => x.First() < face);
-        }
-        
-        static bool IsOrderedDescending(IEnumerable<Face> x)
-        {
-            var list = x.ToList();
-            return list.SequenceEqual(list.OrderDescending());
         }
     }
 

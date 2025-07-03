@@ -188,8 +188,7 @@ public partial class MainPage
     {
         try
         {
-            var cardsNS = GetHand(North).Concat(GetHand(South)).OrderDescending().ToList();
-            var lResult = Calculate.GetResult2(bestPlay, cardsNS);
+            var lResult = Calculate.GetResult2(bestPlay, GetHand(North), GetHand(South));
             await Shell.Current.GoToAsync(nameof(DistributionsPage2), new Dictionary<string, object> { ["Result"] = lResult });
         }
         catch (Exception exception)
