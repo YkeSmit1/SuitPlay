@@ -17,15 +17,7 @@
     <ContentPage.Content>
         <Grid>
             <ScrollView Orientation="Both">
-                <Grid Margin="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto" />
-                    </Grid.RowDefinitions>
+                <Grid Margin="10" RowDefinitions="auto,auto,auto,auto,auto" ColumnDefinitions="*,*">
                     <!-- Distribution Items -->
                     <CollectionView ItemsSource="{Binding Path=DistributionItems}" Grid.Row="0" Grid.Column="0">
                         <CollectionView.Header>
@@ -89,9 +81,11 @@
                             </CollectionView.ItemTemplate>
                         </CollectionView>
                     </Grid>
+                    <Label Text="{Binding GreenItems}" Grid.Row="2" Grid.Column="0" TextColor="Green"></Label>
+                    <Label Text="{Binding PurpleItems}"  Grid.Row="3" Grid.Column="0" TextColor="Purple"></Label>
+                    <Button Grid.Row="4" Grid.Column="1" Text="Export to csv" Clicked="Button_OnClicked"></Button>
                 </Grid>
             </ScrollView>
-            <Button Text="Export to csv" Clicked="Button_OnClicked"></Button>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

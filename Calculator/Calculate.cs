@@ -26,6 +26,7 @@ public class Calculate
         private int tricks = tricks;
         public List<Face> Combination { get; set; }
         public List<Face> Play { get; } = play;
+        public List<Face> OnlySmallCardsEW { get; set; } = play.OnlySmallCardsEW();
 
         public int Tricks
         {
@@ -228,8 +229,8 @@ public class Calculate
                         Line = x,
                         Items2 = treeItems.Select(y =>
                         {
-                            var similarItems = y.Items.Where(z => z.Play.OnlySmallCardsEW().StartsWith(x)).ToList();
-                            var bestItem = similarItems.Count != 0 ? similarItems.MaxBy(z => z.Tricks) : y.Items.Where(z => x.Zip(z.Play.OnlySmallCardsEW(), (a, b) => (a, b)).All(u => u.a == u.b)).MaxBy(v => v.Tricks);
+                            var similarItems = y.Items.Where(z => z.OnlySmallCardsEW.StartsWith(x)).ToList();
+                            var bestItem = similarItems.Count != 0 ? similarItems.MaxBy(z => z.Tricks) : GetBestItem(y, x);
                             var item2 = new Item2
                             {
                                 Combination = y.Combination, Tricks = bestItem.Tricks,
@@ -247,6 +248,12 @@ public class Calculate
             lineItems.RemoveAll(x => lineItems.Any(y => IsBetterLine(y, x)));
             
             return lineItems;
+
+            Item GetBestItem(TreeItem treeItem, List<Face> line)
+            {
+                var list = treeItem.Items.Where(z => line.Zip(z.OnlySmallCardsEW, (a, b) => (a, b)).All(u => u.a == u.b)).ToList();
+                return list.Count == 0 ? new Item([], -1) : list.Where(z => z.OnlySmallCardsEW.Count == list.Max(y => y.OnlySmallCardsEW.Count)).MaxBy(v => v.Tricks);
+            }
 
             static bool IsBetterLine(LineItem first, LineItem second)
             {
@@ -373,8 +380,8 @@ public class Calculate
                         : Minimax(playedCards, true);
 
                     resultItem.Tricks = Math.Min(resultItem.Tricks, value.Tricks);
-                    // if (playedCards.Count % 4 == 0 && !transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out _))
-                    //     transpositionTable.Add(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), value);
+                    if (playedCards.Count % 4 == 0 && !transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out _))
+                        transpositionTable.Add(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), value);
 
                     resultItem.Children.Add(value);
                     playedCards.RemoveAt(playedCards.Count - 1);

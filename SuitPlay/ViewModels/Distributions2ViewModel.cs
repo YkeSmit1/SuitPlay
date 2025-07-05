@@ -10,6 +10,9 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
     [ObservableProperty] private ObservableCollection<DistributionItem> distributionItems;
     [ObservableProperty] private ObservableCollection<Calculate.LineItem> lineItems;
     [ObservableProperty] private ObservableCollection<int> possibleNrOfTricks;
+    [ObservableProperty] private int purpleItems;
+    [ObservableProperty] private int greenItems;
+    
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -17,6 +20,8 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
         DistributionItems = new ObservableCollection<DistributionItem>(results.DistributionItems);
         LineItems = new ObservableCollection<Calculate.LineItem>(results.LineItems);
         PossibleNrOfTricks = new ObservableCollection<int>(results.PossibleNrOfTricks);
+        PurpleItems = results.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && x.IsSubstitute);
+        GreenItems = results.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && !x.IsSubstitute);
     }
     
     public async Task ExportViewModelToCsv()
