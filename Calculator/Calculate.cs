@@ -173,6 +173,7 @@ public class Calculate
         public List<DistributionItem> DistributionItems { get; init; }
         public List<LineItem> LineItems { get; init; }
         public IEnumerable<int> PossibleNrOfTricks { get; init; }
+        public string Combination { get; init; }
     }
 
     public static Result2 GetResult2(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> north, List<Face> south)
@@ -207,7 +208,8 @@ public class Calculate
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderDescending().SkipLast(1).ToList();
         var items = AssignLines();
 
-        return new Result2 {  DistributionItems = distributionList.Values.ToList(), LineItems = items, PossibleNrOfTricks = possibleNrOfTricks};
+        return new Result2 {  DistributionItems = distributionList.Values.ToList(), LineItems = items, PossibleNrOfTricks = possibleNrOfTricks, 
+            Combination = $"{Utils.CardsToString(north)} - {Utils.CardsToString(south)}" };
         
         IEnumerable<Item> GetDescendents(Item resultItem)
         {

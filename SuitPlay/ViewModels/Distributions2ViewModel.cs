@@ -12,16 +12,18 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
     [ObservableProperty] private ObservableCollection<int> possibleNrOfTricks;
     [ObservableProperty] private int purpleItems;
     [ObservableProperty] private int greenItems;
+    [ObservableProperty] private string combination;
     
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        var results = (Calculate.Result2)query["Result"];
-        DistributionItems = new ObservableCollection<DistributionItem>(results.DistributionItems);
-        LineItems = new ObservableCollection<Calculate.LineItem>(results.LineItems);
-        PossibleNrOfTricks = new ObservableCollection<int>(results.PossibleNrOfTricks);
-        PurpleItems = results.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && x.IsSubstitute);
-        GreenItems = results.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && !x.IsSubstitute);
+        var result = (Calculate.Result2)query["Result"];
+        DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionItems);
+        LineItems = new ObservableCollection<Calculate.LineItem>(result.LineItems);
+        PossibleNrOfTricks = new ObservableCollection<int>(result.PossibleNrOfTricks);
+        PurpleItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && x.IsSubstitute);
+        GreenItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && !x.IsSubstitute);
+        Combination = result.Combination;
     }
     
     public async Task ExportViewModelToCsv()
