@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using Calculator;
 using JetBrains.Annotations;
-using MoreLinq;
 using Xunit.Abstractions;
 
 namespace TestCalculator;
@@ -131,8 +130,8 @@ public class CalculateTest
             var zipped = resultsOld.treesForJson[play].Zip(resultsNew.treesForJson[play]);
             foreach (var tuple in zipped.Index()) 
             {
-                if (tuple.Value.First != tuple.Value.Second)
-                    testOutputHelper.WriteLine($"Values not equal. file:{fileName} play:{play} East:{combinations[tuple.Key]} old:{tuple.Value.First} new:{tuple.Value.Second} ");
+                if (tuple.Item.First != tuple.Item.Second)
+                    testOutputHelper.WriteLine($"Values not equal. file:{fileName} play:{play} East:{combinations[tuple.Index]} old:{tuple.Item.First} new:{tuple.Item.Second} ");
             }
         }
     }
