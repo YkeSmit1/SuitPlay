@@ -5,8 +5,7 @@ namespace SuitPlay.ViewModels;
 
 public partial class OverviewViewModel : ObservableObject, IQueryAttributable
 {
-    [ObservableProperty] 
-    private ObservableCollection<OverviewItem> overviewList = [];
+    [ObservableProperty] public partial ObservableCollection<OverviewItem> OverviewList {get; set;} = [];
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {

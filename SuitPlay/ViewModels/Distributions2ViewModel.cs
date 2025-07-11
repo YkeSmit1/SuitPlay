@@ -7,12 +7,12 @@ namespace SuitPlay.ViewModels;
 
 public partial class Distributions2ViewModel : ObservableObject, IQueryAttributable
 {
-    [ObservableProperty] private ObservableCollection<DistributionItem> distributionItems;
-    [ObservableProperty] private ObservableCollection<Calculate.LineItem> lineItems;
-    [ObservableProperty] private ObservableCollection<int> possibleNrOfTricks;
-    [ObservableProperty] private int purpleItems;
-    [ObservableProperty] private int greenItems;
-    [ObservableProperty] private string combination;
+    [ObservableProperty] public partial ObservableCollection<DistributionItem> DistributionItems { get; set; }
+    [ObservableProperty] public partial ObservableCollection<Calculate.LineItem> LineItems { get; set; }
+    [ObservableProperty] public partial ObservableCollection<int> PossibleNrOfTricks { get; set; }
+    [ObservableProperty] public partial int PurpleItems { get; set; }
+    [ObservableProperty] public partial int GreenItems { get; set; }
+    [ObservableProperty] public partial string Combination { get; set; }
     
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)

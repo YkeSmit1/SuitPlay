@@ -6,10 +6,10 @@ namespace SuitPlay.ViewModels;
 
 public partial class DistributionsViewModel : ObservableObject, IQueryAttributable
 {
-    [ObservableProperty] private ObservableCollection<DistributionItem> distributionItems;
-    [ObservableProperty] private ObservableCollection<List<Face>> allPlays;
-    [ObservableProperty] private ObservableCollection<PlayItem> playItems;
-    [ObservableProperty] private ObservableCollection<int> possibleNrOfTricks;
+    [ObservableProperty] public partial ObservableCollection<DistributionItem> DistributionItems { get; set; }
+    [ObservableProperty] public partial ObservableCollection<List<Face>> AllPlays { get; set; }
+    [ObservableProperty] public partial ObservableCollection<PlayItem> PlayItems { get; set; }
+    [ObservableProperty] public partial ObservableCollection<int> PossibleNrOfTricks { get; set; }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
