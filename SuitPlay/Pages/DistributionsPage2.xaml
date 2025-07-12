@@ -5,7 +5,9 @@
              xmlns:viewModels="using:SuitPlay.ViewModels"
              xmlns:converters="using:SuitPlay.Converters"
              xmlns:calc="clr-namespace:Calculator;assembly=Calculator"
-             x:Class="SuitPlay.Pages.DistributionsPage2">
+             x:Class="SuitPlay.Pages.DistributionsPage2"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             x:DataType="viewModels:Distributions2ViewModel">
     <ContentPage.Resources>
         <converters:CardsToStringConverter x:Key="CardsToStringConverter" />
         <converters:ProbabilityConverter x:Key="ProbabilityConverter" />
@@ -28,7 +30,7 @@
                     </Grid>
                 </CollectionView.Header>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="calc:DistributionItem">
                         <Grid ColumnDefinitions="*,*,*,*">
                             <Label Text="{Binding West, Converter={StaticResource CardsToStringConverter}}" Grid.Column="0" Margin="5"/>
                             <Label Text="{Binding East, Converter={StaticResource CardsToStringConverter}}" Grid.Column="1" Margin="5"/>
@@ -45,7 +47,7 @@
                         <LinearItemsLayout Orientation="Horizontal"/>
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
-                        <DataTemplate>
+                        <DataTemplate x:DataType="calc:Calculate+LineItem">
                             <StackLayout Orientation="Vertical">
                                 <!-- Lines -->
                                 <Label Text="{Binding Line, Converter={StaticResource CardsToStringConverter}}" Margin="5"></Label>
@@ -62,7 +64,7 @@
                                 <Label Text="{Binding Average, StringFormat='{0:F2}'}" HorizontalTextAlignment="Center"></Label>
                                 <StackLayout BindableLayout.ItemsSource="{Binding Probabilities}" Orientation="Vertical">
                                     <BindableLayout.ItemTemplate>
-                                        <DataTemplate>
+                                        <DataTemplate x:DataType="system:Double">
                                             <Label Text="{Binding Converter={StaticResource ProbabilityConverter}, StringFormat='{0:F2}%'}" FontSize="10" HorizontalTextAlignment="Center"></Label>
                                         </DataTemplate>
                                     </BindableLayout.ItemTemplate>
@@ -76,7 +78,7 @@
                 <Label Text="Averages" Grid.Row="0" Grid.Column="0"></Label>
                 <CollectionView ItemsSource="{Binding Path=PossibleNrOfTricks}" Grid.Row="1" Grid.Column="0">
                     <CollectionView.ItemTemplate>
-                        <DataTemplate>
+                        <DataTemplate x:DataType="system:Int32">
                             <Label Text="{Binding StringFormat='Probability >={0}'}" FontSize="10"></Label>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
