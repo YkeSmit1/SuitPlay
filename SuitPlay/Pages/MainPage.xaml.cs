@@ -8,16 +8,15 @@ namespace SuitPlay.Pages;
 
 public partial class MainPage
 {
-    private HandView selectedHandView;
     private HandView SelectedHandView
     {
-        get => selectedHandView;
+        get;
         set
         {
-            selectedHandView = value;
+            field = value;
             North.BackgroundColor = Colors.Black;
             South.BackgroundColor = Colors.Black;
-            selectedHandView.BackgroundColor = Colors.Gray;
+            field.BackgroundColor = Colors.Gray;
         }
     }
 
@@ -29,11 +28,11 @@ public partial class MainPage
     {
         InitializeComponent();
         dictionary = SplitImages.Split(CardImageSettings.GetCardImageSettings("default"));
-        Cards.OnImageTapped += TapGestureRecognizer_OnTapped;
-        North.OnImageTapped += TapGestureRecognizer_OnTapped;
-        North.OnHandTapped += TapGestureRecognizerSelect_OnTapped;
-        South.OnImageTapped += TapGestureRecognizer_OnTapped;
-        South.OnHandTapped += TapGestureRecognizerSelect_OnTapped;
+        Cards.OnImageTapped += TapGestureRecognizer_OnImageTapped;
+        North.OnImageTapped += TapGestureRecognizer_OnImageTapped;
+        North.OnHandTapped += TapGestureRecognizer_OnHandTapped;
+        South.OnImageTapped += TapGestureRecognizer_OnImageTapped;
+        South.OnHandTapped += TapGestureRecognizer_OnHandTapped;
         InitCards();
         LoadSettings();
         SelectedHandView = North;
@@ -62,7 +61,7 @@ public partial class MainPage
         ((HandViewModel)South.BindingContext).Cards.Clear();
     }
 
-    private void TapGestureRecognizer_OnTapped(object sender, TappedEventArgs e)
+    private void TapGestureRecognizer_OnImageTapped(object sender, TappedEventArgs e)
     {
         var card = (UiCard)((Image)sender).BindingContext;
         ((HandViewModel)((HandView)e.Parameter)?.BindingContext)?.RemoveCard(card);
@@ -78,7 +77,7 @@ public partial class MainPage
         TreeItemsButton.IsEnabled = enable;
     }
 
-    private void TapGestureRecognizerSelect_OnTapped(object sender, TappedEventArgs e)
+    private void TapGestureRecognizer_OnHandTapped(object sender, TappedEventArgs e)
     {
         SelectedHandView = (HandView)e.Parameter;
     }

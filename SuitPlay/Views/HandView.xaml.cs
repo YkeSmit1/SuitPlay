@@ -9,12 +9,12 @@
             InitializeComponent();
         }
 
-        private void TapGestureRecognizer_OnTapped(object sender, TappedEventArgs e)
+        private void TapGestureRecognizer_OnImageTapped(object sender, TappedEventArgs e)
         {
             OnImageTapped?.Invoke(sender, e);
         }
 
-        private void TapGestureRecognizerHand_OnTapped(object sender, TappedEventArgs e)
+        private void TapGestureRecognizer_OnHandTapped(object sender, TappedEventArgs e)
         {
             OnHandTapped?.Invoke(sender, e);
         }

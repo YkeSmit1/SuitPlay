@@ -19,7 +19,7 @@
                                    HeightRequest="{Binding Rect.Height}">
                                 <Image.GestureRecognizers>
                                     <TapGestureRecognizer 
-                                        Tapped="TapGestureRecognizer_OnTapped" 
+                                        Tapped="TapGestureRecognizer_OnImageTapped" 
                                         CommandParameter="{Binding Source={RelativeSource Mode=FindAncestor, AncestorType={x:Type views:HandView }}}"/>
                                 </Image.GestureRecognizers>
                             </Image>
@@ -28,7 +28,7 @@
             </AbsoluteLayout>
             <StackLayout.GestureRecognizers>
                 <TapGestureRecognizer 
-                    Tapped="TapGestureRecognizerHand_OnTapped"
+                    Tapped="TapGestureRecognizer_OnHandTapped"
                     CommandParameter="{Binding Source={RelativeSource Mode=FindAncestor, AncestorType={x:Type views:HandView }}}"/>
             </StackLayout.GestureRecognizers>
         </StackLayout>
