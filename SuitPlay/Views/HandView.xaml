@@ -18,18 +18,14 @@
                                    WidthRequest="{Binding Rect.Width}"
                                    HeightRequest="{Binding Rect.Height}">
                                 <Image.GestureRecognizers>
-                                    <TapGestureRecognizer 
-                                        Tapped="TapGestureRecognizer_OnImageTapped" 
-                                        CommandParameter="{Binding Source={RelativeSource Mode=FindAncestor, AncestorType={x:Type views:HandView }}}"/>
+                                    <TapGestureRecognizer Tapped="TapGestureRecognizer_OnImageTapped"/>
                                 </Image.GestureRecognizers>
                             </Image>
                         </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </AbsoluteLayout>
             <StackLayout.GestureRecognizers>
-                <TapGestureRecognizer 
-                    Tapped="TapGestureRecognizer_OnHandTapped"
-                    CommandParameter="{Binding Source={RelativeSource Mode=FindAncestor, AncestorType={x:Type views:HandView }}}"/>
+                <TapGestureRecognizer Tapped="TapGestureRecognizer_OnHandTapped"/>
             </StackLayout.GestureRecognizers>
         </StackLayout>
     </ContentView.Content>

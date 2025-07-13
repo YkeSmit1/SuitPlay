@@ -61,11 +61,11 @@ public partial class MainPage
         ((HandViewModel)South.BindingContext).Cards.Clear();
     }
 
-    private void TapGestureRecognizer_OnImageTapped(object sender, TappedEventArgs e)
+    private void TapGestureRecognizer_OnImageTapped(object sender, HandView handView)
     {
         var card = (UiCard)((Image)sender).BindingContext;
-        ((HandViewModel)((HandView)e.Parameter)?.BindingContext)?.RemoveCard(card);
-        ((HandViewModel)((HandView)e.Parameter == Cards ? SelectedHandView : Cards).BindingContext).AddCard(card);
+        ((HandViewModel)handView?.BindingContext)?.RemoveCard(card);
+        ((HandViewModel)(handView == Cards ? SelectedHandView : Cards).BindingContext).AddCard(card);
         SaveSettings();
         EnableButtons(false);
     }
@@ -77,9 +77,9 @@ public partial class MainPage
         TreeItemsButton.IsEnabled = enable;
     }
 
-    private void TapGestureRecognizer_OnHandTapped(object sender, TappedEventArgs e)
+    private void TapGestureRecognizer_OnHandTapped(object sender, HandView handView)
     {
-        SelectedHandView = (HandView)e.Parameter;
+        SelectedHandView = handView;
     }
     
     private void ResetButton_OnClicked(object sender, EventArgs e)
