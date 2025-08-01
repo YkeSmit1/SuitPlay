@@ -26,7 +26,7 @@ public class Calculate
         private int tricks = tricks;
         public List<Face> Combination { get; set; }
         public List<Face> Play { get; } = play;
-        public List<Face> OnlySmallCardsEW { get; set; } = play.OnlySmallCardsEW();
+        public List<Face> OnlySmallCardsEW { get; } = play.OnlySmallCardsEW();
 
         public int Tricks
         {
@@ -157,7 +157,7 @@ public class Calculate
         public List<Face> Combination { get; init; }
         public int Tricks { get; set; }
         public bool IsSubstitute { get; init; }
-        public bool IsDifferent { get; set; }
+        public bool IsDifferent { get; init; }
     }  
 
     public class LineItem
@@ -221,10 +221,10 @@ public class Calculate
             var filename = $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json";
             using var fileStream = new FileStream(Path.Combine(AppContext.BaseDirectory, "etalons-suitplay", filename), FileMode.Open);
             var results = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStream, JsonSerializerOptions);
-            var lineItems = treeItems.SelectMany(x => x.Items).Select(x => x.Play.OnlySmallCardsEW()).Distinct(ListEqualityComparer).ToList()
+            var lineItems = treeItems.SelectMany(x => x.Items).Select(x => x.Play.OnlySmallCardsEW()).Distinct(ListEqualityComparer).Where(y => y.Count > 1).ToList()
                 .Select(x =>
                 {
-                    var data = results.treesForJson.SingleOrDefault(a => Utils.CardsToString(x).StartsWith(a.Key), default).Value;
+                    var data = results.treesForJson.SingleOrDefault(a => a.Key.StartsWith(Utils.CardsToString(x), default)).Value;
                     var dataCounter = 0;
                     var lineItem = new LineItem
                     {
@@ -237,7 +237,7 @@ public class Calculate
                             {
                                 Combination = y.Combination, Tricks = bestItem.Tricks,
                                 IsSubstitute = similarItems.Count == 0,
-                                IsDifferent = data != null && data.Any(z => z != 0) && bestItem.Tricks != data[dataCounter++]
+                                IsDifferent = data != null && bestItem.Tricks != data[dataCounter++]
                             };
                             return item2;
                         }).OrderBy(y => y.Combination, FaceListComparer).ToList()
@@ -382,8 +382,8 @@ public class Calculate
                         : Minimax(playedCards, true);
 
                     resultItem.Tricks = Math.Min(resultItem.Tricks, value.Tricks);
-                    if (playedCards.Count % 4 == 0 && !transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out _))
-                        transpositionTable.Add(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), value);
+                    //if (playedCards.Count % 4 == 0 && !transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out _))
+                    //    transpositionTable.Add(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), value);
 
                     resultItem.Children.Add(value);
                     playedCards.RemoveAt(playedCards.Count - 1);
