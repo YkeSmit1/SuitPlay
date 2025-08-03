@@ -95,11 +95,10 @@ public class CalculateTest
         // Arrange 
         var northHand = Utils.StringToCardList(north);
         var southHand = Utils.StringToCardList(south);
-        var cardsNS = northHand.Concat(southHand).OrderDescending().ToList();
         // Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
         var filename = $"{north}-{south}.json";
-        var result = Calculate.GetResult(bestPlay, cardsNS);
+        var result = Calculate.GetResult(bestPlay, northHand, southHand);
         Utils.SaveTrees(result, filename);
         
         // Assert

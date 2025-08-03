@@ -175,8 +175,7 @@ public partial class MainPage
     {
         return Task.Run(() =>
         {
-            var cardsNS = north.Concat(south).OrderDescending().ToList();
-            var resultLocal = Calculate.GetResult(bestPlay, cardsNS);
+            var resultLocal = Calculate.GetResult(bestPlay, north, south);
             var filename = Path.Combine(FileSystem.AppDataDirectory, $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json");
             Utils.SaveTrees(resultLocal, filename);
             return resultLocal;

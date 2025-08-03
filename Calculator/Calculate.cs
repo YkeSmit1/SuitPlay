@@ -38,35 +38,23 @@ public class Calculate
         public Item TranspositionRef { get; init; }
     }
 
-    public static Result GetResult(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> cardsNS)
+    public static Result GetResult(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> north, List<Face> south)
     {
         Log.Information("Start GetResult");
-        var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
-        var combinations = Combinations.AllCombinations(cardsEW);
+        var cardsNS = north.Concat(south).OrderDescending().ToList();
         var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), FaceListComparer).ToList();
-        var segmentsNS = cardsNS.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
-        
-        var distributionList = combinationsInTree.ToDictionary(key => key.ToList(), value =>
-        {
-            var eastHand = value.ToList();
-            var westHand = cardsEW.Except(eastHand).ToList();
-            var similarCombinationsCount = SimilarCombinations(combinations, westHand, cardsNS).Count();
-            return new DistributionItem
-            {
-                West = westHand.ConvertToSmallCards(cardsNS),
-                East = eastHand.ConvertToSmallCards(cardsNS),
-                Occurrences = similarCombinationsCount,
-                Probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count) * similarCombinationsCount,
-            };
-        }, ListEqualityComparer);
+        var distributionList = GetDistributionItems(cardsNS, combinationsInTree);
 
-        foreach (var item in bestPlay)
+        foreach (var keyValuePair in bestPlay)
         {
-            item.Value.ForEach(x =>
+            foreach (var item in keyValuePair.Value)
             {
-                x.Combination = item.Key;
-                GetDescendents(x).ForEach(y => y.Combination = item.Key);
-            }); 
+                item.Combination = keyValuePair.Key;
+                foreach (var item1 in GetDescendents(item))
+                {
+                    item1.Combination = keyValuePair.Key;
+                }
+            }
         }
         var bestPlayFlattened = bestPlay.SelectMany(x => x.Value.SelectMany(GetDescendents)).ToList();
         Log.Information("BestPlay has {count:n} items", bestPlayFlattened.Count);
@@ -102,16 +90,12 @@ public class Calculate
         
         Log.Information("End GetResult");
         return result;
-
-        IEnumerable<Item> GetDescendents(Item resultItem)
-        {
-            return resultItem.Children == null ? [] : resultItem.Children.Concat(resultItem.Children.SelectMany(GetDescendents));
-        }
         
         double GetProbability(Item x) => distributionList[x.Combination].Probability * distributionList[x.Combination].Occurrences;
 
         void BackTracking()
         {
+            var segmentsNS = cardsNS.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
             //DoBackTracking(7);
             DoBackTracking(5);
             DoBackTracking(3);
@@ -146,6 +130,31 @@ public class Calculate
         }
     }
 
+    private static IEnumerable<Item> GetDescendents(Item resultItem)
+    {
+        return resultItem.Children == null ? [] : resultItem.Children.Concat(resultItem.Children.SelectMany(GetDescendents));
+    }
+
+    private static Dictionary<List<Face>, DistributionItem> GetDistributionItems(List<Face> cardsNS, List<List<Face>> combinationsInTree)
+    {
+        var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
+        var combinations = Combinations.AllCombinations(cardsEW);
+        var distributionList = combinationsInTree.ToDictionary(key => key.ToList(), value =>
+        {
+            var eastHand = value.ToList();
+            var westHand = cardsEW.Except(eastHand).ToList();
+            var similarCombinationsCount = SimilarCombinations(combinations, westHand, cardsNS).Count();
+            return new DistributionItem
+            {
+                West = westHand.ConvertToSmallCards(cardsNS),
+                East = eastHand.ConvertToSmallCards(cardsNS),
+                Occurrences = similarCombinationsCount,
+                Probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count) * similarCombinationsCount,
+            };
+        }, ListEqualityComparer);
+        return distributionList;
+    }
+
     private class TreeItem
     {
         public List<Face> Combination { get; init; }
@@ -178,8 +187,11 @@ public class Calculate
 
     public static Result2 GetResult2(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> north, List<Face> south)
     {
+        Log.Information("Start GetResult2");
         var cardsNS = north.Concat(south).OrderDescending().ToList();
-        var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
+        var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), FaceListComparer).ToList();
+        var distributionList = GetDistributionItems(cardsNS, combinationsInTree);
+        
         var treeItems = bestPlay.OrderBy(x => x.Key, FaceListComparer).Select(x => new TreeItem
         {
             Combination = x.Key,
@@ -188,33 +200,15 @@ public class Calculate
                 .OrderBy(z => z.Play, FaceListComparer)
                 .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
         }).ToList();
-        
-        var combinations = Combinations.AllCombinations(cardsEW);
-        var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), FaceListComparer).ToList();
-        var distributionList = combinationsInTree.ToDictionary(key => key.ToList(), value =>
-        {
-            var eastHand = value.ToList();
-            var westHand = cardsEW.Except(eastHand).ToList();
-            var similarCombinationsCount = SimilarCombinations(combinations, westHand, cardsNS).Count();
-            return new DistributionItem
-            {
-                West = westHand.ConvertToSmallCards(cardsNS),
-                East = eastHand.ConvertToSmallCards(cardsNS),
-                Occurrences = similarCombinationsCount,
-                Probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count) * similarCombinationsCount,
-            };
-        }, ListEqualityComparer);
-        
+
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderDescending().SkipLast(1).ToList();
         var items = AssignLines();
 
-        return new Result2 {  DistributionItems = distributionList.Values.ToList(), LineItems = items, PossibleNrOfTricks = possibleNrOfTricks, 
-            Combination = $"{Utils.CardsToString(north)} - {Utils.CardsToString(south)}" };
-        
-        IEnumerable<Item> GetDescendents(Item resultItem)
+        return new Result2
         {
-            return resultItem.Children == null ? [] : resultItem.Children.Concat(resultItem.Children.SelectMany(GetDescendents));
-        }
+            DistributionItems = distributionList.Values.ToList(), LineItems = items,
+            PossibleNrOfTricks = possibleNrOfTricks, 
+            Combination = $"{Utils.CardsToString(north)} - {Utils.CardsToString(south)}" };
 
         List<LineItem> AssignLines()
         {
