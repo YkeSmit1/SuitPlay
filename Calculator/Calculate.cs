@@ -181,7 +181,7 @@ public class Calculate
     {
         public List<DistributionItem> DistributionItems { get; init; }
         public List<LineItem> LineItems { get; init; }
-        public IEnumerable<int> PossibleNrOfTricks { get; init; }
+        public List<int> PossibleNrOfTricks { get; init; }
         public string Combination { get; init; }
     }
 
@@ -215,7 +215,7 @@ public class Calculate
             var filename = $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json";
             using var fileStream = new FileStream(Path.Combine(AppContext.BaseDirectory, "etalons-suitplay", filename), FileMode.Open);
             var results = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStream, JsonSerializerOptions);
-            var lineItems = treeItems.SelectMany(x => x.Items).Select(x => x.Play.OnlySmallCardsEW()).Distinct(ListEqualityComparer).Where(y => y.Count > 1).ToList()
+            var lineItems = treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct(ListEqualityComparer).Where(y => y.Count > 1).ToList()
                 .Select(x =>
                 {
                     var data = results.treesForJson.SingleOrDefault(a => a.Key.StartsWith(Utils.CardsToString(x), default)).Value;
