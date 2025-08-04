@@ -86,7 +86,8 @@
             </Grid>
             <Label Text="{Binding GreenItems}" Grid.Row="3" Grid.Column="0" TextColor="Green"></Label>
             <Label Text="{Binding PurpleItems}"  Grid.Row="4" Grid.Column="0" TextColor="Purple"></Label>
-            <Button Grid.Row="5" Grid.Column="1" Text="Export to csv" Clicked="Button_OnClicked"></Button>
+            <Label Text="{Binding MinusOneItems}"  Grid.Row="5" Grid.Column="0" TextColor="Yellow"></Label>
+            <Button Grid.Row="6" Grid.Column="1" Text="Export to csv" Clicked="Button_OnClicked"></Button>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

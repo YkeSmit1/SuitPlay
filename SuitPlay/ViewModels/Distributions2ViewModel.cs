@@ -12,6 +12,7 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
     [ObservableProperty] public partial ObservableCollection<int> PossibleNrOfTricks { get; set; }
     [ObservableProperty] public partial int PurpleItems { get; set; }
     [ObservableProperty] public partial int GreenItems { get; set; }
+    [ObservableProperty] public partial int MinusOneItems { get; set; }
     [ObservableProperty] public partial string Combination { get; set; }
     
 
@@ -23,6 +24,7 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
         PossibleNrOfTricks = new ObservableCollection<int>(result.PossibleNrOfTricks);
         PurpleItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && x.IsSubstitute);
         GreenItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && !x.IsSubstitute);
+        MinusOneItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks == -1);
         Combination = result.Combination;
     }
     
