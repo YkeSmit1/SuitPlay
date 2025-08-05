@@ -7,7 +7,7 @@ public class ItemToStringConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return value is Calculate.Item item ? $"{Utils.CardsToString(item.Play.Take(7))}:{item.Tricks}" : "";
+        return value is Item item ? $"{Utils.CardsToString(item.Play.Take(7))}:{item.Tricks}" : "";
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

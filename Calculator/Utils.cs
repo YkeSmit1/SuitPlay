@@ -213,7 +213,7 @@ public static class Utils
     {
         var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "log.txt");
         Log.Logger = new LoggerConfiguration()
-            .Destructure.ByTransforming<Calculate.Item>(x => new { x.Play, x.Tricks, x.Combination, Children = x.Children.Count})
+            .Destructure.ByTransforming<Item>(x => new { x.Play, x.Tricks, x.Combination, Children = x.Children.Count})
             .MinimumLevel.Information()
             .WriteTo.Console()
             .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)

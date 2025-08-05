@@ -25,7 +25,7 @@ public class CalculateTest
         var dictionary = tricks.Select((x, index) => (x, index)).
             GroupBy(x => (Player)(x.index % 4), y => y.x).
             ToDictionary(key => key.Key, value => value.Select(x => x).ToList());
-        Assert.Equal(expected, Calculate.GetTrickCount(tricks, dictionary));
+        Assert.Equal(expected, MiniMax.GetTrickCount(tricks, dictionary));
     }
 
     [Theory]
@@ -59,7 +59,7 @@ public class CalculateTest
         var expectedList = expected.Select(Utils.CharToCard);
         var playedCardsList = playedCards.Select(Utils.CharToCard);
         // Act
-        var actual = Calculate.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList(), playedCardsList.ToList());
+        var actual = MiniMax.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList(), playedCardsList.ToList());
         // Assert
         Assert.Equal(expectedList, actual);
     }
