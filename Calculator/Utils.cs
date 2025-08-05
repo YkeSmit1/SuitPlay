@@ -185,6 +185,12 @@ public static class Utils
         var enumerable = cards.ToList();
         return enumerable.TakeWhile(x => enumerable.IndexOf(x) % 2 == 0 || x == Face.SmallCard).ToList();
     }
+    
+    public static List<Face> NoDummyEW(this IEnumerable<Face> cards)
+    {
+        var enumerable = cards.ToList();
+        return enumerable.TakeWhile(x => enumerable.IndexOf(x) % 2 == 0 || x != Face.Dummy).ToList();
+    }
 
     public static bool IsSmallCard(Face face, List<IEnumerable<Face>> segmentsNS)
     {
