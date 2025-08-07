@@ -6,8 +6,8 @@
 
     <ScrollView>
         <VerticalStackLayout
-            Padding="30,0"
-            Spacing="25">
+            Padding="20,0"
+            Spacing="15">
             <Border>
                 <views:HandView x:Name="Cards" Padding="10"/>
             </Border>
@@ -25,9 +25,9 @@
             </HorizontalStackLayout>
             <Label x:Name="BestPlay" Text="Best play&#10;Average"></Label>
             <HorizontalStackLayout>
-                <Button x:Name="OverviewButton" Text="Go to overview" Clicked="ButtonOverview_OnClicked" Margin="20" WidthRequest="150" IsEnabled="False"></Button>
-                <Button x:Name="DistributionsButton" Text="Go to distributions" Clicked="ButtonDistributions_OnClicked" Margin="20" WidthRequest="150" IsEnabled="False"></Button>
-                <Button x:Name="TreeItemsButton" Text="Go to treeItems" Clicked="TreeItemsButton_OnClicked" Margin="20" WidthRequest="150" IsEnabled="False"></Button>
+                <Button x:Name="OverviewButton" Text="Overview" Clicked="ButtonOverview_OnClicked" Margin="5" IsEnabled="False"></Button>
+                <Button x:Name="DistributionsButton" Text="Distributions" Clicked="ButtonDistributions_OnClicked" Margin="5" IsEnabled="False"></Button>
+                <Button x:Name="TreeItemsButton" Text="TreeItems" Clicked="TreeItemsButton_OnClicked" Margin="5" IsEnabled="False"></Button>
             </HorizontalStackLayout>
         </VerticalStackLayout>
     </ScrollView>
