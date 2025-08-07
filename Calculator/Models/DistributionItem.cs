@@ -1,4 +1,4 @@
-﻿namespace Calculator;
+﻿namespace Calculator.Models;
 
 public class DistributionItem
 {

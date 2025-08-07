@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using Calculator;
+using Calculator.Models;
 
 namespace SuitPlay.Converters;
 

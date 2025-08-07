@@ -1,11 +1,12 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Json;
+using Calculator.Models;
 using MoreLinq;
 using Serilog;
 
 namespace Calculator;
 
-public partial class Calculate
+public class Calculate
 {
     private static readonly ListEqualityComparer<Face> ListEqualityComparer = new();
     private static readonly FaceListComparer FaceListComparer = new();
@@ -128,34 +129,18 @@ public partial class Calculate
         return distributionList;
     }
 
-    private class TreeItem
-    {
-        public List<Face> Combination { get; init; }
-        public List<Item> Items { get; init; }
-    }
-
     public static Result2 GetResult2(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> north, List<Face> south)
     {
         Log.Information("Start GetResult2");
         var cardsNS = north.Concat(south).OrderDescending().ToList();
         var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), FaceListComparer).ToList();
         var distributionList = GetDistributionItems(cardsNS, combinationsInTree);
-        
-        var treeItems = bestPlay.OrderBy(x => x.Key, FaceListComparer).Select(x => new TreeItem
-        {
-            Combination = x.Key,
-            Items = x.Value.SelectMany(GetDescendents)
-                .Where(y => y.Children == null && y.Play.First() is Face.Ace or Face.Two)
-                .OrderBy(z => z.Play, FaceListComparer)
-                .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
-        }).ToList();
-
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderDescending().SkipLast(1).ToList();
-        var items = AssignLines();
+        var lineItems = AssignLines();
 
         return new Result2
         {
-            DistributionItems = distributionList.Values.ToList(), LineItems = items,
+            DistributionItems = distributionList.Values.ToList(), LineItems = lineItems,
             PossibleNrOfTricks = possibleNrOfTricks, 
             Combination = $"{Utils.CardsToString(north)} - {Utils.CardsToString(south)}" };
 
@@ -164,7 +149,16 @@ public partial class Calculate
             var filename = $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json";
             using var fileStream = new FileStream(Path.Combine(AppContext.BaseDirectory, "etalons-suitplay", filename), FileMode.Open);
             var results = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStream, JsonSerializerOptions);
-            var lineItems = treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct(ListEqualityComparer).Where(y => y.Count > 1).ToList()
+            
+            var treeItems = bestPlay.OrderBy(x => x.Key, FaceListComparer).Select(x => new
+            {
+                Combination = x.Key,
+                Items = x.Value.SelectMany(GetDescendents)
+                    .Where(y => y.Children == null && y.Play.First() is Face.Ace or Face.Two)
+                    .OrderBy(z => z.Play, FaceListComparer)
+                    .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
+            }).ToList();
+            var result = treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct(ListEqualityComparer).Where(y => y.Count > 1).ToList()
                 .Select(x =>
                 {
                     var data = results.treesForJson.SingleOrDefault(a => a.Key.StartsWith(Utils.CardsToString(x), default)).Value;
@@ -175,7 +169,7 @@ public partial class Calculate
                         Items2 = treeItems.Select(y =>
                         {
                             var similarItems = y.Items.Where(z => z.OnlySmallCardsEW.StartsWith(x)).ToList();
-                            var bestItem = similarItems.Count != 0 ? similarItems.MaxBy(z => z.Tricks) : GetBestItem(y, x);
+                            var bestItem = similarItems.Count != 0 ? similarItems.MaxBy(z => z.Tricks) : GetBestItem(x, y.Items);
                             var item2 = new Item2
                             {
                                 Combination = y.Combination, Tricks = bestItem.Tricks,
@@ -190,13 +184,13 @@ public partial class Calculate
                     return lineItem;
                 }).OrderByDescending(x => x.Line, FaceListComparer).ToList();
             
-            lineItems.RemoveAll(x => lineItems.Any(y => IsBetterLine(y, x)));
+            result.RemoveAll(x => result.Any(y => IsBetterLine(y, x)));
             
-            return lineItems;
+            return result;
 
-            Item GetBestItem(TreeItem treeItem, List<Face> line)
+            Item GetBestItem(List<Face> line, List<Item> items)
             {
-                var list = treeItem.Items.Where(z => line.Zip(z.OnlySmallCardsEW, (a, b) => (a, b)).All(u => u.a == u.b)).ToList();
+                var list = items.Where(z => line.Zip(z.OnlySmallCardsEW, (a, b) => (a, b)).All(u => u.a == u.b)).ToList();
                 return list.Count == 0 ? new Item([], -1) : list.Where(z => z.OnlySmallCardsEW.Count == list.Max(y => y.OnlySmallCardsEW.Count)).MaxBy(v => v.Tricks);
             }
 

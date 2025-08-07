@@ -7,6 +7,7 @@
              xmlns:calc="clr-namespace:Calculator;assembly=Calculator"
              x:Class="SuitPlay.Pages.DistributionsPage2"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             xmlns:models="clr-namespace:Calculator.Models;assembly=Calculator"
              x:DataType="viewModels:Distributions2ViewModel">
     <ContentPage.Resources>
         <converters:CardsToStringConverter x:Key="CardsToStringConverter" />
@@ -30,7 +31,7 @@
                     </Grid>
                 </CollectionView.Header>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="calc:DistributionItem">
+                    <DataTemplate x:DataType="models:DistributionItem">
                         <Grid ColumnDefinitions="*,*,*,*">
                             <Label Text="{Binding West, Converter={StaticResource CardsToStringConverter}}" Grid.Column="0" Margin="5"/>
                             <Label Text="{Binding East, Converter={StaticResource CardsToStringConverter}}" Grid.Column="1" Margin="5"/>
@@ -47,14 +48,14 @@
                         <LinearItemsLayout Orientation="Horizontal"/>
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="calc:LineItem">
+                        <DataTemplate x:DataType="models:LineItem">
                             <StackLayout Orientation="Vertical">
                                 <!-- Lines -->
                                 <Label Text="{Binding Line, Converter={StaticResource CardsToStringConverter}}" Margin="5"></Label>
                                 <!-- Tricks -->
                                     <StackLayout BindableLayout.ItemsSource="{Binding Items2}" Orientation="Vertical">
                                         <BindableLayout.ItemTemplate>
-                                            <DataTemplate x:DataType="calc:Item2">
+                                            <DataTemplate x:DataType="models:Item2">
                                                 <Label Text="{Binding Tricks}" Margin="5" HorizontalTextAlignment="Center"
                                                        TextColor="{Binding Converter={StaticResource ItemToTextColorConverter}}" />
                                             </DataTemplate>

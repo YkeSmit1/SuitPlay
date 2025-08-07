@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Text;
 using Calculator;
+using Calculator.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SuitPlay.ViewModels;

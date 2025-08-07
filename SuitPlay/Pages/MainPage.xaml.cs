@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Calculator;
+using Calculator.Models;
 using MoreLinq;
 using SuitPlay.ViewModels;
 using SuitPlay.Views;

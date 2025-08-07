@@ -1,4 +1,5 @@
-﻿using MoreLinq;
+﻿using Calculator.Models;
+using MoreLinq;
 
 namespace Calculator;
 

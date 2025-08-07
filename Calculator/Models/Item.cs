@@ -1,4 +1,4 @@
-﻿namespace Calculator;
+﻿namespace Calculator.Models;
 
 public class Item(List<Face> play, int tricks, List<Item> children = null)
 {
