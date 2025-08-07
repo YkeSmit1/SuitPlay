@@ -8,7 +8,7 @@ namespace SuitPlay.ViewModels;
 public partial class Distributions2ViewModel : ObservableObject, IQueryAttributable
 {
     [ObservableProperty] public partial ObservableCollection<DistributionItem> DistributionItems { get; set; }
-    [ObservableProperty] public partial ObservableCollection<Calculate.LineItem> LineItems { get; set; }
+    [ObservableProperty] public partial ObservableCollection<LineItem> LineItems { get; set; }
     [ObservableProperty] public partial ObservableCollection<int> PossibleNrOfTricks { get; set; }
     [ObservableProperty] public partial int PurpleItems { get; set; }
     [ObservableProperty] public partial int GreenItems { get; set; }
@@ -18,9 +18,9 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        var result = (Calculate.Result2)query["Result"];
+        var result = (Result2)query["Result"];
         DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionItems);
-        LineItems = new ObservableCollection<Calculate.LineItem>(result.LineItems);
+        LineItems = new ObservableCollection<LineItem>(result.LineItems);
         PossibleNrOfTricks = new ObservableCollection<int>(result.PossibleNrOfTricks);
         PurpleItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && x.IsSubstitute);
         GreenItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && !x.IsSubstitute);

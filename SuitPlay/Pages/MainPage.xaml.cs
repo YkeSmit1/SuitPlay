@@ -22,7 +22,7 @@ public partial class MainPage
 
     private readonly Dictionary<(string suit, string card), string> dictionary;
     private IDictionary<List<Face>, List<Item>> bestPlay;
-    private Calculate.Result result;
+    private Result result;
 
     public MainPage()
     {
@@ -171,7 +171,7 @@ public partial class MainPage
         return ((HandViewModel)handView.BindingContext).Cards.Select(y => y.Face).ToList();
     }
 
-    private Task<Calculate.Result> GetResult(List<Face> north, List<Face> south)
+    private Task<Result> GetResult(List<Face> north, List<Face> south)
     {
         return Task.Run(() =>
         {

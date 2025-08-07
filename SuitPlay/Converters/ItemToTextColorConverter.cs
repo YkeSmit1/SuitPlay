@@ -7,7 +7,7 @@ public class ItemToTextColorConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return (Calculate.Item2)value switch
+        return (Item2)value switch
         {
             { IsDifferent: true, IsSubstitute: true } => Colors.Purple,
             { IsDifferent: true } => Colors.Green,

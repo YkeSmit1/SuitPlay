@@ -200,7 +200,7 @@ public static class Utils
         return (int)face < (int)segmentsNS[^index].Last();
     }
 
-    public static void SaveTrees(Calculate.Result result, string filename)
+    public static void SaveTrees(Result result, string filename)
     {
         using var stream = new FileStream(filename, FileMode.Create);
         var treesForJson = result.RelevantPlays.Where(x => x.Key.Count == 3)

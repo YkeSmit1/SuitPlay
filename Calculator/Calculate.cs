@@ -5,21 +5,11 @@ using Serilog;
 
 namespace Calculator;
 
-public class Calculate
+public partial class Calculate
 {
     private static readonly ListEqualityComparer<Face> ListEqualityComparer = new();
     private static readonly FaceListComparer FaceListComparer = new();
     private static readonly JsonSerializerOptions JsonSerializerOptions  = new() { WriteIndented = false, IncludeFields = true };
-
-    public class Result 
-    {
-        public List<PlayItem> PlayList;
-        public List<List<Face>> AllPlays;
-        public List<DistributionItem> DistributionList;
-        public List<int> PossibleNrOfTricks;
-        public Dictionary<List<Face>, PlayItem> RelevantPlays;
-        public List<List<Face>> CombinationsInTree;
-    }
 
     public static Result GetResult(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> north, List<Face> south)
     {
@@ -142,30 +132,6 @@ public class Calculate
     {
         public List<Face> Combination { get; init; }
         public List<Item> Items { get; init; }
-    }
-    
-    public class Item2
-    {
-        public List<Face> Combination { get; init; }
-        public int Tricks { get; set; }
-        public bool IsSubstitute { get; init; }
-        public bool IsDifferent { get; init; }
-    }  
-
-    public class LineItem
-    {
-        public List<Face> Line { get; set; }
-        public List<Item2> Items2 { get; set; } = [];
-        public double Average { get; set; }
-        public List<double> Probabilities { get; set; }
-    }
-
-    public class Result2
-    {
-        public List<DistributionItem> DistributionItems { get; init; }
-        public List<LineItem> LineItems { get; init; }
-        public List<int> PossibleNrOfTricks { get; init; }
-        public string Combination { get; init; }
     }
 
     public static Result2 GetResult2(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> north, List<Face> south)
