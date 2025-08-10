@@ -184,6 +184,7 @@ public class Calculate
                     };
                     lineItem.Average = lineItem.Items2.Average(y => GetProbability(y) * y.Tricks) / lineItem.Items2.Select(GetProbability).Average();
                     lineItem.Probabilities = possibleNrOfTricks.Select(y => lineItem.Items2.Where(z => z.Tricks >= y).Sum(GetProbability) / lineItem.Items2.Sum(GetProbability)).ToList();
+                    lineItem.LineInSuitPlay = data != null;
                     return lineItem;
                 }).OrderByDescending(x => x.Line, FaceListComparer).ToList();
             

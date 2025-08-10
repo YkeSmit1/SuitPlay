@@ -43,6 +43,7 @@ public partial class MainPage
     {
         var north = Preferences.Get("North", "");
         var south = Preferences.Get("South", "");
+        OnlyLinesInSuitPlayCheckBox.IsChecked = Preferences.Get("OnlyLinesInSuitPlay", false);
         var remainingCards = Utils.CardsToString(Utils.GetAllCards()).Except(north).Except(south);
         ((HandViewModel)North.BindingContext).ShowHand($"{north}", "default", dictionary);
         ((HandViewModel)South.BindingContext).ShowHand($"{south}", "default", dictionary);
@@ -188,11 +189,17 @@ public partial class MainPage
         try
         {
             var lResult = Calculate.GetResult2(bestPlay, GetHand(North), GetHand(South));
-            await Shell.Current.GoToAsync(nameof(DistributionsPage2), new Dictionary<string, object> { ["Result"] = lResult });
+            await Shell.Current.GoToAsync(nameof(DistributionsPage2), new Dictionary<string, object>
+                    { ["Result"] = lResult, ["OnlyLinesInSuitPlay"] = OnlyLinesInSuitPlayCheckBox.IsChecked });
         }
         catch (Exception exception)
         {
             await DisplayAlert("Error", exception.Message, "OK");
         }
+    }
+
+    private void OnlyLinesInSuitPlayCheckBox_OnCheckedChanged(object sender, CheckedChangedEventArgs e)
+    {
+        Preferences.Set("OnlyLinesInSuitPlay", e.Value);
     }
 }

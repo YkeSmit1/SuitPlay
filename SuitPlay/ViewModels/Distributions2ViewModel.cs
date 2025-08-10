@@ -23,7 +23,7 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
     {
         var result = (Result2)query["Result"];
         DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionItems);
-        LineItems = new ObservableCollection<LineItem>(result.LineItems);
+        LineItems = new ObservableCollection<LineItem>(result.LineItems.Where(x => !(bool)query["OnlyLinesInSuitPlay"] || x.LineInSuitPlay));
         PossibleNrOfTricks = new ObservableCollection<int>(result.PossibleNrOfTricks);
         PurpleItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && x.IsSubstitute);
         GreenItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && !x.IsSubstitute);

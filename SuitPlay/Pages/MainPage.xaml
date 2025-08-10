@@ -29,6 +29,10 @@
                 <Button x:Name="DistributionsButton" Text="Distributions" Clicked="ButtonDistributions_OnClicked" Margin="5" IsEnabled="False"></Button>
                 <Button x:Name="TreeItemsButton" Text="TreeItems" Clicked="TreeItemsButton_OnClicked" Margin="5" IsEnabled="False"></Button>
             </HorizontalStackLayout>
+            <HorizontalStackLayout>
+                <CheckBox x:Name="OnlyLinesInSuitPlayCheckBox" CheckedChanged="OnlyLinesInSuitPlayCheckBox_OnCheckedChanged"></CheckBox>
+                <Label Text="Only lines in suitplay"></Label>
+            </HorizontalStackLayout>
         </VerticalStackLayout>
     </ScrollView>
 
