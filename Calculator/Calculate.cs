@@ -140,9 +140,12 @@ public class Calculate
 
         return new Result2
         {
-            DistributionItems = distributionList.Values.ToList(), LineItems = lineItems,
+            DistributionItems = distributionList.Values.ToList(), 
+            LineItems = lineItems,
             PossibleNrOfTricks = possibleNrOfTricks, 
-            Combination = $"{Utils.CardsToString(north)} - {Utils.CardsToString(south)}" };
+            North = north,
+            South = south
+        };
 
         List<LineItem> AssignLines()
         {

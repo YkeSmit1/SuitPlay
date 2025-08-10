@@ -15,6 +15,8 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
     [ObservableProperty] public partial int GreenItems { get; set; }
     [ObservableProperty] public partial int MinusOneItems { get; set; }
     [ObservableProperty] public partial string Combination { get; set; }
+    private List<Face> North { get; set; }
+    private List<Face> South { get; set; }
     
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -26,7 +28,9 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
         PurpleItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && x.IsSubstitute);
         GreenItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && !x.IsSubstitute);
         MinusOneItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks == -1);
-        Combination = result.Combination;
+        Combination = $"{Utils.CardsToString(result.North)} - {Utils.CardsToString(result.South)}";
+        North = result.North;
+        South = result.South;
     }
     
     public async Task ExportViewModelToCsv()
@@ -37,11 +41,13 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
         sb.AppendLine("WestHand,EastHand,Plays");
 
         // Rows
-        // foreach (var item in TreeItems)
-        // {
-        //     var itemItems = string.Join(",", item.Items.Select(x => $"{Utils.CardsToString(x.Play)}:{x.Tricks}"));
-        //     sb.AppendLine($"{Utils.CardsToString(item.WestHand)},{Utils.CardsToString(item.EastHand)},{itemItems}");
-        // }
+        var cardsNS = North.Concat(South).OrderDescending().ToList();
+        foreach (var item in DistributionItems)
+        {
+            var itemItems = string.Join(",", LineItems.Select(x =>
+                    $"{Utils.CardsToString(x.Line)}:{x.Items2.Single(y => y.Combination.ConvertToSmallCards(cardsNS).SequenceEqual(item.East)).Tricks}"));
+            sb.AppendLine($"{Utils.CardsToString(item.West)},{Utils.CardsToString(item.East)},{itemItems}");
+        }
 
         var filePath = Path.Combine(FileSystem.AppDataDirectory, "ViewModelData.csv");
         await File.WriteAllTextAsync(filePath, sb.ToString());
