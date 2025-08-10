@@ -95,9 +95,6 @@ public static class MiniMax
 
         IEnumerable<Face> GetAvailableCards(List<Face> playedCards, Player player)
         {
-            if (player == Player.None)
-                return [];
-            
             var availableCards = initialCards[player].Except(playedCards).ToList();
             if (availableCards.Count == 0)
                 return [];
@@ -119,8 +116,6 @@ public static class MiniMax
         Player GetCurrentPlayer(List<Face> playedCards)
         {
             var lastTrick = playedCards.Chunk(4).Last();
-            if (playedCards.Count == 0 || lastTrick.Length == 4 || lastTrick.First() == Face.Dummy)
-                return Player.None;
             var playerToLead = initialCards.Single(x => x.Value.Contains(lastTrick.First())).Key;
             return (Player)((lastTrick.Length + (int)playerToLead) % 4 - 1);
         }

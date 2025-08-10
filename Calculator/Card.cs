@@ -42,8 +42,7 @@ public class Card
     {
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
-        if (obj.GetType() != this.GetType()) return false;
-        return Equals((Card)obj);
+        return obj.GetType() == GetType() && Equals((Card)obj);
     }
     
     public override int GetHashCode()
@@ -51,7 +50,7 @@ public class Card
         return HashCode.Combine((int)Suit, (int)Face);
     }
 
-    public Suit Suit;
-    public Face Face;
-    public Player Player;
+    public Suit Suit { get; init; }
+    public Face Face { get; init; }
+    public Player Player { get; init; }
 }
