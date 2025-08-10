@@ -106,6 +106,31 @@ public class CalculateTest
         var etalon = File.ReadAllText(Path.Combine("etalons", filename));
         Assert.Equal(etalon, json);
     }
+    
+    [Theory]
+    [InlineData("AQT98", "5432")]
+    [InlineData("QT98", "A432")]
+    // [InlineData("QT98", "A543")]
+    [InlineData("AJ92", "K843")]
+    [InlineData("AQJ", "T987654")]
+    [InlineData("AQJ", "T9876543")]
+    [InlineData("AT32", "Q654")]
+    public void TestEqualToEtalon2(string north, string south)
+    {
+        // Arrange 
+        var northHand = Utils.StringToCardList(north);
+        var southHand = Utils.StringToCardList(south);
+        // Act
+        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
+        var filename2 = $"{north}-{south}-2.json";
+        var result2 = Calculate.GetResult2(bestPlay, northHand, southHand);
+        Utils.SaveTrees2(result2, filename2);
+        
+        // Assert
+        var json = File.ReadAllText(filename2);
+        var etalon = File.ReadAllText(Path.Combine("etalons-2", filename2));
+        Assert.Equal(etalon, json);
+    }
 
     [Theory]
     [InlineData("AQT98-5432.json", new[] {"2xQ", "Ax2", "2x8"})]

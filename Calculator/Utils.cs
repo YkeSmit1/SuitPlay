@@ -209,6 +209,15 @@ public static class Utils
             .ToDictionary(x => CardsToString(x.Key), x => x.Value.NrOfTricks);
         JsonSerializer.Serialize(stream, (treesForJson, result.CombinationsInTree.Select(CardsToString)), JsonSerializerOptions);
     }
+    
+    public static void SaveTrees2(Result2 result, string filename)
+    {
+        using var stream = new FileStream(filename, FileMode.Create);
+        var treesForJson = result.LineItems
+            .OrderByDescending(x => x.Line, FaceListComparer)
+            .ToDictionary(x => CardsToString(x.Line), x => x.Items2.Select(y => y.Tricks));
+        JsonSerializer.Serialize(stream, (treesForJson, result.DistributionItems.Select(x => x.East).Select(CardsToString)), JsonSerializerOptions);
+    }
 
     public static void SetupLogging()
     {
