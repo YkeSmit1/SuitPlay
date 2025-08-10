@@ -157,7 +157,7 @@ public class Calculate
             {
                 Combination = x.Key,
                 Items = x.Value.SelectMany(GetDescendents)
-                    .Where(y => y.Children == null && y.Play.First() is Face.Ace or Face.Two)
+                    .Where(y => y.Children == null)
                     .OrderBy(z => z.Play, FaceListComparer)
                     .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
             }).ToList();
