@@ -58,7 +58,7 @@ public class Calculate
             RelevantPlays = relevantPlays,
             PlayList = relevantPlays.Values.ToList(),
             AllPlays = relevantPlays.Keys.ToList(),
-            DistributionList = distributionList.Select(x => x.Value).ToList(),
+            DistributionList = distributionList.Values.ToList(),
             PossibleNrOfTricks = possibleNrOfTricks.ToList()
         };
         
@@ -153,7 +153,7 @@ public class Calculate
             using var fileStream = new FileStream(Path.Combine(AppContext.BaseDirectory, "etalons-suitplay", filename), FileMode.Open);
             var results = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStream, JsonSerializerOptions);
             
-            var treeItems = bestPlay.OrderBy(x => x.Key, FaceListComparer).Select(x => new
+            var treeItems = bestPlay.Select(x => new
             {
                 Combination = x.Key,
                 Items = x.Value.SelectMany(GetDescendents)
@@ -180,11 +180,11 @@ public class Calculate
                                 IsDifferent = data != null && bestItem.Tricks != data[dataCounter++]
                             };
                             return item2;
-                        }).OrderBy(y => y.Combination, FaceListComparer).ToList()
+                        }).OrderBy(y => y.Combination, FaceListComparer).ToList(),
+                        LineInSuitPlay = data != null
                     };
                     lineItem.Average = lineItem.Items2.Average(y => GetProbability(y) * y.Tricks) / lineItem.Items2.Select(GetProbability).Average();
                     lineItem.Probabilities = possibleNrOfTricks.Select(y => lineItem.Items2.Where(z => z.Tricks >= y).Sum(GetProbability) / lineItem.Items2.Sum(GetProbability)).ToList();
-                    lineItem.LineInSuitPlay = data != null;
                     return lineItem;
                 }).OrderByDescending(x => x.Line, FaceListComparer).ToList();
             
