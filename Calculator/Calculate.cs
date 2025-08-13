@@ -136,12 +136,11 @@ public class Calculate
         var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), FaceListComparer).ToList();
         var distributionList = GetDistributionItems(cardsNS, combinationsInTree);
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderDescending().SkipLast(1).ToList();
-        var lineItems = AssignLines();
 
         return new Result2
         {
             DistributionItems = distributionList.Values.ToList(), 
-            LineItems = lineItems,
+            LineItems = AssignLines(),
             PossibleNrOfTricks = possibleNrOfTricks, 
             North = north,
             South = south
@@ -149,48 +148,44 @@ public class Calculate
 
         List<LineItem> AssignLines()
         {
-            var filename = $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json";
-            using var fileStream = new FileStream(Path.Combine(AppContext.BaseDirectory, "etalons-suitplay", filename), FileMode.Open);
-            var results = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStream, JsonSerializerOptions);
-            
             var treeItems = bestPlay.Select(x => new
             {
                 Combination = x.Key,
                 Items = x.Value.SelectMany(GetDescendents)
                     .Where(y => y.Children == null)
-                    .OrderBy(z => z.Play, FaceListComparer)
                     .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
-            }).ToList();
-            var result = treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct(ListEqualityComparer).Where(y => y.Count > 1).ToList()
-                .Select(x =>
+            }).OrderBy(x => x.Combination, FaceListComparer).ToList();
+
+            var lineItems = treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct(ListEqualityComparer).Where(y => y.Count > 1)
+                .Select(line =>
                 {
-                    var data = results.treesForJson.SingleOrDefault(a => a.Key.StartsWith(Utils.CardsToString(x), default)).Value;
-                    var dataCounter = 0;
                     var lineItem = new LineItem
                     {
-                        Line = x,
-                        Items2 = treeItems.Select(y =>
+                        Line = line,
+                        Items2 = treeItems.Select(type =>
                         {
-                            var similarItems = y.Items.Where(z => z.OnlySmallCardsEW.StartsWith(x)).ToList();
-                            var bestItem = similarItems.Count != 0 ? similarItems.MaxBy(z => z.Tricks) : GetBestItem(x, y.Items);
+                            var similarItems = type.Items.Where(z => z.OnlySmallCardsEW.StartsWith(line)).ToList();
+                            var bestItem = similarItems.Count != 0 ? similarItems.MaxBy(z => z.Tricks) : GetBestItem(line, type.Items);
                             var item2 = new Item2
                             {
-                                Combination = y.Combination, Tricks = bestItem.Tricks,
+                                Combination = type.Combination,
+                                Tricks = bestItem.Tricks,
                                 IsSubstitute = similarItems.Count == 0,
-                                IsDifferent = data != null && bestItem.Tricks != data[dataCounter++]
+                                Probability = distributionList[type.Combination].Probability * distributionList[type.Combination].Occurrences
                             };
                             return item2;
-                        }).OrderBy(y => y.Combination, FaceListComparer).ToList(),
-                        LineInSuitPlay = data != null
+                        }).ToList(),
                     };
-                    lineItem.Average = lineItem.Items2.Average(y => GetProbability(y) * y.Tricks) / lineItem.Items2.Select(GetProbability).Average();
-                    lineItem.Probabilities = possibleNrOfTricks.Select(y => lineItem.Items2.Where(z => z.Tricks >= y).Sum(GetProbability) / lineItem.Items2.Sum(GetProbability)).ToList();
                     return lineItem;
-                }).OrderByDescending(x => x.Line, FaceListComparer).ToList();
+                }).ToList();
             
-            result.RemoveAll(x => result.Any(y => IsBetterLine(y, x)));
+            lineItems.RemoveAll(x => lineItems.Any(y => IsBetterLine(y, x)));
+
+            AddStatistics();
             
-            return result;
+            AddSuitPlayStatistics();
+
+            return lineItems;
 
             Item GetBestItem(List<Face> line, List<Item> items)
             {
@@ -204,8 +199,34 @@ public class Calculate
                 return first.Line.SkipLast(1).SequenceEqual(second.Line.SkipLast(1)) && 
                        valueTuples.Any(x => x.First.Tricks > x.Second.Tricks) && !valueTuples.Any(x => x.Second.Tricks > x.First.Tricks);
             }
+            
+            void AddStatistics()
+            {
+                foreach (var lineItem in lineItems)
+                {
+                    lineItem.Average = lineItem.Items2.Average(y => y.Probability * y.Tricks) / lineItem.Items2.Select(z => z.Probability).Average();
+                    lineItem.Probabilities = possibleNrOfTricks.Select(y => lineItem.Items2.Where(z => z.Tricks >= y).Sum(z => z.Probability) / lineItem.Items2.Sum(z => z.Probability)).ToList();
+                }
+            }
+            
+            void AddSuitPlayStatistics()
+            {
+                var filename = $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json";
+                using var fileStream = new FileStream(Path.Combine(AppContext.BaseDirectory, "etalons-suitplay", filename), FileMode.Open);
+                var results = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStream, JsonSerializerOptions);
+            
+                foreach (var lineItem in lineItems)
+                {
+                    var data = results.treesForJson.SingleOrDefault(a => a.Key.StartsWith(Utils.CardsToString(lineItem.Line), default)).Value;
+                    lineItem.LineInSuitPlay = data != null;
+                    var dataCounter = 0;
+                    foreach (var item2 in lineItem.Items2)
+                    {
+                        item2.IsDifferent = data != null && item2.Tricks != data[dataCounter++];
+                    }
+                }
+            }
         }
-        double GetProbability(Item2 x) => distributionList[x.Combination].Probability * distributionList[x.Combination].Occurrences;
     }    
 
     public static IDictionary<List<Face>, List<Item>> CalculateBestPlay(List<Face> north, List<Face> south)
