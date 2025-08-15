@@ -51,7 +51,6 @@ public enum Player
 
 public static class Utils
 {
-    private static readonly FaceListComparer FaceListComparer = new();
     private static readonly JsonSerializerOptions JsonSerializerOptions = new() { WriteIndented = false, IncludeFields = true };
 
     public static Face CharToCard(char card)
@@ -175,12 +174,6 @@ public static class Utils
         return cards.Select(x => !enumerable.Contains(x) && IsSmallCard(x, segmentsNS) ? Face.SmallCard : x).ToList();
     }
     
-    public static List<Face> RemoveAfterDummy(this IEnumerable<Face> cards)
-    {
-        var enumerable = cards.ToList();
-        return enumerable.IndexOf(Face.Dummy) == -1 ? enumerable : enumerable.Take(enumerable.IndexOf(Face.Dummy) + 1).ToList();
-    }
-    
     public static List<Face> OnlySmallCardsEW(this IEnumerable<Face> cards)
     {
         var enumerable = cards.ToList();
@@ -204,9 +197,9 @@ public static class Utils
     public static void SaveTrees(Result result, string filename)
     {
         using var stream = new FileStream(filename, FileMode.Create);
-        var treesForJson = result.RelevantPlays.Where(x => x.Key.Count == 3)
-            .OrderByDescending(x => x.Value.Play, FaceListComparer)
-            .ToDictionary(x => CardsToString(x.Key), x => x.Value.NrOfTricks);
+        var treesForJson = result.RelevantPlays.Where(x => x.Key.Count() == 3)
+            .OrderByDescending(x => x.Value.Play)
+            .ToDictionary(x => x.Key.ToString(), x => x.Value.NrOfTricks);
         JsonSerializer.Serialize(stream, (treesForJson, result.CombinationsInTree.Select(CardsToString)), JsonSerializerOptions);
     }
     
@@ -214,8 +207,8 @@ public static class Utils
     {
         using var stream = new FileStream(filename, FileMode.Create);
         var treesForJson = result.LineItems
-            .OrderByDescending(x => x.Line, FaceListComparer)
-            .ToDictionary(x => CardsToString(x.Line), x => x.Items2.Select(y => y.Tricks));
+            .OrderByDescending(x => x.Line)
+            .ToDictionary(x => x.Line.ToString(), x => x.Items2.Select(y => y.Tricks));
         JsonSerializer.Serialize(stream, (treesForJson, result.DistributionItems.Select(x => x.East).Select(CardsToString)), JsonSerializerOptions);
     }
 

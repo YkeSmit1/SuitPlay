@@ -36,14 +36,14 @@ public class Calculate
         BackTracking();
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderDescending().SkipLast(1).ToList();
 
-        var playItems = bestPlayFlattened.Where(x => x.Play.Count is 3 or 4 or 7 /*&& x.Children.All(y => y.Children.Count > 0)*/)
-            .GroupBy(x => x.Play.ConvertToSmallCards(cardsNS).ToList(), y => y, ListEqualityComparer).ToList()
+        var playItems = bestPlayFlattened.Where(x => x.Play.Count() is 3 or 4 or 7 /*&& x.Children.All(y => y.Children.Count > 0)*/)
+            .GroupBy(x => x.Play.ConvertToSmallCards(cardsNS), y => y).ToList()
             .ToDictionary(key => key.Key, value =>
             {
                 var allCombinations = combinationsInTree.Select(x => value.SingleOrDefault(y => x.SequenceEqual(y.Combination), GetDefaultValue(value.Key, x))).ToList();
                 return new PlayItem
                 {
-                    Play = value.Key.ToList(),
+                    Play = value.Key,
                     NrOfTricks = allCombinations.Select(x => x.Tricks).ToList(),
                     Average = allCombinations.Average(x => GetProbability(x) * x.Tricks) / allCombinations.Select(GetProbability).Average(),
                     Probabilities = possibleNrOfTricks.Select(y => allCombinations.Where(x => x.Tricks >= y).Sum(GetProbability) / allCombinations.Sum(GetProbability)).ToList(),
@@ -77,11 +77,11 @@ public class Calculate
 
             void DoBackTracking(int i)
             {
-                var averages = bestPlayFlattened.Where(x => x.Play.Count == i + 2 && Utils.IsSmallCard(x.Play[1], segmentsNS))
-                    .GroupBy(x => x.Play, y => y, ListEqualityComparer).ToList()
+                var averages = bestPlayFlattened.Where(x => x.Play.Count() == i + 2 && Utils.IsSmallCard(x.Play[1], segmentsNS))
+                    .GroupBy(x => x.Play, y => y).ToList()
                     .Select(x => (play: x.Key, averages: x.Average(y => GetProbability(y) * y.Tricks) / x.Select(GetProbability).Average())).ToList();
 
-                foreach (var item in bestPlayFlattened.Where(x => x.Play.Count == i && Utils.IsSmallCard(x.Play[1], segmentsNS)))
+                foreach (var item in bestPlayFlattened.Where(x => x.Play.Count() == i && Utils.IsSmallCard(x.Play[1], segmentsNS)))
                 {
                     var bestPlayEW = item.Children.GroupBy(x => x.Tricks).OrderBy(x => x.Key).First().MinBy(x => x.Play[i]);
                     var sameAverages = averages.Where(x => x.play.StartsWith(bestPlayEW.Play)).ToList();
@@ -89,7 +89,7 @@ public class Calculate
                     var bestAverages = sameAverages.OrderBy(x => x.averages).Segment((lItem, prevItem, _) => lItem.averages - prevItem.averages > 0.00001).Last().ToList();
                     if (bestAverages.Count > 1)
                         Log.Debug("Duplicate plays found.({@item})", item);
-                    var tuple = bestPlayEW.Children.Where(x => bestAverages.Any(y => y.play.SequenceEqual(x.Play))).ToList();
+                    var tuple = bestPlayEW.Children.Where(x => bestAverages.Any(y => y.play == x.Play)).ToList();
                     if (tuple.Select(x => x.Tricks).Distinct().Count() != 1)
                         Log.Warning("Duplicate plays found with different values. ({@item})", item);
                     var tricks = tuple.First().Tricks;
@@ -98,7 +98,7 @@ public class Calculate
             }
         }
 
-        Item GetDefaultValue(List<Face> play, List<Face> combination)
+        Item GetDefaultValue(Cards play, List<Face> combination)
         {
             return bestPlay[combination].Where(x => x.Play.First() == play.First()).ToList().MaxBy(x => x.Tricks);
         }
@@ -156,7 +156,7 @@ public class Calculate
                     .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
             }).OrderBy(x => x.Combination, FaceListComparer).ToList();
 
-            var lineItems = treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct(ListEqualityComparer).Where(y => y.Count > 1)
+            var lineItems = treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct().Where(y => y.Count() > 1)
                 .Select(line =>
                 {
                     var lineItem = new LineItem
@@ -187,10 +187,10 @@ public class Calculate
 
             return lineItems;
 
-            Item GetBestItem(List<Face> line, List<Item> items)
+            Item GetBestItem(Cards line, List<Item> items)
             {
                 var list = items.Where(z => line.Zip(z.OnlySmallCardsEW, (a, b) => (a, b)).All(u => u.a == u.b)).ToList();
-                return list.Count == 0 ? new Item([], -1) : list.Where(z => z.OnlySmallCardsEW.Count == list.Max(y => y.OnlySmallCardsEW.Count)).MaxBy(v => v.Tricks);
+                return list.Count == 0 ? new Item(new Cards([]), -1) : list.Where(z => z.OnlySmallCardsEW.Count() == list.Max(y => y.OnlySmallCardsEW.Count())).MaxBy(v => v.Tricks);
             }
 
             static bool IsBetterLine(LineItem first, LineItem second)
@@ -217,7 +217,7 @@ public class Calculate
             
                 foreach (var lineItem in lineItems)
                 {
-                    var data = results.treesForJson.SingleOrDefault(a => a.Key.StartsWith(Utils.CardsToString(lineItem.Line), default)).Value;
+                    var data = results.treesForJson.SingleOrDefault(a => a.Key.StartsWith(lineItem.Line.ToString(), default)).Value;
                     lineItem.LineInSuitPlay = data != null;
                     var dataCounter = 0;
                     foreach (var item2 in lineItem.Items2)

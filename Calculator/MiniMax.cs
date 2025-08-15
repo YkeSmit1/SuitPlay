@@ -17,44 +17,44 @@ public static class MiniMax
 
         void FindBestMove()
         {
-            var playedCards = new List<Face>();
+            var playedCards = new Cards([]);
             var playableCards = GetPlayableCards(playedCards);
             foreach (var card in playableCards)
             {
                 playedCards.Add(card);
                 var resultItem = Minimax(playedCards, false);
                 tree.Add(resultItem);
-                playedCards.RemoveAt(playedCards.Count - 1);
+                playedCards.RemoveAt(playedCards.Count() - 1);
             }
         }
 
-        Item Minimax(List<Face> playedCards, bool maximizingPlayer)
+        Item Minimax(Cards playedCards, bool maximizingPlayer)
         {
             if (playedCards.Count(card => card != Face.Dummy) == initialCards.Values.Sum(x => x.Count) ||
                 playedCards.Chunk(4).Last().First() == Face.Dummy)
             {
                 var trickCount = GetTrickCount(playedCards, initialCards);
-                return new Item(playedCards.ToList(), trickCount);
+                return new Item(playedCards.Clone(), trickCount);
             }
             
-            if (!cardsEW.Except(playedCards).Any()) 
+            if (!cardsEW.Except(playedCards.Data).Any()) 
             {
                 var trickCount = GetTrickCount(playedCards, initialCards) +
                                  Math.Max(initialCards[Player.North].Count, initialCards[Player.South].Count) -
                                  playedCards.Chunk(4).Count();
-                return new Item(playedCards.ToList(), trickCount);
+                return new Item(playedCards.Clone(), trickCount);
             }
 
             if (maximizingPlayer)
             {
-                var resultItem = new Item (playedCards.ToList(), int.MinValue, []);
+                var resultItem = new Item (playedCards.Clone(), int.MinValue, []);
                 foreach (var card in GetPlayableCards(playedCards))
                 {
                     playedCards.Add(card);
                     var value = Minimax(playedCards, false);
                     resultItem.Tricks = Math.Max(resultItem.Tricks, value.Tricks);
                     resultItem.Children.Add(value);
-                    playedCards.RemoveAt(playedCards.Count - 1);
+                    playedCards.RemoveAt(playedCards.Count() - 1);
                 }
                 if (playedCards.Any(x => x == Face.Dummy)) 
                     resultItem.Children = [resultItem.Children.First(x => x.Tricks == resultItem.Tricks)];
@@ -63,20 +63,20 @@ public static class MiniMax
             }
             else
             {
-                var resultItem = new Item ( playedCards.ToList(),  int.MaxValue, []);
+                var resultItem = new Item ( playedCards.Clone(),  int.MaxValue, []);
                 foreach (var card in GetPlayableCards(playedCards))
                 {
                     playedCards.Add(card);
-                    var value = playedCards.Count % 4 == 0 && transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out var item)
-                        ? new Item(playedCards.ToList(), 0, []) {TranspositionRef = item}
+                    var value = playedCards.Count() % 4 == 0 && transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out var item)
+                        ? new Item(playedCards.Clone(), 0, []) {TranspositionRef = item}
                         : Minimax(playedCards, true);
 
                     resultItem.Tricks = Math.Min(resultItem.Tricks, value.Tricks);
-                    //if (playedCards.Count % 4 == 0 && !transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out _))
-                    //    transpositionTable.Add(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), value);
+                    // if (playedCards.Count() % 4 == 0 && !transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out _))
+                    //     transpositionTable.Add(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), value);
 
                     resultItem.Children.Add(value);
-                    playedCards.RemoveAt(playedCards.Count - 1);
+                    playedCards.RemoveAt(playedCards.Count() - 1);
                 }
 
                 resultItem.Children.RemoveAll(x => x.Tricks > resultItem.Tricks);
@@ -85,21 +85,21 @@ public static class MiniMax
             }
         }
 
-        List<Face> GetPlayableCards(List<Face> playedCards)
+        List<Face> GetPlayableCards(Cards playedCards)
         {
-            var availableCards = (playedCards.Count % 4 == 0
+            var availableCards = (playedCards.Count() % 4 == 0
                 ? GetAvailableCards(playedCards, Player.North).Concat(GetAvailableCards(playedCards, Player.South))
                 : GetAvailableCards(playedCards, NextPlayer(GetCurrentPlayer(playedCards)))).ToList();
             return availableCards.Count == 0 ? [Face.Dummy] : availableCards;
         }
 
-        IEnumerable<Face> GetAvailableCards(List<Face> playedCards, Player player)
+        IEnumerable<Face> GetAvailableCards(Cards playedCards, Player player)
         {
-            var availableCards = initialCards[player].Except(playedCards).ToList();
+            var availableCards = initialCards[player].Except(playedCards.Data).ToList();
             if (availableCards.Count == 0)
                 return [];
             
-            if (playedCards.Count % 4 == 3)
+            if (playedCards.Count() % 4 == 3)
             {
                 var lastTrick = playedCards.Chunk(4).Last();
                 var highestCardOtherTeam = ((List<Face>)[lastTrick.First(), lastTrick.Last()]).Max();
@@ -113,7 +113,7 @@ public static class MiniMax
             return availableCardsFiltered.ToList();
         }
 
-        Player GetCurrentPlayer(List<Face> playedCards)
+        Player GetCurrentPlayer(Cards playedCards)
         {
             var lastTrick = playedCards.Chunk(4).Last();
             var playerToLead = initialCards.Single(x => x.Value.Contains(lastTrick.First())).Key;
@@ -126,15 +126,15 @@ public static class MiniMax
         }
     }
     
-    public static int GetTrickCount(IEnumerable<Face> play, Dictionary<Player, List<Face>> initialCards)
+    public static int GetTrickCount(Cards play, Dictionary<Player, List<Face>> initialCards)
     {
         return play.Chunk(4).Where(x => x.First() != Face.Dummy).Count(trick => 
             initialCards.Single(y => y.Value.Contains(trick.Max())).Key is Player.North or Player.South);
     }
 
-    public static IEnumerable<Face> AvailableCardsFiltered(List<Face> availableCards, List<Face> cardsOtherTeam, List<Face> playedCards)
+    public static IEnumerable<Face> AvailableCardsFiltered(List<Face> availableCards, List<Face> cardsOtherTeam, Cards playedCards)
     {
-        var playedCardsPreviousTricks = playedCards.SkipLast(playedCards.Count % 4);
+        var playedCardsPreviousTricks = playedCards.SkipLast(playedCards.Count() % 4);
         var cardsOtherTeamNotPlayed = cardsOtherTeam.Except(playedCardsPreviousTricks).ToList();
         var segmentsCardsOtherTeam = cardsOtherTeamNotPlayed.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         var segmentsAvailableCards = availableCards.Segment((item, prevItem, _) => GetSegment(item) != GetSegment(prevItem));

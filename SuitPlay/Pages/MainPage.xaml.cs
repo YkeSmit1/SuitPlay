@@ -123,12 +123,12 @@ public partial class MainPage
     private static string GetBestPlayText(List<PlayItem> playList, List<Face> northSouth)
     {
         var segmentsNS = northSouth.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
-        var bestPlay = playList.Where(x => x.Play.Count == 7 && x.Play[1] == Face.SmallCard).MaxBy(x => x.Average);
+        var bestPlay = playList.Where(x => x.Play.Count() == 7 && x.Play[1] == Face.SmallCard).MaxBy(x => x.Average);
         var textTrickOne = GetTrickText(bestPlay.Play.Take(3).ToList());
         var textTrickTwo = GetTrickText(bestPlay.Play.Skip(4).Take(3).ToList());
         var bestPlayText = $"{textTrickOne.text} {textTrickOne.card}\n" +
                            $"Then, {textTrickTwo.text} {textTrickTwo.card}\n" +
-                           $"Sequence:{Utils.CardsToString(bestPlay.Play)}\n" +
+                           $"Sequence:{bestPlay.Play}\n" +
                            $"Average tricks:{bestPlay.Average:0.##}";
         return bestPlayText;
         
@@ -146,8 +146,8 @@ public partial class MainPage
     {
         try
         {
-            var overviewList = result.PlayList.Where(y => y.Play.Count > 2 && y.Play.All(z => z != Face.Dummy)).Select(x => new OverviewItem
-                { FirstTrick = Utils.CardsToString(x.Play), Average = x.Average, Count = x.NrOfTricks.Count }).ToList();
+            var overviewList = result.PlayList.Where(y => y.Play.Count() > 2 && y.Play.All(z => z != Face.Dummy)).Select(x => new OverviewItem
+                { FirstTrick = x.Play.ToString(), Average = x.Average, Count = x.NrOfTricks.Count }).ToList();
             await Shell.Current.GoToAsync(nameof(OverviewPage), new Dictionary<string, object> { ["OverviewList"] = overviewList });
         }
         catch (Exception exception)

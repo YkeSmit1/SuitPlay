@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Calculator;
+using Calculator.Models;
 using JetBrains.Annotations;
 using Xunit.Abstractions;
 
@@ -25,7 +26,7 @@ public class CalculateTest
         var dictionary = tricks.Select((x, index) => (x, index)).
             GroupBy(x => (Player)(x.index % 4), y => y.x).
             ToDictionary(key => key.Key, value => value.Select(x => x).ToList());
-        Assert.Equal(expected, MiniMax.GetTrickCount(tricks, dictionary));
+        Assert.Equal(expected, MiniMax.GetTrickCount(new Cards(tricks.ToList()), dictionary));
     }
 
     [Theory]
@@ -57,9 +58,9 @@ public class CalculateTest
         var cardsPlayerList = cardsPlayer.Select(Utils.CharToCard);
         var cardsOtherTeamList = cardsOtherTeam.Select(Utils.CharToCard);
         var expectedList = expected.Select(Utils.CharToCard);
-        var playedCardsList = playedCards.Select(Utils.CharToCard);
+        var playedCardsList = new Cards(playedCards.Select(Utils.CharToCard).ToList());
         // Act
-        var actual = MiniMax.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList(), playedCardsList.ToList());
+        var actual = MiniMax.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList(), playedCardsList);
         // Assert
         Assert.Equal(expectedList, actual);
     }

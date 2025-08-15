@@ -45,7 +45,7 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
         foreach (var item in DistributionItems)
         {
             var itemItems = string.Join(",", LineItems.Select(x =>
-                    $"{Utils.CardsToString(x.Line)}:{x.Items2.Single(y => y.Combination.ConvertToSmallCards(cardsNS).SequenceEqual(item.East)).Tricks}"));
+                    $"{x.Line}:{x.Items2.Single(y => y.Combination.ConvertToSmallCards(cardsNS).SequenceEqual(item.East)).Tricks}"));
             sb.AppendLine($"{Utils.CardsToString(item.West)},{Utils.CardsToString(item.East)},{itemItems}");
         }
 
