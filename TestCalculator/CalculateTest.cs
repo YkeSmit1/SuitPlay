@@ -94,8 +94,8 @@ public class CalculateTest
     public void TestEqualToEtalon(string north, string south)
     {
         // Arrange 
-        var northHand = Utils.StringToCardList(north);
-        var southHand = Utils.StringToCardList(south);
+        var northHand = Utils.StringToCardArray(north);
+        var southHand = Utils.StringToCardArray(south);
         // Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
         var filename = $"{north}-{south}.json";
@@ -119,8 +119,8 @@ public class CalculateTest
     public void TestEqualToEtalon2(string north, string south)
     {
         // Arrange 
-        var northHand = Utils.StringToCardList(north);
-        var southHand = Utils.StringToCardList(south);
+        var northHand = Utils.StringToCardArray(north);
+        var southHand = Utils.StringToCardArray(south);
         // Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
         var filename2 = $"{north}-{south}-2.json";
@@ -170,7 +170,7 @@ public class CalculateTest
     [InlineData("2_", "2")]
     public void TestOnlySmallCardsEW(string play, string expected)
     {
-        var actual = Utils.CardsToString(Utils.StringToCardList(play).OnlySmallCardsEW());
+        var actual = Utils.CardsToString(Utils.StringToCardArray(play).OnlySmallCardsEW());
         Assert.Equal(expected, actual);
     }
 }

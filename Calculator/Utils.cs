@@ -7,9 +7,9 @@ namespace Calculator;
 
 using Alias = Universal.Common.Mathematics.Math;
 
-public class ListEqualityComparer<T> : IEqualityComparer<List<T>>
+public class ArrayEqualityComparer<T> : IEqualityComparer<T[]>
 {
-    public bool Equals(List<T> left, List<T> right)
+    public bool Equals(T[] left, T[] right)
     {
         if (left == null && right == null)
             return true;
@@ -18,25 +18,25 @@ public class ListEqualityComparer<T> : IEqualityComparer<List<T>>
         return left.SequenceEqual(right);
     }
 
-    public int GetHashCode(List<T> list)
+    public int GetHashCode(T[] list)
     {
         return list.Aggregate(19, (current, total) => current * 31 + total.GetHashCode());
     }
 }
 
-public class FaceListComparer : IComparer<IList<Face>>
+public class FaceArrayComparer : IComparer<Face[]>
 {
-    public int Compare(IList<Face> left, IList<Face> right)
+    public int Compare(Face[] left, Face[] right)
     {
         if (left == null)
             return 1;
         if (right == null)
             return -1;
-        for (var i = 0; i < left.Count && i < right.Count; i++) {
+        for (var i = 0; i < left.Length && i < right.Length; i++) {
             var c = left[i].CompareTo(right[i]);
             if (c != 0) return c;
         }
-        return left.Count.CompareTo(right.Count);
+        return left.Length.CompareTo(right.Length);
     }
 }
 
@@ -123,9 +123,9 @@ public static class Utils
         return string.Join("", cards.Select(CardToChar));
     }
     
-    public static List<Face> StringToCardList(string cards)
+    public static Face[] StringToCardArray(string cards)
     {
-        return cards.Select(CharToCard).ToList();
+        return cards.Select(CharToCard).ToArray();
     }
     
     public static Face GetFaceFromDescription(char c)
@@ -167,11 +167,11 @@ public static class Utils
         return Enum.GetValues<Face>().Where(x => x >= Face.Two).Reverse();
     }
 
-    public static List<Face> ConvertToSmallCards(this IEnumerable<Face> cards, IEnumerable<Face> cardsNS)
+    public static Face[] ConvertToSmallCards(this IEnumerable<Face> cards, IEnumerable<Face> cardsNS)
     {
         var enumerable = cardsNS.ToList();
         var segmentsNS = enumerable.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
-        return cards.Select(x => !enumerable.Contains(x) && IsSmallCard(x, segmentsNS) ? Face.SmallCard : x).ToList();
+        return cards.Select(x => !enumerable.Contains(x) && IsSmallCard(x, segmentsNS) ? Face.SmallCard : x).ToArray();
     }
     
     public static List<Face> OnlySmallCardsEW(this IEnumerable<Face> cards)

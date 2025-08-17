@@ -16,7 +16,7 @@ public class Cards(List<Face> data) : IEquatable<Cards>, IComparable<Cards>
         return new Cards(Data.TakeWhile(x => Data.IndexOf(x) % 2 == 0 || x == Face.SmallCard).ToList());
     }
     
-    public Cards ConvertToSmallCards(List<Face> cardsNS)
+    public Cards ConvertToSmallCards(Face[] cardsNS)
     {
         var segmentsNS = cardsNS.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         return new Cards (Data.Select(x => !cardsNS.Contains(x) && Utils.IsSmallCard(x, segmentsNS) ? Face.SmallCard : x).ToList());

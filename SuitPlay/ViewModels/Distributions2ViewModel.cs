@@ -15,8 +15,8 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
     [ObservableProperty] public partial int GreenItems { get; set; }
     [ObservableProperty] public partial int MinusOneItems { get; set; }
     [ObservableProperty] public partial string Combination { get; set; }
-    private List<Face> North { get; set; }
-    private List<Face> South { get; set; }
+    private Face[] North { get; set; }
+    private Face[] South { get; set; }
     
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)

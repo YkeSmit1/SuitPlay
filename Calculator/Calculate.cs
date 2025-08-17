@@ -8,15 +8,15 @@ namespace Calculator;
 
 public class Calculate
 {
-    private static readonly ListEqualityComparer<Face> ListEqualityComparer = new();
-    private static readonly FaceListComparer FaceListComparer = new();
+    private static readonly ArrayEqualityComparer<Face> ListEqualityComparer = new();
+    private static readonly FaceArrayComparer FaceListComparer = new();
     private static readonly JsonSerializerOptions JsonSerializerOptions  = new() { WriteIndented = false, IncludeFields = true };
 
-    public static Result GetResult(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> north, List<Face> south)
+    public static Result GetResult(IDictionary<Face[], List<Item>> bestPlay, Face[] north, Face[] south)
     {
         Log.Information("Start GetResult");
-        var cardsNS = north.Concat(south).OrderDescending().ToList();
-        var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), FaceListComparer).ToList();
+        var cardsNS = north.Concat(south).OrderDescending().ToArray();
+        var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToArray(), FaceListComparer).ToList();
         var distributionList = GetDistributionItems(cardsNS, combinationsInTree);
 
         foreach (var keyValuePair in bestPlay)
@@ -98,7 +98,7 @@ public class Calculate
             }
         }
 
-        Item GetDefaultValue(Cards play, List<Face> combination)
+        Item GetDefaultValue(Cards play, Face[] combination)
         {
             return bestPlay[combination].Where(x => x.Play.First() == play.First()).ToList().MaxBy(x => x.Tricks);
         }
@@ -109,11 +109,11 @@ public class Calculate
         return resultItem.Children == null ? [] : resultItem.Children.Concat(resultItem.Children.SelectMany(GetDescendents));
     }
 
-    private static Dictionary<List<Face>, DistributionItem> GetDistributionItems(List<Face> cardsNS, List<List<Face>> combinationsInTree)
+    private static Dictionary<Face[], DistributionItem> GetDistributionItems(Face[] cardsNS, List<Face[]> combinationsInTree)
     {
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
-        var distributionList = combinationsInTree.ToDictionary(key => key.ToList(), value =>
+        var distributionList = combinationsInTree.ToDictionary(key => key, value =>
         {
             var eastHand = value.ToList();
             var westHand = cardsEW.Except(eastHand).ToList();
@@ -129,11 +129,11 @@ public class Calculate
         return distributionList;
     }
 
-    public static Result2 GetResult2(IDictionary<List<Face>, List<Item>> bestPlay, List<Face> north, List<Face> south)
+    public static Result2 GetResult2(IDictionary<Face[], List<Item>> bestPlay, Face[] north, Face[] south)
     {
         Log.Information("Start GetResult2");
-        var cardsNS = north.Concat(south).OrderDescending().ToList();
-        var combinationsInTree = bestPlay.Keys.OrderBy(x => x.ToList(), FaceListComparer).ToList();
+        var cardsNS = north.Concat(south).OrderDescending().ToArray();
+        var combinationsInTree = bestPlay.Keys.OrderBy(x => x, FaceListComparer).ToList();
         var distributionList = GetDistributionItems(cardsNS, combinationsInTree);
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderDescending().SkipLast(1).ToList();
 
@@ -229,17 +229,17 @@ public class Calculate
         }
     }    
 
-    public static IDictionary<List<Face>, List<Item>> CalculateBestPlay(List<Face> north, List<Face> south)
+    public static IDictionary<Face[], List<Item>> CalculateBestPlay(Face[] north, Face[] south)
     {
         Log.Information("Calculating best play North:{@north} South:{@south}",  north, south);
-        var cardsEW = Utils.GetAllCards().Except(north).Except(south).ToList();
-        var combinations = Combinations.AllCombinations(cardsEW);
+        var cardsEW = Utils.GetAllCards().Except(north).Except(south).ToArray();
+        var combinations = Combinations.AllCombinations(cardsEW.ToList());
         var cardsNS = north.Concat(south).OrderDescending();
         combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces, cardsNS) > 0);
-        var result = new ConcurrentDictionary<List<Face>, List<Item>>(ListEqualityComparer);
+        var result = new ConcurrentDictionary<Face[], List<Item>>(ListEqualityComparer);
         Parallel.ForEach(combinations, combination =>
         {
-            var cardsE = combination.ToList();
+            var cardsE = combination.ToArray();
             var cardsW = cardsEW.Except(cardsE);
             var calculateBestPlayForCombination = MiniMax.CalculateBestPlayForCombination(north, cardsE, south, cardsW);
             result[cardsE] = calculateBestPlayForCombination;
@@ -253,8 +253,8 @@ public class Calculate
     {
         var list = combination.ToList();
         var similarCombinations = SimilarCombinations(combinationList, list, cardsNS);
-        var reversedList = list.AsEnumerable().Reverse().ToList();
-        var hasSimilar = similarCombinations.Count(x => FaceListComparer.Compare(x.Reverse().ToList(), reversedList) < 0);
+        var reversedList = list.AsEnumerable().Reverse().ToArray();
+        var hasSimilar = similarCombinations.Count(x => FaceListComparer.Compare(x.Reverse().ToArray(), reversedList) < 0);
         return hasSimilar;
     }
 

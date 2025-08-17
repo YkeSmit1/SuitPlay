@@ -3,7 +3,7 @@
 public class Item(Cards play, int tricks, List<Item> children = null)
 {
     private int tricks = tricks;
-    public List<Face> Combination { get; set; }
+    public Face[] Combination { get; set; }
     public Cards Play { get; } = play;
     public Cards OnlySmallCardsEW { get; } = play.OnlySmallCardsEW();
 

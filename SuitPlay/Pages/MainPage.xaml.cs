@@ -22,7 +22,7 @@ public partial class MainPage
     }
 
     private readonly Dictionary<(string suit, string card), string> dictionary;
-    private IDictionary<List<Face>, List<Item>> bestPlay;
+    private IDictionary<Face[], List<Item>> bestPlay;
     private Result result;
 
     public MainPage()
@@ -101,7 +101,7 @@ public partial class MainPage
             var stopWatch = Stopwatch.StartNew();
             var northHand = GetHand(North);
             var southHand = GetHand(South);
-            var northSouth = northHand.Concat(southHand).OrderDescending().ToList();
+            var northSouth = northHand.Concat(southHand).OrderDescending().ToArray();
             bestPlay = await Task.Run(() => Calculate.CalculateBestPlay(northHand, southHand));
             var calculateElapsed = stopWatch.Elapsed;
             stopWatch.Restart();
@@ -120,7 +120,7 @@ public partial class MainPage
         }
     }
 
-    private static string GetBestPlayText(List<PlayItem> playList, List<Face> northSouth)
+    private static string GetBestPlayText(List<PlayItem> playList, Face[] northSouth)
     {
         var segmentsNS = northSouth.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         var bestPlay = playList.Where(x => x.Play.Count() == 7 && x.Play[1] == Face.SmallCard).MaxBy(x => x.Average);
@@ -168,12 +168,12 @@ public partial class MainPage
         }
     }
 
-    private static List<Face> GetHand(HandView handView)
+    private static Face[] GetHand(HandView handView)
     {
-        return ((HandViewModel)handView.BindingContext).Cards.Select(y => y.Face).ToList();
+        return ((HandViewModel)handView.BindingContext).Cards.Select(y => y.Face).ToArray();
     }
 
-    private Task<Result> GetResult(List<Face> north, List<Face> south)
+    private Task<Result> GetResult(Face[] north, Face[] south)
     {
         return Task.Run(() =>
         {
