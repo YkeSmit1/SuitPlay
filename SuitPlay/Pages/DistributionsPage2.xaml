@@ -4,7 +4,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="using:SuitPlay.ViewModels"
              xmlns:converters="using:SuitPlay.Converters"
-             xmlns:calc="clr-namespace:Calculator;assembly=Calculator"
              x:Class="SuitPlay.Pages.DistributionsPage2"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:models="clr-namespace:Calculator.Models;assembly=Calculator"
@@ -51,7 +50,7 @@
                         <DataTemplate x:DataType="models:LineItem">
                             <StackLayout Orientation="Vertical">
                                 <!-- Lines -->
-                                <Label Text="{Binding Line, Converter={StaticResource CardsToStringConverter}}" Margin="5"></Label>
+                                <Label Text="{Binding Line}" Margin="5"></Label>
                                 <!-- Tricks -->
                                     <StackLayout BindableLayout.ItemsSource="{Binding Items2}" Orientation="Vertical">
                                         <BindableLayout.ItemTemplate>

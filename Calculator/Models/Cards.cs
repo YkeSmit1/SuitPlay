@@ -4,6 +4,8 @@ namespace Calculator.Models;
 
 public class Cards(List<Face> data) : IEquatable<Cards>, IComparable<Cards>
 {
+    public Cards(string cards) : this(Utils.StringToCardArray(cards).ToList()) { }
+
     public readonly List<Face> Data = data;
 
     public override string ToString()
@@ -24,7 +26,7 @@ public class Cards(List<Face> data) : IEquatable<Cards>, IComparable<Cards>
     
     public Cards RemoveAfterDummy()
     {
-        return new Cards(Data.IndexOf(Face.Dummy) == -1 ? Data : Data.Take(Data.IndexOf(Face.Dummy) + 1).ToList());
+        return new Cards(Data.IndexOf(Face.Dummy) == -1 ? Data : Data.Take(Data.IndexOf(Face.Dummy)).ToList());
     }
 
     public Cards Clone()

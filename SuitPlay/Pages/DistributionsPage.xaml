@@ -5,14 +5,11 @@
              xmlns:viewModels="clr-namespace:SuitPlay.ViewModels"
              xmlns:converters="clr-namespace:SuitPlay.Converters"
              x:Class="SuitPlay.Pages.DistributionsPage"
-             xmlns:calc="clr-namespace:Calculator;assembly=Calculator"
              x:DataType="viewModels:DistributionsViewModel"
-             xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:models="clr-namespace:Calculator.Models;assembly=Calculator">
     <ContentPage.Resources>
         <converters:CardsToStringConverter x:Key="CardsToStringConverter" />
-        <converters:PlaysToStringConverter x:Key="PlaysToStringConverter" />
         <converters:TricksToStringConverter x:Key="TricksToStringConverter" />
         <converters:ProbabilityConverter x:Key="ProbabilityConverter" />
     </ContentPage.Resources>
@@ -29,8 +26,8 @@
             </Grid>
             <CollectionView Grid.Row="0" Grid.Column="1" ItemsSource="{Binding AllPlays}" ItemsLayout="HorizontalList">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="generic:List(calc:Face)">
-                        <Label Text="{Binding Converter={StaticResource PlaysToStringConverter}}" HorizontalTextAlignment="Center" WidthRequest="40"></Label>
+                    <DataTemplate x:DataType="models:Cards">
+                        <Label Text="{Binding}" HorizontalTextAlignment="Center" WidthRequest="40"></Label>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
