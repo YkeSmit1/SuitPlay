@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using Calculator;
 using Calculator.Models;
+using Cartesian;
 using Xunit.Abstractions;
 
 namespace TestCalculator;
@@ -243,7 +244,7 @@ public class CreateLinesTest
         return new TheoryData<List<List<Cards>>, List<Cards>>
         {
             // Two elements, Differ in 2nd pos 
-            { [[new Cards("2x"), new Cards("2J")]], 
+            { [[new Cards("2x"), new Cards("2J")]],
                 [new Cards("2x"), new Cards("2J")] },
             // Two elements, Differ in 3rd pos 
             { [[new Cards("2x8")], 
@@ -253,7 +254,7 @@ public class CreateLinesTest
             { [[new Cards("234x"), new Cards("234J")]], 
                 [new Cards("234x"), new Cards("234J")] },
             // Two elements, Differ in 5th pos
-            { [[new Cards("234x8")], 
+            { [[new Cards("234x8")],
                     [new Cards("234xQ")]], 
             [new Cards("234x8"), new Cards("234xQ")] },
             // Three elements, Differ in 2nd pos
@@ -265,96 +266,79 @@ public class CreateLinesTest
                     [new Cards("2xA")]], 
                 [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA")] },
             // Four elements, Differ in 2nd and 3rd pos
-            { [[new Cards("2xQ"), new Cards("2J8"), new Cards("2JQ")],
-                    [new Cards("2x8"), new Cards("2J8"), new Cards("2JQ")],
-                    [new Cards("2x8"), new Cards("2xQ"), new Cards("2JQ")],
-                    [new Cards("2x8"), new Cards("2xQ"), new Cards("2J8")]],
+            { [[new Cards("2xQ"), new Cards("2J8")],
+                    [new Cards("2x8"), new Cards("2JQ")],
+                    [new Cards("2xQ"), new Cards("2J8")],
+                    [new Cards("2xQ"), new Cards("2JQ")]],
                 [new Cards("2x8"), new Cards("2xQ"), new Cards("2J8"), new Cards("2JQ")] },
             // Six elements, Differ in 2nd and 3rd pos
-            { [[new Cards("2xQ"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA")],
-                    [new Cards("2x8"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA")],
-                    [new Cards("2xA"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA")],
-                    [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2JQ")],
-                    [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2J8")],
-                    [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2JA")]],
+            { [[new Cards("2x8"), new Cards("2J8")],
+                    [new Cards("2x8"), new Cards("2JQ")],
+                    [new Cards("2x8"), new Cards("2JA")],
+                    [new Cards("2xQ"), new Cards("2J8")],
+                    [new Cards("2xQ"), new Cards("2JQ")],
+                    [new Cards("2xQ"), new Cards("2JA")],
+                    [new Cards("2xA"), new Cards("2J8")],
+                    [new Cards("2xA"), new Cards("2JQ")],
+                    [new Cards("2xA"), new Cards("2JA")],],
                 [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA")] },
             // Nine elements, Differ in 2nd and 3rd pos
-            { [[new Cards("2xQ"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA"), new Cards("2K8"), new Cards("2KQ"), new Cards("2KA")],
-            [new Cards("2x8"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA"), new Cards("2K8"), new Cards("2KQ"), new Cards("2KA")],
-            [new Cards("2xA"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA"), new Cards("2K8"), new Cards("2KQ"), new Cards("2KA")],
-            [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2JQ"), new Cards("2K8"), new Cards("2KQ"), new Cards("2KA")],
-            [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2J8"), new Cards("2K8"), new Cards("2KQ"), new Cards("2KA")],
-            [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2JA"), new Cards("2K8"), new Cards("2KQ"), new Cards("2KA")],
-            [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA"), new Cards("2K8")],
-            [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA"), new Cards("2KQ")],
-            [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA"), new Cards("2KA")]],
-            [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA"), new Cards("2K8"), new Cards("2KQ"), new Cards("2KA")] },
+            { [[new Cards("2x8"), new Cards("2J8"), new Cards("2K8")],
+                    [new Cards("2x8"), new Cards("2J8"), new Cards("2KQ")],
+                    [new Cards("2x8"), new Cards("2J8"), new Cards("2KA")],
+                    [new Cards("2x8"), new Cards("2JQ"), new Cards("2K8")],
+                    [new Cards("2x8"), new Cards("2JQ"), new Cards("2KQ")],
+                    [new Cards("2x8"), new Cards("2JQ"), new Cards("2KA")],
+                    [new Cards("2x8"), new Cards("2JA"), new Cards("2K8")],
+                    [new Cards("2x8"), new Cards("2JA"), new Cards("2KQ")],
+                    [new Cards("2x8"), new Cards("2JA"), new Cards("2KA")],
+                    [new Cards("2xQ"), new Cards("2J8"), new Cards("2K8")],
+                    [new Cards("2xQ"), new Cards("2J8"), new Cards("2KQ")],
+                    [new Cards("2xQ"), new Cards("2J8"), new Cards("2KA")],
+                    [new Cards("2xQ"), new Cards("2JQ"), new Cards("2K8")],
+                    [new Cards("2xQ"), new Cards("2JQ"), new Cards("2KQ")],
+                    [new Cards("2xQ"), new Cards("2JQ"), new Cards("2KA")],
+                    [new Cards("2xQ"), new Cards("2JA"), new Cards("2K8")],
+                    [new Cards("2xQ"), new Cards("2JA"), new Cards("2KQ")],
+                    [new Cards("2xQ"), new Cards("2JA"), new Cards("2KA")],
+                    [new Cards("2xA"), new Cards("2J8"), new Cards("2K8")],
+                    [new Cards("2xA"), new Cards("2J8"), new Cards("2KQ")],
+                    [new Cards("2xA"), new Cards("2J8"), new Cards("2KA")],
+                    [new Cards("2xA"), new Cards("2JQ"), new Cards("2K8")],
+                    [new Cards("2xA"), new Cards("2JQ"), new Cards("2KQ")],
+                    [new Cards("2xA"), new Cards("2JQ"), new Cards("2KA")],
+                    [new Cards("2xA"), new Cards("2JA"), new Cards("2K8")],
+                    [new Cards("2xA"), new Cards("2JA"), new Cards("2KQ")],
+                    [new Cards("2xA"), new Cards("2JA"), new Cards("2KA")]],
+                [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA"), new Cards("2K8"), new Cards("2KQ"), new Cards("2KA")] },
             // Four elements, Differ in 2nd and 3rd pos with same extra
-            { [[new Cards("2xQxA"), new Cards("2J8xA"), new Cards("2JQxA")],
-            [new Cards("2x8xA"), new Cards("2J8xA"), new Cards("2JQxA")],
-            [new Cards("2x8xA"), new Cards("2xQxA"), new Cards("2JQxA")],
-            [new Cards("2x8xA"), new Cards("2xQxA"), new Cards("2J8xA")]],
-            [new Cards("2x8xA"), new Cards("2xQxA"), new Cards("2J8xA"), new Cards("2JQxA")] },
-            // Four elements, Differ in 2nd and 3rd pos with same extra but extras are different
-            { [[new Cards("2xQx8"), new Cards("2J8xQ"), new Cards("2JQx8")],
-                    [new Cards("2x8xQ"), new Cards("2J8xQ"), new Cards("2JQx8")],
-                    [new Cards("2x8xQ"), new Cards("2xQx8"), new Cards("2JQx8")],
-                    [new Cards("2x8xQ"), new Cards("2xQx8"), new Cards("2J8xQ")]],
-                [new Cards("2x8xQ"), new Cards("2xQx8"), new Cards("2J8xQ"), new Cards("2JQx8")] },
-        };
-    }
-    
-    public static TheoryData<List<List<Cards>>, List<Cards>> ListTestData2()
-    {
-        return new TheoryData<List<List<Cards>>, List<Cards>>
-        {
-            // Four elements, Differ in 2nd and 3rd pos
-            { [[new Cards("2xQ"), new Cards("2J8"), new Cards("2JQ")],
-                    [new Cards("2x8"), new Cards("2J8"), new Cards("2JQ")],
-                    [new Cards("2x8"), new Cards("2xQ"), new Cards("2JQ")],
-                    [new Cards("2x8"), new Cards("2xQ"), new Cards("2J8")]],
-                [new Cards("2x8"), new Cards("2xQ"), new Cards("2J8"), new Cards("2JQ")] }
-        };
-    }
-    
-    public static TheoryData<List<List<Cards>>, List<Cards>> ListTestData3()
-    {
-        return new TheoryData<List<List<Cards>>, List<Cards>>
-        {
-            // Two elements, Differ in 2nd pos 
-            { [[new Cards("2x"), new Cards("2J")]], 
-                [new Cards("2x"), new Cards("2J")] },
-        };
-    }
-    
-    public static TheoryData<List<List<Cards>>, List<Cards>> ListTestData4()
-    {
-        return new TheoryData<List<List<Cards>>, List<Cards>>
-        {
-            // Six elements, Differ in 2nd and 3rd pos
-            { [[new Cards("2xQ"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA")],
-                    [new Cards("2x8"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA")],
-                    [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2JQ")],
-                    [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2J8")]],
-                [new Cards("2x8"), new Cards("2xQ"), new Cards("2xA"), new Cards("2J8"), new Cards("2JQ"), new Cards("2JA")] }
-        };
-    }
-    
-    public static TheoryData<List<List<Cards>>, List<Cards>> ListTestData5()
-    {
-        return new TheoryData<List<List<Cards>>, List<Cards>>
-        {
-            // Four elements, Differ in 2nd and 3rd pos with same extra
-            { [[new Cards("2xQxA"), new Cards("2J8xA"), new Cards("2JQxA")],
-                    [new Cards("2x8xA"), new Cards("2J8xA"), new Cards("2JQxA")],
-                    [new Cards("2x8xA"), new Cards("2xQxA"), new Cards("2JQxA")],
-                    [new Cards("2x8xA"), new Cards("2xQxA"), new Cards("2J8xA")]],
+            { [[new Cards("2x8xA"), new Cards("2J8xA")],
+                    [new Cards("2x8xA"), new Cards("2JQxA")],
+                    [new Cards("2xQxA"), new Cards("2J8xA")],
+                    [new Cards("2xQxA"), new Cards("2JQxA")]],
                 [new Cards("2x8xA"), new Cards("2xQxA"), new Cards("2J8xA"), new Cards("2JQxA")] },
+            // Four elements, Differ in 2nd and 3rd pos with same extra but extras are different
+            { [[new Cards("2x8xQ"), new Cards("2J8xQ")],
+                    [new Cards("2x8xQ"), new Cards("2JQx8")],
+                    [new Cards("2xQx8"), new Cards("2JQx8")],
+                    [new Cards("2xQx8"), new Cards("2J8xQ")]],
+                [new Cards("2x8xQ"), new Cards("2xQx8"), new Cards("2J8xQ"), new Cards("2JQx8")] },
+            // Different length, Differ in first position 
+            { [[new Cards("2"), new Cards("2xA")],
+                    [new Cards("Q"), new Cards("QxA")]],
+                [new Cards("2"), new Cards("Q"), new Cards("2xA"), new Cards("QxA")] },
+            // Different length, Differ in third position 
+            { [[new Cards("2"), new Cards("2x8")],
+                    [new Cards("2"), new Cards("2xQ")],
+                    [new Cards("2"), new Cards("2xA")]],
+                [new Cards("2"), new Cards("2xA"), new Cards("2xQ"), new Cards("2x8")] },
+            // Different length, Differ in fifth position 
+            { [[new Cards("A"), new Cards("Ax2"), new Cards("Ax2xQ")],
+                    [new Cards("A"), new Cards("Ax2"), new Cards("Ax2x8")],
+                    [new Cards("A"), new Cards("Ax2"), new Cards("Ax2x3")]],
+                [new Cards("A"), new Cards("Ax2"), new Cards("Ax2xQ"), new Cards("Ax2x8"), new Cards("Ax2x3")] },
         };
     }
-    
-    
-    
 
     [Theory]
     [MemberData(nameof(ListTestData))]
@@ -362,23 +346,21 @@ public class CreateLinesTest
     {
         AssertResult(expected, cardsList);
     }
+    
 
     private static void AssertResult(List<List<Cards>> expected, List<Cards> cardsList)
     {
         var result = CreateLines(cardsList);
         Assert.Equal(expected.Count, result.Count);
+        Assert.True(expected.All(x => x.All(y => x.All(y.IsSameLine))));
+        
         foreach (var list in expected)
         {
             Assert.Contains(result, x => x.SequenceEqual(list));
         }
     }
-    
-    // { [[new Cards("2x8"), new Cards("2J8"), new Cards("2JQ")], 
-    //     [new Cards("2xQ"), new Cards("2J8"), new Cards("2JQ")],
-    //     [new Cards("2J8"), new Cards("2x8"), new Cards("2xQ")],
-    //     [new Cards("2JQ"), new Cards("2x8"), new Cards("2xQ")]],
-    //     [new Cards("2x8"), new Cards("2xQ"), new Cards("2J8"), new Cards("2JQ")] }
-    private static List<List<Cards>> CreateLines(IEnumerable<Cards> cardList)
+
+    public static List<List<Cards>> CreateLines(IEnumerable<Cards> cardList)
     {
         var result = GetLines(cardList.ToList(), 0);
         
@@ -386,32 +368,33 @@ public class CreateLinesTest
         
         static IEnumerable<List<Cards>> GetLines(List<Cards> cardList, int depth)
         {
-            if (depth % 2 == 1)
+            if (depth != 0 && cardList.Where(x => x.Count() > depth).Select(x => x.ToString()[..depth]).Distinct().Count() != 1)
+                yield return cardList;
+            else
             {
-                var groupBy = cardList.GroupBy(x => x.Data[depth]).ToList();
-                if (groupBy.Count > 1 && groupBy.Any(x => x.Count() > 1))
+                var groupBy = cardList.Where(x => x.Count() > depth).GroupBy(x => x.Data[depth]).ToList();
+                var cardsSmaller = cardList.Where(x => x.Count() <= depth).ToList();
+                if (depth % 2 == 1)
                 {
-                    foreach (var group in cardList.GroupBy(x => x.Data[depth]))
+                    if (groupBy.Count > 1 &&
+                        groupBy.Any(x => GenerateLines(x.Select(y => y).ToList(), depth).Count() > 1))
                     {
-                        foreach (var card in group)
-                        {
-                            yield return cardList.Except(group.Except([card])).ToList();
-                        }
+                        foreach (var item in CartesianEnumerable.Enumerate(groupBy.Select(x => x.Select(y => y).ToArray())))
+                            yield return cardsSmaller.Concat(item).ToList();
+                    }
+                    else
+                    {
+                        foreach (var line in GenerateLines(cardList, depth))
+                            yield return line;
                     }
                 }
                 else
                 {
-                    foreach (var lines in GenerateLines(cardList, depth)) 
-                        yield return lines;
-                    
-                }
-            }
-            else
-            {
-                foreach (var group in cardList.GroupBy(x => x.Data[depth]))
-                {
-                    foreach (var lines in GenerateLines(group.Select(x => x).ToList(), depth)) 
-                        yield return lines;
+                    foreach (var group in groupBy)
+                    {
+                        foreach (var line in GenerateLines(cardsSmaller.Concat(group.Select(x => x)).ToList(), depth).ToList())
+                            yield return line;
+                    }
                 }
             }
 
@@ -419,7 +402,7 @@ public class CreateLinesTest
 
             static IEnumerable<List<Cards>> GenerateLines(List<Cards> cardList, int depth)
             {
-                if (cardList.Any(x => x.Count() <= depth + 1))
+                if (cardList.All(x => x.Count() <= depth + 1))
                     yield return cardList;
                 else
                     foreach (var line in GetLines(cardList, depth + 1))

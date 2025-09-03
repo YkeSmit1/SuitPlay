@@ -34,6 +34,11 @@ public class Cards(List<Face> data) : IEquatable<Cards>, IComparable<Cards>
         return new Cards ( Data.ToList() );
     }
 
+    public bool IsSameLine(Cards other)
+    {
+        return this == other || Zip(other, (a, b) => (a, b)).TakeWhile(x => x.a == x.b).Count() % 2 == 1;
+    }
+
     public void Add(Face card) => Data.Add(card);
     public void RemoveAt(int index) => Data.RemoveAt(index);
     public IEnumerable<Face[]> Chunk(int size) => Data.Chunk(size);

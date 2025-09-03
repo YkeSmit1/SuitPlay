@@ -54,4 +54,11 @@ public class CardsTests
         // Test with multiple faces - comparison should be based on first differing element
         Assert.True(cards1.CompareTo(cards3) < 0);
     }
+
+    [Fact]
+    public void TestSameLine()
+    {
+        Assert.True(new Cards("Ax").IsSameLine(new Cards("AK")));
+        Assert.False(new Cards("2xA").IsSameLine(new Cards("2xQ")));
+    }
 }
