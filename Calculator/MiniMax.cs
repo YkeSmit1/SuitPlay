@@ -5,10 +5,13 @@ namespace Calculator;
 
 public static class MiniMax
 {
+    private static ArrayEqualityComparer<Face> arrayEqualityComparer;
+
     public static List<Item> CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
     {
         var tree = new List<Item>();
-        var transpositionTable = new Dictionary<Face[], Item>(new ArrayEqualityComparer<Face>());
+        arrayEqualityComparer = new ArrayEqualityComparer<Face>();
+        var transpositionTable = new Dictionary<Face[], Item>(arrayEqualityComparer);
         var initialCards = cards.Select((x, index) => (x, index)).ToDictionary(item => (Player)item.index, item => item.x.ToList());
         var cardsNS = initialCards[Player.North].Concat(initialCards[Player.South]).OrderDescending().ToList();
         var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).OrderDescending().ToList();
@@ -87,28 +90,81 @@ public static class MiniMax
 
         List<Face> GetPlayableCards(Cards playedCards)
         {
-            var availableCards = (playedCards.Count() % 4 == 0
-                ? GetAvailableCards(playedCards, Player.North).Concat(GetAvailableCards(playedCards, Player.South))
-                : GetAvailableCards(playedCards, NextPlayer(GetCurrentPlayer(playedCards)))).ToList();
+            List<Face> availableCards;
+            if (playedCards.Count() % 4 == 0)
+            {
+                var availableCardsNorth = GetAvailableCards(playedCards, Player.North);
+                var availableCardsSouth = GetAvailableCards(playedCards, Player.South);
+                availableCards = ApplyStrategyPosition1(availableCardsNorth, availableCardsSouth);
+            }
+            else
+            {
+                availableCards = GetAvailableCards(playedCards, NextPlayer(GetCurrentPlayer(playedCards))).ToList();
+                if (availableCards.Count == 0) 
+                    return [Face.Dummy];
+                var lastTrick = playedCards.Chunk(4).Last();
+
+                availableCards = lastTrick.Length switch
+                {
+                    1 => ApplyStrategyPosition2(lastTrick),
+                    2 => ApplyStrategyPosition3(lastTrick),
+                    3 => ApplyStrategyPosition4(lastTrick),
+                    _ => availableCards
+                };
+            }
+
             return availableCards.Count == 0 ? [Face.Dummy] : availableCards;
+
+            List<Face> ApplyStrategyPosition1(List<Face> availableCardsNorth, List<Face> availableCardsSouth)
+            {
+                if (HasForks(availableCardsNorth) && !HasForks(availableCardsSouth))
+                    return availableCardsSouth;
+                if (HasForks(availableCardsSouth) && !HasForks(availableCardsNorth))
+                    return availableCardsNorth;
+
+                return availableCardsNorth.Concat(availableCardsSouth).ToList();
+                
+                bool HasForks(List<Face> cardsPlayer)
+                {
+                    // TODO filter out small cards
+                    var highestCardsOtherTeamNotPlayed = cardsEW.Except(playedCards.Data);
+                    return cardsPlayer.Select(x => highestCardsOtherTeamNotPlayed.Where(y => y > x).ToArray()).Distinct(arrayEqualityComparer).Count() != 1;
+                }
+            }
+            
+            List<Face> ApplyStrategyPosition2(Face[] lastTrick)
+            {
+                // TODO maybe use falsecards
+                return availableCards.All(x => x < lastTrick[0]) ? [availableCards.Min(y => y)] : availableCards;
+            }
+            
+            List<Face> ApplyStrategyPosition3(Face[] lastTrick)
+            {
+                if (availableCards.All(x => x < lastTrick[0]) || availableCards.All(x => x < lastTrick[1]))
+                    return [availableCards.Min(y => y)];
+                if (lastTrick[0] < lastTrick[1])
+                    return availableCards.Where(x => x > lastTrick[1]).ToList();
+                return availableCards;
+            }
+
+            List<Face> ApplyStrategyPosition4(Face[] lastTrick)
+            {
+                var highestCardOtherTeam = (Face)Math.Max((int)lastTrick[0], (int)lastTrick[2]);
+                var highestCards = availableCards.Where(x => x > highestCardOtherTeam && highestCardOtherTeam > lastTrick[1]).ToList();
+                if (highestCards.Count > 0) 
+                    availableCards = [highestCards.Min()];
+                return availableCards;
+            }
         }
 
-        IEnumerable<Face> GetAvailableCards(Cards playedCards, Player player)
+        List<Face> GetAvailableCards(Cards playedCards, Player player)
         {
             var availableCards = initialCards[player].Except(playedCards.Data).ToList();
             if (availableCards.Count == 0)
                 return [];
             
-            if (playedCards.Count() % 4 == 3)
-            {
-                var lastTrick = playedCards.Chunk(4).Last();
-                var highestCardOtherTeam = ((List<Face>)[lastTrick.First(), lastTrick.Last()]).Max();
-                var highestCards = availableCards.Where(x => x > highestCardOtherTeam && highestCardOtherTeam > lastTrick[1]).ToList();
-                if (highestCards.Count > 0) return [highestCards.Min()];
-            }
-            
             var cardsOtherTeam = player is Player.North or Player.South ? cardsEW : cardsNS;
-            var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeam, playedCards);
+            var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeam, playedCards).ToList();
 
             return availableCardsFiltered.ToList();
         }
