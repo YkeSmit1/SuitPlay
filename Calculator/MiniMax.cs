@@ -40,7 +40,7 @@ public static class MiniMax
                 return new Item(playedCards.Clone(), trickCount);
             }
             
-            if (!cardsEW.Except(playedCards.Data).Any()) 
+            if (playedCards.Count() % 4 == 0 && !cardsEW.Except(playedCards.Data).Any()) 
             {
                 var trickCount = GetTrickCount(playedCards, initialCards) +
                                  Math.Max(initialCards[Player.North].Count, initialCards[Player.South].Count) -
