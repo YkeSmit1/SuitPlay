@@ -173,7 +173,6 @@ public class Calculate
                                 Combination = type.Combination,
                                 Tricks = similarItems.Count != 0 ? similarItems.Select(x => x.Tricks).Distinct().ToArray() : [-1],
                                 Probability = distributionList[type.Combination].Probability * distributionList[type.Combination].Occurrences,
-                                Count = similarItems.Count,
                             };
                             return item2;
                         }).ToList(),

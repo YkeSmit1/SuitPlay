@@ -10,10 +10,9 @@ public class ItemToTextColorConverter : IValueConverter
     {
         return (Item2)value switch
         {
-            { IsDifferent: true, IsSubstitute: true } => Colors.Purple,
-            { IsDifferent: true } => Colors.Green,
-            { IsSubstitute: true } => Colors.Red,
-            _ => Colors.White
+            { IsDifferent: true } => Colors.Red,
+            { Tricks.Length: 1 } => Colors.White,
+            _ => Colors.Green
         };
     }
 

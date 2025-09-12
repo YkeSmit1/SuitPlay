@@ -11,7 +11,7 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
     [ObservableProperty] public partial ObservableCollection<DistributionItem> DistributionItems { get; set; }
     [ObservableProperty] public partial ObservableCollection<LineItem> LineItems { get; set; }
     [ObservableProperty] public partial ObservableCollection<int> PossibleNrOfTricks { get; set; }
-    [ObservableProperty] public partial int PurpleItems { get; set; }
+    [ObservableProperty] public partial int RedItems { get; set; }
     [ObservableProperty] public partial int GreenItems { get; set; }
     [ObservableProperty] public partial int MinusOneItems { get; set; }
     [ObservableProperty] public partial string Combination { get; set; }
@@ -25,8 +25,8 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
         DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionItems);
         LineItems = new ObservableCollection<LineItem>(result.LineItems.Where(x => !(bool)query["OnlyLinesInSuitPlay"] || x.LineInSuitPlay));
         PossibleNrOfTricks = new ObservableCollection<int>(result.PossibleNrOfTricks);
-        PurpleItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && x.IsSubstitute);
-        GreenItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && !x.IsSubstitute);
+        GreenItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks.Length > 1);
+        RedItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent);
         MinusOneItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks.First() == -1);
         Combination = $"{Utils.CardsToString(result.North)} - {Utils.CardsToString(result.South)}";
         North = result.North;
