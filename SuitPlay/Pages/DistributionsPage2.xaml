@@ -12,6 +12,7 @@
         <converters:CardsToStringConverter x:Key="CardsToStringConverter" />
         <converters:ProbabilityConverter x:Key="ProbabilityConverter" />
         <converters:ItemToTextColorConverter x:Key="ItemToTextColorConverter" />
+        <converters:ItemToTricksConverter x:Key="ItemToTricksConverter" />
     </ContentPage.Resources>
     <ContentPage.BindingContext>
         <viewModels:Distributions2ViewModel/>
@@ -50,12 +51,12 @@
                         <DataTemplate x:DataType="models:LineItem">
                             <StackLayout Orientation="Vertical">
                                 <!-- Lines -->
-                                <Label Text="{Binding Line}" Margin="5"></Label>
+                                <Label Text="{Binding DescriptiveLine}" Margin="5"></Label>
                                 <!-- Tricks -->
                                     <StackLayout BindableLayout.ItemsSource="{Binding Items2}" Orientation="Vertical">
                                         <BindableLayout.ItemTemplate>
                                             <DataTemplate x:DataType="models:Item2">
-                                                <Label Text="{Binding Tricks}" Margin="5" HorizontalTextAlignment="Center"
+                                                <Label Text="{Binding Converter={StaticResource ItemToTricksConverter}}" Margin="5" HorizontalTextAlignment="Center"
                                                        TextColor="{Binding Converter={StaticResource ItemToTextColorConverter}}" />
                                             </DataTemplate>
                                         </BindableLayout.ItemTemplate>

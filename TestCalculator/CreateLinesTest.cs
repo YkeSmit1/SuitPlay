@@ -18,7 +18,7 @@ public class CreateLinesTest
     [Fact]
     public void CreateLines_EmptyInput_ReturnsEmptyList()
     {
-        var result = CreateLines(new List<Cards>());
+        var result = Calculate.CreateLines(new List<Cards>());
         
         Assert.Empty(result);
     }
@@ -28,7 +28,7 @@ public class CreateLinesTest
     {
         var card = new Cards([Face.Ace, Face.King]);
         var input = new List<Cards> { card };
-        var result = CreateLines(input);
+        var result = Calculate.CreateLines(input);
         
         Assert.Single(result);
         Assert.Single(result[0]);
@@ -41,7 +41,7 @@ public class CreateLinesTest
         var card1 = new Cards([Face.Ace, Face.King]);
         var card2 = new Cards([Face.Queen, Face.Jack]); // Different cards
         var input = new List<Cards> { card1, card2 };
-        var result = CreateLines(input);
+        var result = Calculate.CreateLines(input);
         
         Assert.Equal(2, result.Count);
         Assert.All(result, line => Assert.Single(line));
@@ -58,7 +58,7 @@ public class CreateLinesTest
         var card4 = new Cards([Face.King, Face.Queen, Face.Jack]);
         
         var input = new List<Cards> { card1, card2, card3, card4 };
-        var result = CreateLines(input);
+        var result = Calculate.CreateLines(input);
         
         // Debug output to understand the actual result
         testOutputHelper.WriteLine($"Total lines: {result.Count}");
@@ -133,7 +133,7 @@ public class CreateLinesTest
         var cardX = new Cards([Face.Ace, Face.Ten, Face.Nine]);      // Will match all Ace-starting cards
     
         var input = new List<Cards> { cardA, cardB, cardC, cardD, cardX };
-        var result = CreateLines(input);
+        var result = Calculate.CreateLines(input);
 
         testOutputHelper.WriteLine($"Total lines: {result.Count}");
         for (var i = 0; i < result.Count; i++)
@@ -165,7 +165,7 @@ public class CreateLinesTest
         var card4 = new Cards([Face.Eight, Face.Seven]);
     
         var input = new List<Cards> { card1, card2, card3, card4 };
-        var result = CreateLines(input);
+        var result = Calculate.CreateLines(input);
 
         testOutputHelper.WriteLine($"Total lines: {result.Count}");
         for (var i = 0; i < result.Count; i++)
@@ -193,9 +193,9 @@ public class CreateLinesTest
         var card3 = new Cards(Utils.StringToCardArray("2KA").ToList());
         
         var input = new List<Cards> { card1, card2, card3};
-        var result = CreateLines(input);
+        var result = Calculate.CreateLines(input);
         
-        var result2 = CreateLines(input.AsEnumerable().Reverse());
+        var result2 = Calculate.CreateLines(input.AsEnumerable().Reverse());
         Assert.Equal(result.Count, result2.Count);
         Assert.Equal(result.OrderBy(x => x.Count).Select(x => x.Count), result2.OrderBy(x => x.Count).Select(x => x.Count));
     }
@@ -210,9 +210,9 @@ public class CreateLinesTest
         var card4 = new Cards([Face.Two, Face.King, Face.Queen]);
         
         var input = new List<Cards> { card1, card2, card3, card4};
-        var result = CreateLines(input);
+        var result = Calculate.CreateLines(input);
         
-        var result2 = CreateLines(input.AsEnumerable().Reverse());
+        var result2 = Calculate.CreateLines(input.AsEnumerable().Reverse());
         Assert.All(result, x => Assert.Equal(2, x.Count));
         Assert.All(result2, x => Assert.Equal(2, x.Count));
         Assert.Equal(result.Count, result2.Count);
@@ -230,9 +230,9 @@ public class CreateLinesTest
         var card6 = new Cards([Face.Two, Face.Jack, Face.Queen]);
         
         var input = new List<Cards> { card1, card2, card3, card4, card5, card6};
-        var result = CreateLines(input);
+        var result = Calculate.CreateLines(input);
         
-        var result2 = CreateLines(input.AsEnumerable().Reverse());
+        var result2 = Calculate.CreateLines(input.AsEnumerable().Reverse());
         Assert.All(result, x => Assert.Equal(3, x.Count));
         Assert.All(result2, x => Assert.Equal(3, x.Count));
         Assert.Equal(result.Count, result2.Count);
@@ -350,64 +350,13 @@ public class CreateLinesTest
 
     private static void AssertResult(List<List<Cards>> expected, List<Cards> cardsList)
     {
-        var result = CreateLines(cardsList);
+        var result = Calculate.CreateLines(cardsList);
         Assert.Equal(expected.Count, result.Count);
         Assert.True(expected.All(x => x.All(y => x.All(y.IsSameLine))));
         
         foreach (var list in expected)
         {
             Assert.Contains(result, x => x.SequenceEqual(list));
-        }
-    }
-
-    public static List<List<Cards>> CreateLines(IEnumerable<Cards> cardList)
-    {
-        var result = GetLines(cardList.ToList(), 0);
-        
-        return result.ToList();
-        
-        static IEnumerable<List<Cards>> GetLines(List<Cards> cardList, int depth)
-        {
-            if (depth != 0 && cardList.Where(x => x.Count() > depth).Select(x => x.ToString()[..depth]).Distinct().Count() != 1)
-                yield return cardList;
-            else
-            {
-                var groupBy = cardList.Where(x => x.Count() > depth).GroupBy(x => x.Data[depth]).ToList();
-                var cardsSmaller = cardList.Where(x => x.Count() <= depth).ToList();
-                if (depth % 2 == 1)
-                {
-                    if (groupBy.Count > 1 &&
-                        groupBy.Any(x => GenerateLines(x.Select(y => y).ToList(), depth).Count() > 1))
-                    {
-                        foreach (var item in CartesianEnumerable.Enumerate(groupBy.Select(x => x.Select(y => y).ToArray())))
-                            yield return cardsSmaller.Concat(item).ToList();
-                    }
-                    else
-                    {
-                        foreach (var line in GenerateLines(cardList, depth))
-                            yield return line;
-                    }
-                }
-                else
-                {
-                    foreach (var group in groupBy)
-                    {
-                        foreach (var line in GenerateLines(cardsSmaller.Concat(group.Select(x => x)).ToList(), depth).ToList())
-                            yield return line;
-                    }
-                }
-            }
-
-            yield break;
-
-            static IEnumerable<List<Cards>> GenerateLines(List<Cards> cardList, int depth)
-            {
-                if (cardList.All(x => x.Count() <= depth + 1))
-                    yield return cardList;
-                else
-                    foreach (var line in GetLines(cardList, depth + 1))
-                        yield return line;
-            }
         }
     }
 }

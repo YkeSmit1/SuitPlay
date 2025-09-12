@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Json;
 using Calculator.Models;
+using Cartesian;
 using MoreLinq;
 using Serilog;
 
@@ -156,7 +157,9 @@ public class Calculate
                     .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
             }).OrderBy(x => x.Combination, FaceListComparer).ToList();
 
-            var lineItems = treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct().Where(y => y.Count() > 1)
+            var lines2NdHigh = treeItems.SelectMany(x => x.Items).Where(x => x.Play.Count() > 1 && x.Play.Data[1] != Face.SmallCard).Select(x => x.Play).ToList();
+            var lines2NdDummy = treeItems.SelectMany(x => x.Items).Where(x => x.Play.Count() == 1).Select(x => x.Play).ToList();
+            var lineItems = CreateLines(treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct().Where(y => y.Count() > 1))
                 .Select(line =>
                 {
                     var lineItem = new LineItem
@@ -164,14 +167,13 @@ public class Calculate
                         Line = line,
                         Items2 = treeItems.Select(type =>
                         {
-                            var similarItems = type.Items.Where(z => z.OnlySmallCardsEW.StartsWith(line)).ToList();
-                            var bestItem = similarItems.Count != 0 ? similarItems.MaxBy(z => z.Tricks) : GetBestItem(line, type.Items);
+                            var similarItems = GetSimilarItems(type.Items, line);
                             var item2 = new Item2
                             {
                                 Combination = type.Combination,
-                                Tricks = bestItem.Tricks,
-                                IsSubstitute = similarItems.Count == 0,
-                                Probability = distributionList[type.Combination].Probability * distributionList[type.Combination].Occurrences
+                                Tricks = similarItems.Count != 0 ? similarItems.Select(x => x.Tricks).Distinct().ToArray() : [-1],
+                                Probability = distributionList[type.Combination].Probability * distributionList[type.Combination].Occurrences,
+                                Count = similarItems.Count,
                             };
                             return item2;
                         }).ToList(),
@@ -179,33 +181,18 @@ public class Calculate
                     return lineItem;
                 }).ToList();
             
-            lineItems.RemoveAll(x => lineItems.Any(y => IsBetterLine(y, x)));
-
             AddStatistics();
             
             AddSuitPlayStatistics();
 
             return lineItems;
-
-            Item GetBestItem(Cards line, List<Item> items)
-            {
-                var list = items.Where(z => line.Zip(z.OnlySmallCardsEW, (a, b) => (a, b)).All(u => u.a == u.b)).ToList();
-                return list.Count == 0 ? new Item(new Cards([]), -1) : list.Where(z => z.OnlySmallCardsEW.Count() == list.Max(y => y.OnlySmallCardsEW.Count())).MaxBy(v => v.Tricks);
-            }
-
-            static bool IsBetterLine(LineItem first, LineItem second)
-            {
-                var valueTuples = first.Items2.Zip(second.Items2).ToList();
-                return first.Line.SkipLast(1).SequenceEqual(second.Line.SkipLast(1)) && 
-                       valueTuples.Any(x => x.First.Tricks > x.Second.Tricks) && !valueTuples.Any(x => x.Second.Tricks > x.First.Tricks);
-            }
             
             void AddStatistics()
             {
                 foreach (var lineItem in lineItems)
                 {
-                    lineItem.Average = lineItem.Items2.Average(y => y.Probability * y.Tricks) / lineItem.Items2.Select(z => z.Probability).Average();
-                    lineItem.Probabilities = possibleNrOfTricks.Select(y => lineItem.Items2.Where(z => z.Tricks >= y).Sum(z => z.Probability) / lineItem.Items2.Sum(z => z.Probability)).ToList();
+                    lineItem.Average = lineItem.Items2.Average(y => y.Probability * y.Tricks.First()) / lineItem.Items2.Select(z => z.Probability).Average();
+                    lineItem.Probabilities = possibleNrOfTricks.Select(y => lineItem.Items2.Where(z => z.Tricks.First() >= y).Sum(z => z.Probability) / lineItem.Items2.Sum(z => z.Probability)).ToList();
                 }
             }
             
@@ -217,14 +204,79 @@ public class Calculate
             
                 foreach (var lineItem in lineItems)
                 {
-                    var data = results.treesForJson.SingleOrDefault(a => a.Key.StartsWith(lineItem.Line.ToString(), default)).Value;
-                    lineItem.LineInSuitPlay = data != null;
+                    var data = results.treesForJson.SingleOrDefault(a => lineItem.DescriptiveLine.ToString().StartsWith(a.Key)).Value;
+                    if (data == null) continue;
+                    lineItem.LineInSuitPlay = true;
                     var dataCounter = 0;
                     foreach (var item2 in lineItem.Items2)
                     {
-                        item2.IsDifferent = data != null && item2.Tricks != data[dataCounter++];
+                        item2.IsDifferent = item2.Tricks.First() != -1 && item2.Tricks.First() != data[dataCounter];
+                        item2.TricksInSuitPlay = data[dataCounter++];
                     }
                 }
+            }
+
+            List<Item> GetSimilarItems(List<Item> items, List<Cards> line)
+            {
+                var similarItems = items.Where(z => line.Any(u => u == z.OnlySmallCardsEW)).ToList();
+                if (similarItems.Count != 0) 
+                    return similarItems;
+                var lines2NdHighItems = items.Where(z => lines2NdHigh.Any(u => u == z.Play)).ToList();
+                if (lines2NdHighItems.Count > 0)
+                    return lines2NdHighItems;
+                var lines2NdDummyItems = items.Where(z => lines2NdDummy.Any(u => u == z.Play)).ToList();
+                return lines2NdDummyItems.Count > 0 ? lines2NdDummyItems : similarItems;
+            }
+        }
+    }    
+    
+    public static List<List<Cards>> CreateLines(IEnumerable<Cards> cardList)
+    {
+        var result = GetLines(cardList.ToList(), 0);
+        
+        return result.ToList();
+        
+        static IEnumerable<List<Cards>> GetLines(List<Cards> cardList, int depth)
+        {
+            if (depth != 0 && cardList.Where(x => x.Count() > depth).Select(x => x.ToString()[..depth]).Distinct().Count() != 1)
+                yield return cardList;
+            else
+            {
+                var groupBy = cardList.Where(x => x.Count() > depth).GroupBy(x => x.Data[depth]).ToList();
+                var cardsSmaller = cardList.Where(x => x.Count() <= depth).ToList();
+                if (depth % 2 == 1)
+                {
+                    if (groupBy.Count > 1 &&
+                        groupBy.Any(x => GenerateLines(x.Select(y => y).ToList(), depth).Count() > 1))
+                    {
+                        foreach (var item in CartesianEnumerable.Enumerate(groupBy.Select(x => x.Select(y => y).ToArray())))
+                            yield return cardsSmaller.Concat(item).ToList();
+                    }
+                    else
+                    {
+                        foreach (var line in GenerateLines(cardList, depth))
+                            yield return line;
+                    }
+                }
+                else
+                {
+                    foreach (var group in groupBy)
+                    {
+                        foreach (var line in GenerateLines(cardsSmaller.Concat(group.Select(x => x)).ToList(), depth).ToList())
+                            yield return line;
+                    }
+                }
+            }
+
+            yield break;
+
+            static IEnumerable<List<Cards>> GenerateLines(List<Cards> cardList, int depth)
+            {
+                if (cardList.All(x => x.Count() <= depth + 1))
+                    yield return cardList;
+                else
+                    foreach (var line in GetLines(cardList, depth + 1))
+                        yield return line;
             }
         }
     }    
@@ -237,7 +289,7 @@ public class Calculate
         var cardsNS = north.Concat(south).OrderDescending();
         combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces, cardsNS) > 0);
         var result = new ConcurrentDictionary<Face[], List<Item>>(ListEqualityComparer);
-        Parallel.ForEach(combinations, combination =>
+        Parallel.ForEach(combinations,combination =>
         {
             var cardsE = combination.ToArray();
             var cardsW = cardsEW.Except(cardsE);

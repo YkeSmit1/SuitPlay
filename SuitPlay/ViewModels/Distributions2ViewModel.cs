@@ -27,7 +27,7 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
         PossibleNrOfTricks = new ObservableCollection<int>(result.PossibleNrOfTricks);
         PurpleItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && x.IsSubstitute);
         GreenItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent && !x.IsSubstitute);
-        MinusOneItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks == -1);
+        MinusOneItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks.First() == -1);
         Combination = $"{Utils.CardsToString(result.North)} - {Utils.CardsToString(result.South)}";
         North = result.North;
         South = result.South;
