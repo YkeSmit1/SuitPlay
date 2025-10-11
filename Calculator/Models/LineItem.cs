@@ -7,6 +7,7 @@ public class LineItem
     public double Average { get; set; }
     public List<double> Probabilities { get; set; }
     public bool LineInSuitPlay { get; set; }
-    public Cards DescriptiveLine => GeneratedLine != null ? GeneratedLine : Line.MaxBy(x => x.Count());
     public Cards GeneratedLine { get; set; }
+    public Cards LongestLine => Line.MaxBy(x => x.Count()); 
+    public string Header => $"{LongestLine};{GeneratedLine}";
 }

@@ -51,7 +51,7 @@
                         <DataTemplate x:DataType="models:LineItem">
                             <StackLayout Orientation="Vertical">
                                 <!-- Lines -->
-                                <Label Text="{Binding DescriptiveLine}" Margin="5"></Label>
+                                <Label Text="{Binding Header}" Margin="5"></Label>
                                 <!-- Tricks -->
                                     <StackLayout BindableLayout.ItemsSource="{Binding Items2}" Orientation="Vertical">
                                         <BindableLayout.ItemTemplate>

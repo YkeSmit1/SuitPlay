@@ -109,7 +109,7 @@ public class CalculateTest
     
     [Theory]
     [InlineData("AQT98", "5432")]
-    // [InlineData("QT98", "A432")]
+    [InlineData("QT98", "A432")]
     [InlineData("AJ92", "K843")]
     [InlineData("AQJ", "T987654")]
     [InlineData("AQJ", "T9876543")]

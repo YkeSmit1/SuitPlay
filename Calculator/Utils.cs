@@ -207,8 +207,9 @@ public static class Utils
     {
         using var stream = new FileStream(filename, FileMode.Create);
         var treesForJson = result.LineItems
-            .OrderByDescending(x => x.DescriptiveLine)
-            .ToDictionary(x => x.DescriptiveLine.ToString(), x => x.Items2.Select(y => y.Tricks.First()));
+            .OrderByDescending(x => x.LongestLine)
+            .ThenByDescending(x => x.GeneratedLine)
+            .ToDictionary(x => x.Header, x => x.Items2.Select(y => y.Tricks.First()));
         JsonSerializer.Serialize(stream, (treesForJson, result.DistributionItems.Select(x => x.East).Select(CardsToString)), JsonSerializerOptions);
     }
 
