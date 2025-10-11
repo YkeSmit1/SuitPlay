@@ -272,7 +272,6 @@ public class Calculate
                         var sameItem = sameItemsNextCard.First();
                         var newLineItems = GetNewLineItem(lineItem, sameItem, sameItemsNextCard, shortestCount);
                         extraLines.Add(newLineItems);
-                        //lineItem.Line.Add(sameItem.Items.Last().Play);
                         lineItem.GeneratedLine = sameItem.Items.Last().Play;
                         var faces = sameItem.Items.First().Play.Take(shortestCount + 4);
                         foreach (var item2 in lineItem.Items2.Where(x => sameItemsNextCard.Select(y => y.Combination).Contains(x.Combination)))
@@ -302,7 +301,6 @@ public class Calculate
                         Items2 = lineItem.Items2.Select(x => x.Clone()).ToList(),
                         GeneratedLine = cards
                     };
-                    //newLineItems.Line.Add(cards);
                     var enumerable = newLineItems.Items2.Where(x => sameItems.Select(y => y.Combination).Contains(x.Combination)).ToList();
                     var faces = sameItem.Items.Last().Play.Take(shortestCount + 4).ToList();
                     foreach (var item2 in enumerable)
@@ -333,11 +331,7 @@ public class Calculate
             
                 foreach (var lineItem in lineItems)
                 {
-                    var data = results.treesForJson.SingleOrDefault(a =>
-                    {
-                        var lineItemGeneratedLine = lineItem.GeneratedLine != null ? lineItem.GeneratedLine : lineItem.LongestLine;
-                        return lineItemGeneratedLine.ToString().StartsWith(a.Key);
-                    }).Value;
+                    var data = results.treesForJson.SingleOrDefault(a => lineItem.Header == a.Key).Value;
                     if (data == null) continue;
                     lineItem.LineInSuitPlay = true;
                     var dataCounter = 0;
