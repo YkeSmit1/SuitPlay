@@ -25,9 +25,9 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
         DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionItems);
         LineItems = new ObservableCollection<LineItem>(result.LineItems.Where(x => !(bool)query["OnlyLinesInSuitPlay"] || x.LineInSuitPlay));
         PossibleNrOfTricks = new ObservableCollection<int>(result.PossibleNrOfTricks);
-        GreenItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks.Length > 1);
-        RedItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent);
-        MinusOneItems = result.LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks.First() == -1);
+        GreenItems = LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks.Length > 1);
+        RedItems = LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent);
+        MinusOneItems = LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks.First() == -1);
         Combination = $"{Utils.CardsToString(result.North)} - {Utils.CardsToString(result.South)}";
         North = result.North;
         South = result.South;

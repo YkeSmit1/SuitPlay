@@ -7,6 +7,14 @@ using Serilog;
 
 namespace Calculator;
 
+public enum ItemsType
+{
+    Small,
+    High,
+    Dummy,
+    None,
+}
+
 public class Calculate
 {
     private static readonly ArrayEqualityComparer<Face> ListEqualityComparer = new();
@@ -154,12 +162,14 @@ public class Calculate
                 Combination = x.Key,
                 Items = x.Value.SelectMany(GetDescendents)
                     .Where(y => y.Children == null)
-                    .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
+                    .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks) {Combination = x.Key}).ToList()
             }).OrderBy(x => x.Combination, FaceListComparer).ToList();
+            
+            RemoveBadPlays();
 
             var lines2NdHigh = treeItems.SelectMany(x => x.Items).Where(x => x.Play.Count() > 1 && x.Play.Data[1] != Face.SmallCard).Select(x => x.Play).ToList();
             var lines2NdDummy = treeItems.SelectMany(x => x.Items).Where(x => x.Play.Count() == 1).Select(x => x.Play).ToList();
-            var lineItems = CreateLines(treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct().Where(y => y.Count() > 1))
+            var lineItems = CreateLines(treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct().Where(x => x.Count() > 1))
                 .Select(line =>
                 {
                     var lineItem = new LineItem
@@ -167,24 +177,143 @@ public class Calculate
                         Line = line,
                         Items2 = treeItems.Select(type =>
                         {
-                            var similarItems = GetSimilarItems(type.Items, line);
+                            var items = GetSimilarItems(type.Items, line);
                             var item2 = new Item2
                             {
                                 Combination = type.Combination,
-                                Tricks = similarItems.Count != 0 ? similarItems.Select(x => x.Tricks).Distinct().ToArray() : [-1],
+                                Tricks = items.similarItems.Count != 0 ? items.similarItems.Select(x => x.Tricks).Distinct().ToArray() : [-1],
                                 Probability = distributionList[type.Combination].Probability * distributionList[type.Combination].Occurrences,
+                                Items = items.similarItems,
+                                Type = items.itemsType
                             };
                             return item2;
                         }).ToList(),
                     };
                     return lineItem;
                 }).ToList();
-            
+
+            RemoveDuplicateLines();
+            CreateExtraLines();
             AddStatistics();
-            
             AddSuitPlayStatistics();
 
-            return lineItems;
+            return lineItems.OrderByDescending(x => x.DescriptiveLine).ToList();
+            
+            void RemoveBadPlays()
+            {
+                //RemoveBadPlaysForTrick(0);
+                RemoveBadPlaysForTrick(1);
+                return;
+
+                void RemoveBadPlaysForTrick(int i)
+                {
+                    var pos = i * 4;
+                    var allItems = treeItems.SelectMany(x => x.Items).Where(x => x.Play.Count() > pos + 1).ToList();
+                    foreach (var treeItem in treeItems)
+                    {
+                        treeItem.Items.RemoveAll(item => IsBadPlay(item, treeItem.Items));
+                    }
+
+                    return;
+
+                    bool IsBadPlay(Item item, List<Item> items)
+                    {
+                        if (item.Play.ToString().Length < pos + 2) return false;
+                        var differentPlays = items.Where(x =>
+                            x.Play.ToString()[..(pos + 1)] == item.Play.ToString()[..(pos + 1)] &&
+                            x.Play.ToString()[pos + 1] != item.Play.ToString()[pos + 1]).ToList();
+                        if (differentPlays.Count == 0) return false;
+                        var samePlays = allItems.Where(x => differentPlays.Any(y => y.Play.ToString()[..(pos + 2)] == x.Play.ToString()[..(pos + 2)])).ToList();
+                        var isBadPlay = samePlays.Any(x => x.Tricks < item.Tricks) && !samePlays.All(x => x.Tricks > item.Tricks);
+                        return isBadPlay;
+                    }
+                }
+            }
+            
+            void RemoveDuplicateLines()
+            {
+                if (lineItems.Count == 0)
+                    return;
+
+                var seenLists = new HashSet<string>();
+                var result = new List<LineItem>();
+
+                foreach (var item in lineItems)
+                {
+                    var listSignature = string.Join(";", item.Items2.Select(x => string.Join(",", x.Tricks)));
+
+                    if (seenLists.Add(listSignature))
+                    {
+                        result.Add(item);
+                    }
+                }
+
+                lineItems = result;
+
+            }
+            
+            void CreateExtraLines()
+            {
+                var extraLines = new List<LineItem>();
+                foreach (var lineItem in lineItems)
+                {
+                    var shortest = lineItem.Line.MinBy(x => x.Count());
+                    var shortestCount = shortest.Count();
+                    var ambivalentItems = lineItem.Items2.Where(x => x.Type == ItemsType.Small && x.Tricks.Length > 1)
+                        .Where(x => x.Items.Any(y => y.OnlySmallCardsEW == shortest)).ToList();
+                    var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x)).ToList();
+                    var nextCard = sameItems.SelectMany(x => x.Items).Select(x => x.Play[shortestCount]).Distinct().ToList();
+                    foreach (var face in nextCard)
+                    {
+                        var cardsToNextCard = shortest.ToString() + Utils.CardToChar(face);
+                        var sameItemsNextCard = sameItems.Where(x => x.Items.First().Play.ToString().StartsWith(cardsToNextCard)).ToList();
+                        if (sameItemsNextCard.Count <= 1 || sameItemsNextCard.Any(x => x.Items.Count != 2)) 
+                            continue;
+                        var sameItem = sameItemsNextCard.First();
+                        var newLineItems = GetNewLineItem(lineItem, sameItem, sameItemsNextCard, shortestCount);
+                        extraLines.Add(newLineItems);
+                        lineItem.Line.Add(sameItem.Items.Last().Play);
+                        lineItem.GeneratedLine = sameItem.Items.Last().Play;
+                        var faces = sameItem.Items.First().Play.Take(shortestCount + 4);
+                        foreach (var item2 in lineItem.Items2.Where(x => sameItemsNextCard.Select(y => y.Combination).Contains(x.Combination)))
+                        {
+                            item2.Items.RemoveAll(x => faces.SequenceEqual(x.Play.Take(shortestCount + 4)));
+                            item2.Tricks = item2.Items.Select(x => x.Tricks).Distinct().ToArray();
+                        }
+                    }
+
+                    continue;
+
+                    bool HasSameItems(List<Item2> item2S, Item2 item2)
+                    {
+                        return item2S.Where(y => y.Combination != item2.Combination).Any(x =>
+                            x.Items.Select(x1 => x1.Play[shortest.Count()]).Intersect(item2.Items.Select(x2 => x2.Play[shortest.Count()])).Any());
+                    }
+                }
+                lineItems.AddRange(extraLines);
+                return;
+
+                LineItem GetNewLineItem(LineItem lineItem, Item2 sameItem, List<Item2> sameItems, int shortestCount)
+                {
+                    var cards = sameItem.Items.First().Play;
+                    var newLineItems = new LineItem
+                    {
+                        Line = lineItem.Line.ToList(),
+                        Items2 = lineItem.Items2.Select(x => x.Clone()).ToList(),
+                        GeneratedLine = cards
+                    };
+                    newLineItems.Line.Add(cards);
+                    var enumerable = newLineItems.Items2.Where(x => sameItems.Select(y => y.Combination).Contains(x.Combination)).ToList();
+                    var faces = sameItem.Items.Last().Play.Take(shortestCount + 4).ToList();
+                    foreach (var item2 in enumerable)
+                    {
+                        item2.Items.RemoveAll(x => faces.SequenceEqual(x.Play.Take(shortestCount + 4)));
+                        item2.Tricks = item2.Items.Select(x => x.Tricks).Distinct().ToArray();
+                    }
+
+                    return newLineItems;
+                }
+            }
             
             void AddStatistics()
             {
@@ -209,22 +338,27 @@ public class Calculate
                     var dataCounter = 0;
                     foreach (var item2 in lineItem.Items2)
                     {
-                        item2.IsDifferent = item2.Tricks.First() != -1 && item2.Tricks.First() != data[dataCounter];
+                        item2.IsDifferent = item2.Tricks.First() != -1 && item2.Tricks.Max() != data[dataCounter];
                         item2.TricksInSuitPlay = data[dataCounter++];
                     }
                 }
             }
 
-            List<Item> GetSimilarItems(List<Item> items, List<Cards> line)
+            (List<Item> similarItems, ItemsType itemsType) GetSimilarItems(List<Item> items, List<Cards> line)
             {
                 var similarItems = items.Where(z => line.Any(u => u == z.OnlySmallCardsEW)).ToList();
-                if (similarItems.Count != 0) 
-                    return similarItems;
+                if (similarItems.Count != 0)
+                    return (similarItems, ItemsType.Small);
+                
                 var lines2NdHighItems = items.Where(z => lines2NdHigh.Any(u => u == z.Play)).ToList();
                 if (lines2NdHighItems.Count > 0)
-                    return lines2NdHighItems;
+                    return (lines2NdHighItems, ItemsType.High);
+                
                 var lines2NdDummyItems = items.Where(z => lines2NdDummy.Any(u => u == z.Play)).ToList();
-                return lines2NdDummyItems.Count > 0 ? lines2NdDummyItems : similarItems;
+                if (lines2NdDummyItems.Count > 0)
+                    return (lines2NdDummyItems, ItemsType.Dummy);
+                
+                return ([], ItemsType.None);
             }
         }
     }    

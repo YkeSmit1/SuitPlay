@@ -57,9 +57,6 @@
       <None Update="etalons\QT98-A432.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons\QT98-A543.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
       <None Update="etalons-suitplay\AJ92-K843.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
@@ -67,9 +64,6 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="etalons-suitplay\QT98-A432.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\QT98-A543.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="etalons\AQJ-T987654.json">

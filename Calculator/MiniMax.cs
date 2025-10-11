@@ -82,6 +82,8 @@ public static class MiniMax
                     playedCards.RemoveAt(playedCards.Count() - 1);
                 }
 
+                if (playedCards.Any(x => x == Face.Dummy)) 
+                    resultItem.Children = [resultItem.Children.First(x => x.Tricks == resultItem.Tricks)];
                 resultItem.Children.RemoveAll(x => x.Tricks > resultItem.Tricks);
 
                 return resultItem;
@@ -117,18 +119,23 @@ public static class MiniMax
 
             List<Face> ApplyStrategyPosition1(List<Face> availableCardsNorth, List<Face> availableCardsSouth)
             {
-                if (HasForks(availableCardsNorth) && !HasForks(availableCardsSouth))
+                var availableCardsNS = availableCardsNorth.Concat(availableCardsSouth).ToList();
+                if (availableCardsNS.Count == 0)
+                    return [];
+                var cardsEWNotPlayed = cardsEW.Except(playedCards.Data).ToList();
+                if (cardsEWNotPlayed.Count == 1)
+                    return [availableCardsNS.Max()];
+                if (!HasForks(availableCardsSouth))
                     return availableCardsSouth;
-                if (HasForks(availableCardsSouth) && !HasForks(availableCardsNorth))
+                if (!HasForks(availableCardsNorth))
                     return availableCardsNorth;
 
-                return availableCardsNorth.Concat(availableCardsSouth).ToList();
+                return availableCardsNS.ToList();
                 
                 bool HasForks(List<Face> cardsPlayer)
                 {
                     // TODO filter out small cards
-                    var highestCardsOtherTeamNotPlayed = cardsEW.Except(playedCards.Data);
-                    return cardsPlayer.Select(x => highestCardsOtherTeamNotPlayed.Where(y => y > x).ToArray()).Distinct(arrayEqualityComparer).Count() != 1;
+                    return cardsPlayer.Select(x => cardsEWNotPlayed.Where(y => y > x).ToArray()).Distinct(arrayEqualityComparer).Count() != 1;
                 }
             }
             
