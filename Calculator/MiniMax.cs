@@ -156,11 +156,12 @@ public static class MiniMax
 
             List<Face> ApplyStrategyPosition4(Face[] lastTrick)
             {
+                // TODO maybe use falsecards
                 var highestCardOtherTeam = (Face)Math.Max((int)lastTrick[0], (int)lastTrick[2]);
                 var highestCards = availableCards.Where(x => x > highestCardOtherTeam && highestCardOtherTeam > lastTrick[1]).ToList();
                 if (highestCards.Count > 0) 
-                    availableCards = [highestCards.Min()];
-                return availableCards;
+                    return [highestCards.Min()];
+                return [availableCards.Min()];
             }
         }
 
