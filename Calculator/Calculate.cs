@@ -349,11 +349,13 @@ public class Calculate
                 if (similarItems.Count != 0)
                     return (similarItems, ItemsType.Small);
                 
-                var lines2NdHighItems = items.Where(z => lines2NdHigh.Any(u => u == z.Play)).ToList();
+                var similarLines2NdHigh = lines2NdHigh.Where(x => x[0] == line.First()[0]);
+                var lines2NdHighItems = items.Where(z => similarLines2NdHigh.Any(u => u == z.Play)).ToList();
                 if (lines2NdHighItems.Count > 0)
                     return (lines2NdHighItems, ItemsType.High);
                 
-                var lines2NdDummyItems = items.Where(z => lines2NdDummy.Any(u => u == z.Play)).ToList();
+                var similarLines2NdDummy = lines2NdDummy.Where(x => x[0] == line.First()[0]);
+                var lines2NdDummyItems = items.Where(z => similarLines2NdDummy.Any(u => u == z.Play)).ToList();
                 if (lines2NdDummyItems.Count > 0)
                     return (lines2NdDummyItems, ItemsType.Dummy);
                 
