@@ -122,9 +122,11 @@ public static class MiniMax
                 var availableCardsNS = availableCardsNorth.Concat(availableCardsSouth).ToList();
                 if (availableCardsNS.Count == 0)
                     return [];
+                // Play only high cards when the rest of the tricks is certain
                 var cardsEWNotPlayed = cardsEW.Except(playedCards.Data).ToList();
                 if (cardsEWNotPlayed.Count == 1)
                     return [availableCardsNS.Max()];
+                // Only play from the hand without forks
                 if (!HasForks(availableCardsSouth))
                     return availableCardsSouth;
                 if (!HasForks(availableCardsNorth))
@@ -142,13 +144,16 @@ public static class MiniMax
             List<Face> ApplyStrategyPosition2(Face[] lastTrick)
             {
                 // TODO maybe use falsecards
-                return availableCards.All(x => x < lastTrick[0]) ? [availableCards.Min(y => y)] : availableCards;
+                // Play lowest card when first hand plays a high one
+                return availableCards.All(x => x < lastTrick[0]) ? [availableCards.Min()] : availableCards;
             }
             
             List<Face> ApplyStrategyPosition3(Face[] lastTrick)
             {
+                // Play lowest card when it's not possible to win the trick 
                 if (availableCards.All(x => x < lastTrick[0]) || availableCards.All(x => x < lastTrick[1]))
-                    return [availableCards.Min(y => y)];
+                    return [availableCards.Min()];
+                // Play a high card when 2nd hand plays high
                 if (lastTrick[0] < lastTrick[1])
                     return availableCards.Where(x => x > lastTrick[1]).ToList();
                 return availableCards;
@@ -158,9 +163,10 @@ public static class MiniMax
             {
                 // TODO maybe use falsecards
                 var highestCardOtherTeam = (Face)Math.Max((int)lastTrick[0], (int)lastTrick[2]);
-                var highestCards = availableCards.Where(x => x > highestCardOtherTeam && highestCardOtherTeam > lastTrick[1]).ToList();
-                if (highestCards.Count > 0) 
-                    return [highestCards.Min()];
+                var highestCardsOurTeam = availableCards.Where(x => x > highestCardOtherTeam && highestCardOtherTeam > lastTrick[1]).ToList();
+                // Win is cheap is possible
+                if (highestCardsOurTeam.Count > 0) 
+                    return [highestCardsOurTeam.Min()];
                 return [availableCards.Min()];
             }
         }
