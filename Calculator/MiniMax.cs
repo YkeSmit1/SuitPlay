@@ -93,11 +93,11 @@ public static class MiniMax
         List<Face> GetPlayableCards(Cards playedCards)
         {
             List<Face> availableCards;
+            var availableCardsNorth = GetAvailableCards(playedCards, Player.North);
+            var availableCardsSouth = GetAvailableCards(playedCards, Player.South);
             if (playedCards.Count() % 4 == 0)
             {
-                var availableCardsNorth = GetAvailableCards(playedCards, Player.North);
-                var availableCardsSouth = GetAvailableCards(playedCards, Player.South);
-                availableCards = ApplyStrategyPosition1(availableCardsNorth, availableCardsSouth);
+                availableCards = ApplyStrategyPosition1();
             }
             else
             {
@@ -117,7 +117,7 @@ public static class MiniMax
 
             return availableCards.Count == 0 ? [Face.Dummy] : availableCards;
 
-            List<Face> ApplyStrategyPosition1(List<Face> availableCardsNorth, List<Face> availableCardsSouth)
+            List<Face> ApplyStrategyPosition1()
             {
                 var availableCardsNS = availableCardsNorth.Concat(availableCardsSouth).ToList();
                 if (availableCardsNS.Count == 0)
@@ -156,6 +156,10 @@ public static class MiniMax
                 // Play a high card when 2nd hand plays high
                 if (lastTrick[0] < lastTrick[1])
                     return availableCards.Where(x => x > lastTrick[1]).ToList();
+                // Don't play an unnecessary high card
+                var partnersCards = GetCurrentPlayer(playedCards) == Player.East ? availableCardsNorth : availableCardsSouth;
+                if (!partnersCards.All(x => x > lastTrick[0]) && lastTrick[1] < lastTrick[0])
+                    return [availableCards.Min()];
                 return availableCards;
             }
 
