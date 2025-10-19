@@ -158,7 +158,7 @@ public static class MiniMax
                     return availableCards.Where(x => x > lastTrick[1]).ToList();
                 // Don't play an unnecessary high card
                 var partnersCards = GetCurrentPlayer(playedCards) == Player.East ? availableCardsNorth : availableCardsSouth;
-                if (!partnersCards.All(x => x > lastTrick[0]) && lastTrick[1] < lastTrick[0])
+                if (lastTrick[1] != Face.Dummy && !partnersCards.All(x => x > lastTrick[0]) && lastTrick[1] < lastTrick[0])
                     return [availableCards.Min()];
                 return availableCards;
             }
