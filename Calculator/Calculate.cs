@@ -261,7 +261,7 @@ public class Calculate
                     var shortestCount = shortest.Count();
                     var ambivalentItems = lineItem.Items2.Where(x => x.Type == ItemsType.Small && x.Tricks.Length > 1)
                         .Where(x => x.Items.Any(y => y.OnlySmallCardsEW == shortest)).ToList();
-                    var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x)).ToList();
+                    var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x, shortestCount)).ToList();
                     var nextCard = sameItems.SelectMany(x => x.Items).Select(x => x.Play[shortestCount]).Distinct().ToList();
                     foreach (var face in nextCard)
                     {
@@ -280,17 +280,15 @@ public class Calculate
                             item2.Tricks = item2.Items.Select(x => x.Tricks).Distinct().ToArray();
                         }
                     }
-
-                    continue;
-
-                    bool HasSameItems(List<Item2> item2S, Item2 item2)
-                    {
-                        return item2S.Where(y => y.Combination != item2.Combination).Any(x =>
-                            x.Items.Select(x1 => x1.Play[shortest.Count()]).Intersect(item2.Items.Select(x2 => x2.Play[shortest.Count()])).Any());
-                    }
                 }
                 lineItems.AddRange(extraLines);
                 return;
+
+                bool HasSameItems(List<Item2> item2S, Item2 item2, int shortestCount)
+                {
+                    return item2S.Where(y => y.Combination != item2.Combination).Any(x =>
+                        x.Items.Select(x1 => x1.Play[shortestCount]).Intersect(item2.Items.Select(x2 => x2.Play[shortestCount])).Any());
+                }
 
                 LineItem GetNewLineItem(LineItem lineItem, Item2 sameItem, List<Item2> sameItems, int shortestCount)
                 {
@@ -326,6 +324,8 @@ public class Calculate
             {
                 var filename = $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json";
                 var combine = Path.Combine(AppContext.BaseDirectory, "etalons-suitplay", filename);
+                if (!File.Exists(combine))
+                    return;
                 using var fileStream = new FileStream(combine, FileMode.Open);
                 var results = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStream, JsonSerializerOptions);
             

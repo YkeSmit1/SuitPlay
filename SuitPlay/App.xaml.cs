@@ -13,7 +13,7 @@ public partial class App : Application
 
 #if WINDOWS
         window.Width = 800;
-        window.Height = 1000;
+        window.Height = 920;
         
         var displayInfo = DeviceDisplay.Current.MainDisplayInfo;
         window.X = (displayInfo.Width / displayInfo.Density - window.Width) / 2;
