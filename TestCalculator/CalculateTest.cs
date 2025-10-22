@@ -172,4 +172,40 @@ public class CalculateTest
         var actual = Utils.CardsToString(Utils.StringToCardArray(play).OnlySmallCardsEW());
         Assert.Equal(expected, actual);
     }
+
+    [Theory]
+    [InlineData("A", "", false, false)]
+    [InlineData("", "2", false, false)]
+    [InlineData("A", "2", false, false)]
+    [InlineData("432", "AQJ", false, true)]
+    [InlineData("QJ", "A2", false, true)]
+    [InlineData("QJT", "A32", false, true)]
+    [InlineData("QT9", "A32", true, true)]
+    [InlineData("QT2", "AJ3", false, true)]
+    [InlineData("QJ2", "AT3", false, true)]
+    [InlineData("QJ2", "A43", false, true)]
+    [InlineData("QJ32", "A54", true, true)]
+    [InlineData("QT32", "AJ4", false, true)]
+    [InlineData("32", "K4", false, true)]
+    [InlineData("JT2", "K43", false, true)]
+    [InlineData("Q32", "AT4", true, true)]
+    [InlineData("K32", "Q54", true, true)]
+    [InlineData("KJ2", "AT3", true, true)]
+    [InlineData("QT98", "A432", true, true)]
+    [InlineData("AQT98", "5432", true, false)]
+    [InlineData("AT32", "Q654", true, true)]
+    [InlineData("AJ92", "K843", true, true)]
+    public void TestHasForks(string north, string south, bool expectedHasForksNorth, bool expectedHasForksSouth)
+    {
+        // Arrange
+        var northHand = Utils.StringToCardArray(north);
+        var southHand = Utils.StringToCardArray(south);
+        var cardsEW = Enum.GetValues<Face>().Except(northHand).Except(southHand).Except([Face.Dummy, Face.SmallCard]).ToList();
+        // Act
+        var hasForksNorth = MiniMax.HasForks(northHand.ToList(), southHand.ToList(), cardsEW);
+        var hasForksSouth = MiniMax.HasForks(southHand.ToList(), northHand.ToList(), cardsEW);
+        // Assert
+        Assert.Equal(expectedHasForksNorth, hasForksNorth);
+        Assert.Equal(expectedHasForksSouth, hasForksSouth);
+    }
 }

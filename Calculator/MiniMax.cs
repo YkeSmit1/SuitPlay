@@ -5,13 +5,12 @@ namespace Calculator;
 
 public static class MiniMax
 {
-    private static ArrayEqualityComparer<Face> arrayEqualityComparer;
+    private static readonly ArrayEqualityComparer<Face> ArrayEqualityComparer = new();
 
     public static List<Item> CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
     {
         var tree = new List<Item>();
-        arrayEqualityComparer = new ArrayEqualityComparer<Face>();
-        var transpositionTable = new Dictionary<Face[], Item>(arrayEqualityComparer);
+        var transpositionTable = new Dictionary<Face[], Item>(ArrayEqualityComparer);
         var initialCards = cards.Select((x, index) => (x, index)).ToDictionary(item => (Player)item.index, item => item.x.ToList());
         var cardsNS = initialCards[Player.North].Concat(initialCards[Player.South]).OrderDescending().ToList();
         var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).OrderDescending().ToList();
@@ -127,18 +126,13 @@ public static class MiniMax
                 if (cardsEWNotPlayed.Count == 1)
                     return [availableCardsNS.Max()];
                 // Only play from the hand without forks
-                if (!HasForks(availableCardsSouth))
+                if (!HasForks(availableCardsSouth, availableCardsNorth, cardsEWNotPlayed))
                     return availableCardsSouth;
-                if (!HasForks(availableCardsNorth))
+                if (!HasForks(availableCardsNorth, availableCardsSouth, cardsEWNotPlayed))
                     return availableCardsNorth;
 
                 return availableCardsNS.ToList();
-                
-                bool HasForks(List<Face> cardsPlayer)
-                {
-                    // TODO filter out small cards
-                    return cardsPlayer.Select(x => cardsEWNotPlayed.Where(y => y > x).ToArray()).Distinct(arrayEqualityComparer).Count() != 1;
-                }
+
             }
             
             List<Face> ApplyStrategyPosition2(Face[] lastTrick)
@@ -150,7 +144,7 @@ public static class MiniMax
             
             List<Face> ApplyStrategyPosition3(Face[] lastTrick)
             {
-                // Play lowest card when it's not possible to win the trick 
+                // Play the lowest card when it's not possible to win the trick 
                 if (availableCards.All(x => x < lastTrick[0]) || availableCards.All(x => x < lastTrick[1]))
                     return [availableCards.Min()];
                 // Play a high card when 2nd hand plays high
@@ -200,6 +194,29 @@ public static class MiniMax
         }
     }
     
+    public static bool HasForks(List<Face> cardsPlayer, List<Face> cardsPartner, List<Face> cardsOtherTeam)
+    {
+        // TODO filter out small cards
+        if (cardsPlayer.Count < 2)
+            return false;
+        var longestSuit = Math.Min(Math.Max(cardsPlayer.Count, cardsPartner.Count), cardsOtherTeam.Count);
+        var cardsOurTeam = cardsPlayer.Concat(cardsPartner).OrderDescending().ToList();
+        var lastRelevantCard = cardsOurTeam[longestSuit - 1];
+        var ourTeamSegments = cardsOurTeam.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
+        var relevantSegments = ourTeamSegments.Where(x => x.Any(y => y >= lastRelevantCard)).ToList();
+        
+        var segmentsPlayer = cardsPlayer.Select(x => relevantSegments.FindIndex(y => y.Contains(x))).Where(x => x != -1).Distinct().ToList();
+        if (segmentsPlayer.Count > 1)
+            return true;
+        var segmentsPartner = cardsPartner.Select(x => relevantSegments.FindIndex(y => y.Contains(x))).Where(x => x != -1).Distinct().ToList();
+        if (segmentsPlayer.Count != 1) 
+            return false;
+        if (segmentsPlayer.Single() < segmentsPartner.First())
+            return true;
+        return segmentsPartner.Any(x => x > segmentsPlayer.Single()) && segmentsPartner.Any(x => x < segmentsPlayer.Single());
+    }
+
+
     public static int GetTrickCount(Cards play, Dictionary<Player, List<Face>> initialCards)
     {
         return play.Chunk(4).Where(x => x.First() != Face.Dummy).Count(trick => 
