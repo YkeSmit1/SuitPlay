@@ -195,6 +195,7 @@ public class CalculateTest
     [InlineData("AQT98", "5432", true, false)]
     [InlineData("AT32", "Q654", true, true)]
     [InlineData("AJ92", "K843", true, true)]
+    [InlineData("J32", "K54", true, true)]
     public void TestHasForks(string north, string south, bool expectedHasForksNorth, bool expectedHasForksSouth)
     {
         // Arrange

@@ -94,6 +94,7 @@ public static class MiniMax
             List<Face> availableCards;
             var availableCardsNorth = GetAvailableCards(playedCards, Player.North);
             var availableCardsSouth = GetAvailableCards(playedCards, Player.South);
+            var cardsEWNotPlayed = cardsEW.Except(playedCards.Data).ToList();
             if (playedCards.Count() % 4 == 0)
             {
                 availableCards = ApplyStrategyPosition1();
@@ -122,7 +123,6 @@ public static class MiniMax
                 if (availableCardsNS.Count == 0)
                     return [];
                 // Play only high cards when the rest of the tricks is certain
-                var cardsEWNotPlayed = cardsEW.Except(playedCards.Data).ToList();
                 if (cardsEWNotPlayed.Count == 1)
                     return [availableCardsNS.Max()];
                 // Only play from the hand without forks
@@ -148,7 +148,7 @@ public static class MiniMax
                 if (availableCards.All(x => x < lastTrick[0]) || availableCards.All(x => x < lastTrick[1]))
                     return [availableCards.Min()];
                 // Play a high card when 2nd hand plays high
-                if (lastTrick[0] < lastTrick[1])
+                if (lastTrick[0] < lastTrick[1] && lastTrick[1] > cardsEWNotPlayed.Max()) 
                     return availableCards.Where(x => x > lastTrick[1]).ToList();
                 // Don't play an unnecessary high card
                 var partnersCards = GetCurrentPlayer(playedCards) == Player.East ? availableCardsNorth : availableCardsSouth;
