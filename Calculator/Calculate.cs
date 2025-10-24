@@ -208,7 +208,7 @@ public class Calculate
                 void RemoveBadPlaysForTrick(int i)
                 {
                     var pos = i * 4;
-                    var allItems = treeItems.SelectMany(x => x.Items).Where(x => x.Play.Count() > pos + 1).ToList();
+                    
                     foreach (var treeItem in treeItems)
                     {
                         treeItem.Items.RemoveAll(item => IsBadPlay(item, treeItem.Items));
@@ -223,8 +223,12 @@ public class Calculate
                             x.Play.ToString()[..(pos + 1)] == item.Play.ToString()[..(pos + 1)] &&
                             x.Play.ToString()[pos + 1] != item.Play.ToString()[pos + 1]).ToList();
                         if (differentPlays.Count == 0) return false;
-                        var samePlays = allItems.Where(x => differentPlays.Any(y => y.Play.ToString()[..(pos + 2)] == x.Play.ToString()[..(pos + 2)])).ToList();
-                        var isBadPlay = samePlays.Any(x => x.Tricks < item.Tricks) && !samePlays.All(x => x.Tricks > item.Tricks);
+                        var differentPlaysTricks = differentPlays.GroupBy(x => x.Play[pos + 1]).Select(x => x.Select(y => y.Tricks)).ToList();
+
+                        var samePlaysTricks = items.Where(x =>
+                            x.Play.ToString()[..(pos + 1)] == item.Play.ToString()[..(pos + 1)] &&
+                            x.Play.ToString()[pos + 1] == item.Play.ToString()[pos + 1]).ToList().Select(y => y.Tricks).ToArray();
+                        var isBadPlay = differentPlaysTricks.Any(x => IsBetterPlay(x.ToArray(), samePlaysTricks) == -1);
                         return isBadPlay;
                     }
                 }
@@ -362,7 +366,37 @@ public class Calculate
                 return ([], ItemsType.None);
             }
         }
-    }    
+    }
+
+    public static int IsBetterPlay(int[] tricksA, int[] tricksB)
+    {
+        if (tricksA.Length == 1 && tricksB.Length == 1)
+            return tricksA[0].CompareTo(tricksB[0]);
+                
+        if (tricksA.Length == 1)
+        {
+            return IsBetterPlayOnePlay(tricksA, tricksB);
+        }
+        if (tricksB.Length == 1)
+        {
+            return -IsBetterPlayOnePlay(tricksB, tricksA);
+        }
+
+        if (tricksA.Min() >= tricksB.Max())
+            return 1;
+        if (tricksB.Min() >= tricksA.Max())
+            return -1;
+        return 0;
+
+        int IsBetterPlayOnePlay(int[] onePlay, int[] manyPlays)
+        {
+            if (onePlay[0] >= manyPlays.Max())
+                return 1;
+            if (onePlay[0] <= manyPlays.Min())
+                return -1;
+            return 0;
+        }
+    }
     
     public static List<List<Cards>> CreateLines(IEnumerable<Cards> cardList)
     {

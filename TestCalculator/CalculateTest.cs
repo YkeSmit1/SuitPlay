@@ -209,4 +209,25 @@ public class CalculateTest
         Assert.Equal(expectedHasForksNorth, hasForksNorth);
         Assert.Equal(expectedHasForksSouth, hasForksSouth);
     }
+
+    [Theory]
+    [InlineData(new[]{2}, new[]{1}, 1)]
+    [InlineData(new[]{1}, new[]{1}, 0)]
+    [InlineData(new[]{1}, new[]{2, 4}, -1)]
+    [InlineData(new[]{2}, new[]{2, 4}, -1)]
+    [InlineData(new[]{3}, new[]{2, 4}, 0)]
+    [InlineData(new[]{4}, new[]{2, 4}, 1)]
+    [InlineData(new[]{5}, new[]{2, 4}, 1)]
+    [InlineData(new[]{1, 2}, new[]{3, 5}, -1)]
+    [InlineData(new[]{1, 3}, new[]{3, 5}, -1)]
+    [InlineData(new[]{2, 4}, new[]{3, 5}, 0)]
+    [InlineData(new[]{3, 5}, new[]{3, 5}, 0)]
+    [InlineData(new[]{4, 6}, new[]{3, 5}, 0)]
+    [InlineData(new[]{5, 7}, new[]{3, 5}, 1)]
+    [InlineData(new[]{6, 7}, new[]{3, 5}, 1)]
+    public void TestIsBetterPlay(int[] a, int[] b, int expected)
+    {
+        Assert.Equal(Calculate.IsBetterPlay(a, b), expected);
+        Assert.Equal(Calculate.IsBetterPlay(b, a), -expected);
+    }
 }
