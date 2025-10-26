@@ -147,13 +147,19 @@ public static class MiniMax
                 // Play the lowest card when it's not possible to win the trick 
                 if (availableCards.All(x => x < lastTrick[0]) || availableCards.All(x => x < lastTrick[1]))
                     return [availableCards.Min()];
-                // Play a high card when 2nd hand plays the highest card
-                if (lastTrick[0] < lastTrick[1] && lastTrick[1] > cardsEWNotPlayed.Max()) 
-                    return availableCards.Where(x => x > lastTrick[1]).ToList();
-                // Cover if it's free
-                if (lastTrick[0] < lastTrick[1] && availableCards.Contains(lastTrick[1] + 1) &&
-                    (availableCardsNorth.Contains(lastTrick[1] - 1) || availableCardsSouth.Contains(lastTrick[1] - 1))) 
-                    return availableCards.Where(x => x > lastTrick[1]).ToList();
+                if (lastTrick[0] < lastTrick[1])
+                {
+                    // Play a high card when 2nd hand plays the highest card
+                    if (lastTrick[1] > cardsEWNotPlayed.Max()) 
+                        return availableCards.Where(x => x > lastTrick[1]).ToList();
+                    // Play a high card if you have the highest card
+                    if (availableCards.Any(x => x > cardsEWNotPlayed.Max()))
+                        return availableCards.Where(x => x > lastTrick[1]).ToList();
+                    // Cover if it's free
+                    if (availableCards.Contains(lastTrick[1] + 1) &&
+                        (availableCardsNorth.Contains(lastTrick[1] - 1) || availableCardsSouth.Contains(lastTrick[1] - 1)))
+                        return availableCards.Where(x => x > lastTrick[1]).ToList();
+                }
 
                 // Don't play an unnecessary high card
                 var partnersCards = GetCurrentPlayer(playedCards) == Player.East ? availableCardsNorth : availableCardsSouth;
