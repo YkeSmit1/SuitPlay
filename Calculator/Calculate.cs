@@ -225,9 +225,10 @@ public class Calculate
                         if (differentPlays.Count == 0) return false;
                         var differentPlaysTricks = differentPlays.GroupBy(x => x.Play[pos + 1]).Select(x => x.Select(y => y.Tricks)).ToList();
 
-                        var samePlaysTricks = items.Where(x =>
+                        var samePlays = items.Where(x =>
                             x.Play.ToString()[..(pos + 1)] == item.Play.ToString()[..(pos + 1)] &&
-                            x.Play.ToString()[pos + 1] == item.Play.ToString()[pos + 1]).ToList().Select(y => y.Tricks).ToArray();
+                            x.Play.ToString()[pos + 1] == item.Play.ToString()[pos + 1]);
+                        var samePlaysTricks = samePlays.Select(y => y.Tricks).ToArray();
                         var isBadPlay = differentPlaysTricks.Any(x => IsBetterPlay(x.ToArray(), samePlaysTricks) == -1);
                         return isBadPlay;
                     }
