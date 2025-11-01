@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using Calculator.Models;
+﻿using Calculator.Models;
 using MoreLinq;
 
 namespace Calculator;
@@ -185,7 +184,9 @@ public static class MiniMax
                 return [];
             
             var cardsOtherTeam = player is Player.North or Player.South ? cardsEW : cardsNS;
-            var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeam, playedCards).ToList();
+            var playedCardsExceptLastTrick = playedCards.Data.Chunk(4).SkipLast(1).SelectMany(x => x);
+            var cardsOtherTeamNotPlayed = cardsOtherTeam.Except(playedCardsExceptLastTrick).ToList();
+            var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeamNotPlayed).ToList();
 
             return availableCardsFiltered.ToList();
         }
@@ -225,8 +226,8 @@ public static class MiniMax
                 return [cardsPlayerNotHighestCard.Min()];
         }
         // Return north and south cards
-        var cardsNorthFiltered = AvailableCardsFiltered2(cardsNorth, cardsEW);
-        var cardsSouthFiltered = AvailableCardsFiltered2(cardsSouth, cardsEW);
+        var cardsNorthFiltered = AvailableCardsFiltered(cardsNorth, cardsEW);
+        var cardsSouthFiltered = AvailableCardsFiltered(cardsSouth, cardsEW);
         return cardsNorthFiltered.Concat(cardsSouthFiltered).ToList();
         
         bool LastSegmentIsTheSame(List<IEnumerable<Face>> relevantSegmentsNorth1, List<IEnumerable<Face>> relevantSegmentsSouth1)
@@ -256,21 +257,7 @@ public static class MiniMax
             initialCards.Single(y => y.Value.Contains(trick.Max())).Key is Player.North or Player.South);
     }
 
-    public static IEnumerable<Face> AvailableCardsFiltered(List<Face> availableCards, List<Face> cardsOtherTeam, Cards playedCards)
-    {
-        var playedCardsPreviousTricks = playedCards.SkipLast(playedCards.Count() % 4);
-        var cardsOtherTeamNotPlayed = cardsOtherTeam.Except(playedCardsPreviousTricks).ToList();
-        var segmentsCardsOtherTeam = cardsOtherTeamNotPlayed.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
-        var segmentsAvailableCards = availableCards.Segment((item, prevItem, _) => GetSegment(item) != GetSegment(prevItem));
-        var availableCardsFiltered = segmentsAvailableCards.Select(x => x.Last());
-        return availableCardsFiltered;
-        
-        int GetSegment(Face card)
-        {
-            return segmentsCardsOtherTeam.FindIndex(x => x.First() < card);
-        }
-    }
-    public static IEnumerable<Face> AvailableCardsFiltered2(IEnumerable<Face> availableCards, IEnumerable<Face> availableCardsOtherTeam)
+    public static IEnumerable<Face> AvailableCardsFiltered(IEnumerable<Face> availableCards, IEnumerable<Face> availableCardsOtherTeam)
     {
         var segmentsAvailableCards = GetSegments(availableCards, availableCardsOtherTeam);
         var availableCardsFiltered = segmentsAvailableCards.Select(x => x.Last());

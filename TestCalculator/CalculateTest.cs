@@ -41,26 +41,24 @@ public class CalculateTest
     }
     
     [Theory]
-    [InlineData("K74", "AQ32", "K4", "")]
-    [InlineData("KJT43", "AQ92", "KT3", "")]
-    [InlineData("KJT76", "AQ985432", "KT6", "")]
-    [InlineData("KJT762", "AQ98543", "KT62", "")]
-    [InlineData("KJT76", "AQ98543", "KT6", "")]
-    [InlineData("KJT2", "AQ98543", "KT2", "")]
-    [InlineData("6", "AQT985432", "6", "")]
-    [InlineData("KJ7", "AQT985432", "KJ7", "")]
-    [InlineData("AQT98", "KJ76", "AQ8", "")]
-    [InlineData("QT9", "KJ765", "Q9", "")]
-    [InlineData("QT9", "KJ765", "9", "852J")]
-    public void TestFilterAvailableCards(string cardsPlayer, string cardsOtherTeam, string expected, string playedCards)
+    [InlineData("K74", "AQ32", "K4")]
+    [InlineData("KJT43", "AQ92", "KT3")]
+    [InlineData("KJT76", "AQ985432", "KT6")]
+    [InlineData("KJT762", "AQ98543", "KT62")]
+    [InlineData("KJT76", "AQ98543", "KT6")]
+    [InlineData("KJT2", "AQ98543", "KT2")]
+    [InlineData("6", "AQT985432", "6")]
+    [InlineData("KJ7", "AQT985432", "KJ7")]
+    [InlineData("AQT98", "KJ76", "AQ8")]
+    [InlineData("QT9", "KJ765", "Q9")]
+    public void TestFilterAvailableCards(string cardsPlayer, string cardsOtherTeam, string expected)
     {
         // Arrange
         var cardsPlayerList = cardsPlayer.Select(Utils.CharToCard);
         var cardsOtherTeamList = cardsOtherTeam.Select(Utils.CharToCard);
         var expectedList = expected.Select(Utils.CharToCard);
-        var playedCardsList = new Cards(playedCards.Select(Utils.CharToCard).ToList());
         // Act
-        var actual = MiniMax.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList(), playedCardsList);
+        var actual = MiniMax.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList());
         // Assert
         Assert.Equal(expectedList, actual);
     }
