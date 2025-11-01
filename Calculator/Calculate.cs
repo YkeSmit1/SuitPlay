@@ -192,8 +192,8 @@ public class Calculate
                     return lineItem;
                 }).ToList();
 
-            RemoveDuplicateLines();
             CreateExtraLines();
+            RemoveDuplicateLines();
             AddStatistics();
             AddSuitPlayStatistics();
 
