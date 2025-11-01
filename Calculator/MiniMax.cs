@@ -1,4 +1,5 @@
-﻿using Calculator.Models;
+﻿using System.Collections;
+using Calculator.Models;
 using MoreLinq;
 
 namespace Calculator;
@@ -92,8 +93,6 @@ public static class MiniMax
         List<Face> GetPlayableCards(Cards playedCards)
         {
             List<Face> availableCards;
-            var availableCardsNorth = GetAvailableCards(playedCards, Player.North);
-            var availableCardsSouth = GetAvailableCards(playedCards, Player.South);
             var cardsEWNotPlayed = cardsEW.Except(playedCards.Data).ToList();
             if (playedCards.Count() % 4 == 0)
             {
@@ -119,20 +118,17 @@ public static class MiniMax
 
             List<Face> ApplyStrategyPosition1()
             {
-                var availableCardsNS = availableCardsNorth.Concat(availableCardsSouth).ToList();
+                var availableCardsNorth = initialCards[Player.North].Except(playedCards.Data).ToList();
+                var availableCardsSouth = initialCards[Player.South].Except(playedCards.Data).ToList();
+                var availableCardsNS = availableCardsNorth.Concat(availableCardsSouth).OrderDescending().ToList();
                 if (availableCardsNS.Count == 0)
                     return [];
                 // Play only high cards when the rest of the tricks is certain
                 if (cardsEWNotPlayed.Count == 1)
                     return [availableCardsNS.Max()];
                 // Only play from the hand without forks
-                if (!HasForks(availableCardsSouth, availableCardsNorth, cardsEWNotPlayed))
-                    return availableCardsSouth;
-                if (!HasForks(availableCardsNorth, availableCardsSouth, cardsEWNotPlayed))
-                    return availableCardsNorth;
-
-                return availableCardsNS.ToList();
-
+                var cardsResult = GetAvailableCardsForks(availableCardsNorth.ToArray(), availableCardsSouth.ToArray(), cardsEWNotPlayed.ToArray());
+                return cardsResult;
             }
             
             List<Face> ApplyStrategyPosition2(Face[] lastTrick)
@@ -145,6 +141,8 @@ public static class MiniMax
             List<Face> ApplyStrategyPosition3(Face[] lastTrick)
             {
                 // Play the lowest card when it's not possible to win the trick 
+                var availableCardsNorth = GetAvailableCards(playedCards, Player.North);
+                var availableCardsSouth = GetAvailableCards(playedCards, Player.South);
                 if (availableCards.All(x => x < lastTrick[0]) || availableCards.All(x => x < lastTrick[1]))
                     return [availableCards.Min()];
                 if (lastTrick[0] < lastTrick[1])
@@ -204,29 +202,53 @@ public static class MiniMax
             return player == Player.West ? Player.North : player + 1;
         }
     }
-    
-    public static bool HasForks(List<Face> cardsPlayer, List<Face> cardsPartner, List<Face> cardsOtherTeam)
-    {
-        // TODO filter out small cards
-        if (cardsPlayer.Count < 2)
-            return false;
-        var longestSuit = Math.Min(Math.Max(cardsPlayer.Count, cardsPartner.Count), cardsOtherTeam.Count);
-        var cardsOurTeam = cardsPlayer.Concat(cardsPartner).OrderDescending().ToList();
-        var lastRelevantCard = cardsOurTeam[longestSuit - 1];
-        var ourTeamSegments = cardsOurTeam.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
-        var relevantSegments = ourTeamSegments.Where(x => x.Any(y => y >= lastRelevantCard)).ToList();
-        
-        var segmentsPlayer = cardsPlayer.Select(x => relevantSegments.FindIndex(y => y.Contains(x))).Where(x => x != -1).Distinct().ToList();
-        if (segmentsPlayer.Count > 1)
-            return true;
-        var segmentsPartner = cardsPartner.Select(x => relevantSegments.FindIndex(y => y.Contains(x))).Where(x => x != -1).Distinct().ToList();
-        if (segmentsPlayer.Count != 1) 
-            return false;
-        if (segmentsPlayer.Single() < segmentsPartner.First())
-            return true;
-        return segmentsPartner.Any(x => x > segmentsPlayer.Single()) && segmentsPartner.Any(x => x < segmentsPlayer.Single());
-    }
 
+    public static List<Face> GetAvailableCardsForks(Face[] cardsNorth, Face[] cardsSouth, Face[] cardsEW)
+    {
+        var longestSuit = Math.Min(Math.Max(cardsNorth.Length, cardsSouth.Length), cardsEW.Length);
+        var cardsNS = cardsNorth.Concat(cardsSouth).OrderDescending().ToList();
+        var segmentsNS = GetSegments(cardsNS, cardsEW).ToList();
+        var lastRelevantCard = segmentsNS.Single(x => x.Contains(cardsNS[longestSuit - 1])).Min();
+        // One or zero segment and the other more than one. Play the lowest of   
+        var relevantSegmentsNorth = GetSegments(cardsNorth.Where(x => x >= lastRelevantCard), cardsEW).ToList();
+        var relevantSegmentsSouth = GetSegments(cardsSouth.Where(x => x >= lastRelevantCard), cardsEW).ToList();
+        if (relevantSegmentsNorth.Count < 2 && relevantSegmentsSouth.Count > 1 && LastSegmentIsTheSame(relevantSegmentsNorth, relevantSegmentsSouth))
+            return [cardsNorth.Min()];
+        if (relevantSegmentsSouth.Count < 2 && relevantSegmentsNorth.Count > 1 && LastSegmentIsTheSame(relevantSegmentsNorth, relevantSegmentsSouth))
+            return [cardsSouth.Min()];
+        // Both has one segment, play the lowest if the other player has the highest card
+        if (relevantSegmentsNorth.Count == 1 && relevantSegmentsSouth.Count == 1)
+        {
+            var cardsPlayerNotHighestCard = cardsNorth.Contains(cardsNS.Max()) ? cardsSouth : cardsNorth;
+            var segments = GetSegments(cardsPlayerNotHighestCard, cardsEW).ToList();
+            if (segments.Count == 1)
+                return [cardsPlayerNotHighestCard.Min()];
+        }
+        // Return north and south cards
+        var cardsNorthFiltered = AvailableCardsFiltered2(cardsNorth, cardsEW);
+        var cardsSouthFiltered = AvailableCardsFiltered2(cardsSouth, cardsEW);
+        return cardsNorthFiltered.Concat(cardsSouthFiltered).ToList();
+        
+        bool LastSegmentIsTheSame(List<IEnumerable<Face>> relevantSegmentsNorth1, List<IEnumerable<Face>> relevantSegmentsSouth1)
+        {
+            if (relevantSegmentsNorth1.Count == 0 || relevantSegmentsSouth1.Count == 0)
+                return true;
+            var segmentNorth = GetSegmentNS(relevantSegmentsNorth1.Last(), segmentsNS);
+            var segmentSouth = GetSegmentNS(relevantSegmentsSouth1.Last(), segmentsNS);
+            return segmentNorth.SequenceEqual(segmentSouth);
+            
+            static IEnumerable<Face> GetSegmentNS(IEnumerable<Face> segment, IEnumerable<IEnumerable<Face>> segmentsNS)
+            {
+                return segmentsNS.Single(x => x.Contains(segment.First()));
+            }
+        }
+    }
+    
+    private static IEnumerable<IEnumerable<Face>> GetSegments(IEnumerable<Face> cardsPlayer, IEnumerable<Face> cardsEW)
+    {
+        return cardsPlayer.Segment((item, prevItem, _) => cardsEW.Any(x => x > item && x < prevItem));
+    }
+    
 
     public static int GetTrickCount(Cards play, Dictionary<Player, List<Face>> initialCards)
     {
@@ -247,5 +269,11 @@ public static class MiniMax
         {
             return segmentsCardsOtherTeam.FindIndex(x => x.First() < card);
         }
+    }
+    public static IEnumerable<Face> AvailableCardsFiltered2(IEnumerable<Face> availableCards, IEnumerable<Face> availableCardsOtherTeam)
+    {
+        var segmentsAvailableCards = GetSegments(availableCards, availableCardsOtherTeam);
+        var availableCardsFiltered = segmentsAvailableCards.Select(x => x.Last());
+        return availableCardsFiltered;
     }
 }
