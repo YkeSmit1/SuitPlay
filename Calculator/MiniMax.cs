@@ -225,6 +225,13 @@ public static class MiniMax
             if (segments.Count == 1)
                 return [cardsPlayerNotHighestCard.Min()];
         }
+        // Play a high card if we have the top highest cards
+        if (relevantSegmentsNorth.Count > 1 && relevantSegmentsSouth.Count > 1 && cardsNS.Max() > cardsEW.Max())
+        {
+            if (segmentsNS[0].Count() > 1 && segmentsNS[1].Count() > 1)
+                return [cardsNorth.Max(), cardsSouth.Max()];
+        }
+        
         // Return north and south cards
         var cardsNorthFiltered = AvailableCardsFiltered(cardsNorth, cardsEW);
         var cardsSouthFiltered = AvailableCardsFiltered(cardsSouth, cardsEW);
@@ -249,7 +256,6 @@ public static class MiniMax
     {
         return cardsPlayer.Segment((item, prevItem, _) => cardsEW.Any(x => x > item && x < prevItem));
     }
-    
 
     public static int GetTrickCount(Cards play, Dictionary<Player, List<Face>> initialCards)
     {
