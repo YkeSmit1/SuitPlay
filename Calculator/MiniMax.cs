@@ -131,7 +131,17 @@ public static class MiniMax
             {
                 // TODO maybe use falsecards
                 // Play lowest card when first hand plays a high one
-                return availableCards.All(x => x < lastTrick[0]) ? [availableCards.Min()] : availableCards;
+                if (availableCards.All(x => x < lastTrick[0]))
+                    return [availableCards.Min()];
+                // Play lowest card when partner has no cards and a high card cannot benefit
+                var player = NextPlayer(nextPlayer);
+                var cardsNextPlayer = initialCards[player].Except(playedCards.Data).ToList();
+                var cardsPartner = initialCards[NextPlayer(player)].Except(playedCards.Data).ToList();
+                if (cardsPartner.Count == 0 && cardsNextPlayer.Count > 1 && availableCards.Count > 1 &&
+                    cardsNextPlayer.Max() > availableCards.Max() && cardsNextPlayer.Skip(1).Max() > availableCards.Skip(1).Max())
+                    return [availableCards.Min()];
+
+                return availableCards;
             }
             
             List<Face> ApplyStrategyPosition3()
