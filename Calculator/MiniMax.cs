@@ -91,29 +91,26 @@ public static class MiniMax
 
         List<Face> GetPlayableCards(Cards playedCards)
         {
-            List<Face> availableCards;
             var cardsEWNotPlayed = cardsEW.Except(playedCards.Data).ToList();
             if (playedCards.Count() % 4 == 0)
-            {
-                availableCards = ApplyStrategyPosition1();
-            }
-            else
-            {
-                availableCards = GetAvailableCards(playedCards, NextPlayer(GetCurrentPlayer(playedCards))).ToList();
-                if (availableCards.Count == 0) 
-                    return [Face.Dummy];
-                var lastTrick = playedCards.Chunk(4).Last();
+                return ApplyStrategyPosition1();
 
-                availableCards = lastTrick.Length switch
-                {
-                    1 => ApplyStrategyPosition2(lastTrick),
-                    2 => ApplyStrategyPosition3(lastTrick),
-                    3 => ApplyStrategyPosition4(lastTrick),
-                    _ => availableCards
-                };
-            }
+            var nextPlayer = NextPlayer(GetCurrentPlayer(playedCards));
+            var availableCards = initialCards[nextPlayer].Except(playedCards.Data).ToList();
+                
+            if (availableCards.Count == 0) 
+                return [Face.Dummy];
+            var lastTrick = playedCards.Chunk(4).Last();
 
-            return availableCards.Count == 0 ? [Face.Dummy] : availableCards;
+            var playableCards = lastTrick.Length switch
+            {
+                1 => ApplyStrategyPosition2(),
+                2 => ApplyStrategyPosition3(),
+                3 => ApplyStrategyPosition4(),
+                _ => availableCards
+            };
+
+            return playableCards.Count == 0 ? [Face.Dummy] : FilterAvailableCards(nextPlayer, playedCards, playableCards) ;
 
             List<Face> ApplyStrategyPosition1()
             {
@@ -121,7 +118,7 @@ public static class MiniMax
                 var availableCardsSouth = initialCards[Player.South].Except(playedCards.Data).ToList();
                 var availableCardsNS = availableCardsNorth.Concat(availableCardsSouth).OrderDescending().ToList();
                 if (availableCardsNS.Count == 0)
-                    return [];
+                    return [Face.Dummy];
                 // Play only high cards when the rest of the tricks is certain
                 if (cardsEWNotPlayed.Count == 1)
                     return [availableCardsNS.Max()];
@@ -130,18 +127,19 @@ public static class MiniMax
                 return cardsResult;
             }
             
-            List<Face> ApplyStrategyPosition2(Face[] lastTrick)
+            List<Face> ApplyStrategyPosition2()
             {
                 // TODO maybe use falsecards
                 // Play lowest card when first hand plays a high one
                 return availableCards.All(x => x < lastTrick[0]) ? [availableCards.Min()] : availableCards;
             }
             
-            List<Face> ApplyStrategyPosition3(Face[] lastTrick)
+            List<Face> ApplyStrategyPosition3()
             {
-                // Play the lowest card when it's not possible to win the trick 
-                var availableCardsNorth = GetAvailableCards(playedCards, Player.North);
-                var availableCardsSouth = GetAvailableCards(playedCards, Player.South);
+                // Play the lowest card when it's not possible to win the trick
+                var availableCardsNorth = initialCards[Player.North].Except(playedCards.Data).ToList();
+                var availableCardsSouth = initialCards[Player.South].Except(playedCards.Data).ToList();
+                
                 if (availableCards.All(x => x < lastTrick[0]) || availableCards.All(x => x < lastTrick[1]))
                     return [availableCards.Min()];
                 if (lastTrick[0] < lastTrick[1])
@@ -165,7 +163,7 @@ public static class MiniMax
                 return availableCards;
             }
 
-            List<Face> ApplyStrategyPosition4(Face[] lastTrick)
+            List<Face> ApplyStrategyPosition4()
             {
                 // TODO maybe use falsecards
                 var highestCardOtherTeam = (Face)Math.Max((int)lastTrick[0], (int)lastTrick[2]);
@@ -177,14 +175,10 @@ public static class MiniMax
             }
         }
 
-        List<Face> GetAvailableCards(Cards playedCards, Player player)
+        List<Face> FilterAvailableCards(Player player, Cards playedCards, List<Face> availableCards)
         {
-            var availableCards = initialCards[player].Except(playedCards.Data).ToList();
-            if (availableCards.Count == 0)
-                return [];
-            
             var cardsOtherTeam = player is Player.North or Player.South ? cardsEW : cardsNS;
-            var playedCardsExceptLastTrick = playedCards.Data.Chunk(4).SkipLast(1).SelectMany(x => x);
+            var playedCardsExceptLastTrick = playedCards.Data.Count > 4 ? playedCards.Data.Chunk(4).SkipLast(1).SelectMany(x => x): [];
             var cardsOtherTeamNotPlayed = cardsOtherTeam.Except(playedCardsExceptLastTrick).ToList();
             var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeamNotPlayed).ToList();
 
