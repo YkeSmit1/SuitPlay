@@ -114,6 +114,7 @@ public class CalculateTest
     [InlineData("AT32", "Q654")]
     [InlineData("QJ2", "AT3")]
     [InlineData("AJ2", "KT3")]
+    [InlineData("AJ32", "K954")]
     public void TestEqualToEtalon2(string north, string south)
     {
         // Arrange 
