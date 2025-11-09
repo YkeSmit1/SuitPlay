@@ -264,7 +264,7 @@ public class Calculate
                     var shortest = new Cards(lineItem.Line.MaxBy(x => x.Count()).Take(shortestCount).ToList());
                     var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Length > 1)
                         .Where(x => x.Items.Any(y => y.OnlySmallCardsEW == shortest)).ToList();
-                    var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x, shortestCount)).ToList();
+                    var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x)).ToList();
                     var nextCard = sameItems.SelectMany(x => x.Items).Select(x => x.Play[shortestCount]).Distinct().ToList();
                     foreach (var face in nextCard)
                     {
@@ -273,7 +273,7 @@ public class Calculate
                         if (sameItemsNextCard.Count <= 1 || sameItemsNextCard.Any(x => x.Items.Count != 2)) 
                             continue;
                         var sameItem = sameItemsNextCard.First();
-                        var newLineItems = GetNewLineItem(lineItem, sameItem, sameItemsNextCard, shortestCount);
+                        var newLineItems = GetNewLineItem(lineItem, sameItem, sameItemsNextCard);
                         extraLines.Add(newLineItems);
                         lineItem.GeneratedLine = sameItem.Items.Last().Play;
                         var faces = sameItem.Items.First().Play.Take(shortestCount + 4);
@@ -287,13 +287,13 @@ public class Calculate
                 lineItems.AddRange(extraLines);
                 return;
 
-                bool HasSameItems(List<Item2> item2S, Item2 item2, int shortestCount)
+                bool HasSameItems(List<Item2> item2S, Item2 item2)
                 {
                     return item2S.Where(y => y.Combination != item2.Combination).Any(x =>
                         x.Items.Select(x1 => x1.Play[shortestCount]).Intersect(item2.Items.Select(x2 => x2.Play[shortestCount])).Any());
                 }
 
-                LineItem GetNewLineItem(LineItem lineItem, Item2 sameItem, List<Item2> sameItems, int shortestCount)
+                LineItem GetNewLineItem(LineItem lineItem, Item2 sameItem, List<Item2> sameItems)
                 {
                     var cards = sameItem.Items.First().Play;
                     var newLineItems = new LineItem

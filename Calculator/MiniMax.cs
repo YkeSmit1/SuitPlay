@@ -133,7 +133,7 @@ public static class MiniMax
                 // Play lowest card when first hand plays a high one
                 if (availableCards.All(x => x < lastTrick[0]))
                     return [availableCards.Min()];
-                // Play lowest card when partner has no cards and a high card cannot benefit
+                // Play the lowest card when partner has no cards and a high card cannot benefit
                 var player = NextPlayer(nextPlayer);
                 var cardsNextPlayer = initialCards[player].Except(playedCards.Data).ToList();
                 var cardsPartner = initialCards[NextPlayer(player)].Except(playedCards.Data).ToList();
