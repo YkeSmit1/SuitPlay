@@ -209,7 +209,7 @@ public static class Utils
         var treesForJson = result.LineItems
             .OrderByDescending(x => x.LongestLine)
             .ThenByDescending(x => x.GeneratedLine)
-            .ToDictionary(x => x.Header, x => x.Items2.Select(y => y.Tricks.First()));
+            .ToDictionary(x => x.Header, x => x.Items2.Select(y => y.Tricks.Max()));
         JsonSerializer.Serialize(stream, (treesForJson, result.DistributionItems.Select(x => x.East).Select(CardsToString)), JsonSerializerOptions);
     }
 
