@@ -192,7 +192,7 @@ public class Calculate
                     return lineItem;
                 }).ToList();
 
-            CreateExtraLines();
+            CreateExtraLines(3);
             RemoveDuplicateLines();
             AddStatistics();
             AddSuitPlayStatistics();
@@ -201,7 +201,6 @@ public class Calculate
             
             void RemoveBadPlays()
             {
-                //RemoveBadPlaysForTrick(0);
                 RemoveBadPlaysForTrick(1);
                 return;
 
@@ -257,14 +256,13 @@ public class Calculate
 
             }
             
-            void CreateExtraLines()
+            void CreateExtraLines(int shortestCount)
             {
                 var extraLines = new List<LineItem>();
                 foreach (var lineItem in lineItems)
                 {
-                    var shortest = lineItem.Line.MinBy(x => x.Count());
-                    var shortestCount = shortest.Count();
-                    var ambivalentItems = lineItem.Items2.Where(x => x.Type == ItemsType.Small && x.Tricks.Length > 1)
+                    var shortest = new Cards(lineItem.Line.MaxBy(x => x.Count()).Take(shortestCount).ToList());
+                    var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Length > 1)
                         .Where(x => x.Items.Any(y => y.OnlySmallCardsEW == shortest)).ToList();
                     var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x, shortestCount)).ToList();
                     var nextCard = sameItems.SelectMany(x => x.Items).Select(x => x.Play[shortestCount]).Distinct().ToList();
