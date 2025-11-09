@@ -201,6 +201,7 @@ public class Calculate
             
             void RemoveBadPlays()
             {
+                RemoveBadPlaysForTrick(0);
                 RemoveBadPlaysForTrick(1);
                 return;
 
