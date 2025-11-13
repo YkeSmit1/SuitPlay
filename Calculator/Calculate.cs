@@ -186,6 +186,7 @@ public class Calculate
             RemoveDuplicateLines();
             CreateExtraLines(1);
             CreateExtraLines(3);
+            CreateExtraLines(5);
             AddStatistics();
             AddSuitPlayStatistics();
 
@@ -292,6 +293,8 @@ public class Calculate
 
                 bool HasSameItems(List<Item2> item2S, Item2 item2)
                 {
+                    if (!item2.Items.All(x => x.Play.Count() > shortestCount))
+                        return false;
                     return item2S.Where(y => y.Combination != item2.Combination).Any(x =>
                         x.Items.Select(x1 => x1.Play[shortestCount]).Intersect(item2.Items.Select(x2 => x2.Play[shortestCount])).Any());
                 }
