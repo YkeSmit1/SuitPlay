@@ -169,7 +169,7 @@ public class Calculate
 
             var lines2NdHigh = treeItems.SelectMany(x => x.Items).Where(x => x.Play.Count() > 1 && x.Play.Data[1] != Face.SmallCard).Select(x => x.Play).ToList();
             var lines2NdDummy = treeItems.SelectMany(x => x.Items).Where(x => x.Play.Count() == 1).Select(x => x.Play).ToList();
-            var lineItems = CreateLines(treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct().Where(x => x.Count() > 1))
+            var lineItems = CreateLines(treeItems.SelectMany(x => x.Items).Select(x => x.OnlySmallCardsEW).Distinct().Where(x => x.Count() > 1).OrderDescending())
                 .Select(line =>
                 {
                     var lineItem = new LineItem
@@ -192,8 +192,8 @@ public class Calculate
                     return lineItem;
                 }).ToList();
 
-            CreateExtraLines(3);
             RemoveDuplicateLines();
+            CreateExtraLines(3);
             AddStatistics();
             AddSuitPlayStatistics();
 
