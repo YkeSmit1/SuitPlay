@@ -7,14 +7,6 @@ using Serilog;
 
 namespace Calculator;
 
-public enum ItemsType
-{
-    Small,
-    High,
-    Dummy,
-    None,
-}
-
 public class Calculate
 {
     private static readonly ArrayEqualityComparer<Face> ListEqualityComparer = new();
@@ -181,10 +173,9 @@ public class Calculate
                             var item2 = new Item2
                             {
                                 Combination = type.Combination,
-                                Tricks = items.similarItems.Count != 0 ? items.similarItems.Select(x => x.Tricks).Distinct().ToArray() : [-1],
+                                Tricks = items.Count != 0 ? items.Select(x => x.Tricks).Distinct().ToArray() : [-1],
                                 Probability = distributionList[type.Combination].Probability * distributionList[type.Combination].Occurrences,
-                                Items = items.similarItems,
-                                Type = items.itemsType
+                                Items = items
                             };
                             return item2;
                         }).ToList(),
@@ -359,23 +350,23 @@ public class Calculate
                 }
             }
 
-            (List<Item> similarItems, ItemsType itemsType) GetSimilarItems(List<Item> items, List<Cards> line)
+            List<Item> GetSimilarItems(List<Item> items, List<Cards> line)
             {
                 var similarItems = items.Where(z => line.Any(u => u == z.OnlySmallCardsEW)).ToList();
                 if (similarItems.Count != 0)
-                    return (similarItems, ItemsType.Small);
+                    return similarItems;
                 
                 var similarLines2NdHigh = lines2NdHigh.Where(x => x[0] == line.First()[0]);
                 var lines2NdHighItems = items.Where(z => similarLines2NdHigh.Any(u => u == z.Play)).ToList();
                 if (lines2NdHighItems.Count > 0)
-                    return (lines2NdHighItems, ItemsType.High);
+                    return lines2NdHighItems;
                 
                 var similarLines2NdDummy = lines2NdDummy.Where(x => x[0] == line.First()[0]);
                 var lines2NdDummyItems = items.Where(z => similarLines2NdDummy.Any(u => u == z.Play)).ToList();
                 if (lines2NdDummyItems.Count > 0)
-                    return (lines2NdDummyItems, ItemsType.Dummy);
+                    return lines2NdDummyItems;
                 
-                return ([], ItemsType.None);
+                return [];
             }
         }
     }

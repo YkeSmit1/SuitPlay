@@ -8,7 +8,6 @@ public class Item2
     public double Probability { get; init; }
     public int TricksInSuitPlay { get; set; }
     public List<Item> Items { get; init; }
-    public ItemsType Type { get; init; }
 
     public Item2 Clone()
     {
@@ -20,7 +19,6 @@ public class Item2
             Probability = Probability,
             TricksInSuitPlay = TricksInSuitPlay,
             Items = Items.ToList(),
-            Type = Type
         };
         return newItem;
     }
