@@ -279,7 +279,7 @@ public class Calculate
                         
                         var newLineItems = GetNewLineItem(lineItem, sameItem, affectedCombinations, index);
                         extraLines.Add(newLineItems);
-                        lineItem.GeneratedLines.Add(sameItem.Items.Last().Play);
+                        lineItem.GeneratedLines.Add(new Cards(sameItem.Items.Last().Play.Take(index).ToList()));
                         foreach (var item2 in affectedItems)
                         {
                             item2.Items.RemoveAll(x => faces.SequenceEqual(x.Play.Take(index)));
@@ -298,14 +298,13 @@ public class Calculate
 
                 LineItem GetNewLineItem(LineItem lineItem, Item2 sameItem, List<Face[]> affectedCombinations, int index)
                 {
-                    var cards = sameItem.Items.First().Play;
                     var newLineItems = new LineItem
                     {
                         Line = lineItem.Line.ToList(),
                         Items2 = lineItem.Items2.Select(x => x.Clone()).ToList(),
                         GeneratedLines = lineItem.GeneratedLines.ToList()
                     };
-                    newLineItems.GeneratedLines.Add(cards);
+                    newLineItems.GeneratedLines.Add(new Cards(sameItem.Items.First().Play.Take(index).ToList()));
                     var enumerable = newLineItems.Items2.Where(x => affectedCombinations.Contains(x.Combination)).ToList();
                     var faces = sameItem.Items.Last().Play.Take(index).ToList();
                     foreach (var item2 in enumerable)
