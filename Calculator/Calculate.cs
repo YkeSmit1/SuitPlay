@@ -193,6 +193,7 @@ public class Calculate
                 }).ToList();
 
             RemoveDuplicateLines();
+            CreateExtraLines(1);
             CreateExtraLines(3);
             AddStatistics();
             AddSuitPlayStatistics();
@@ -271,7 +272,7 @@ public class Calculate
                     {
                         var cardsToNextCard = shortest.ToString() + Utils.CardToChar(face);
                         var sameItemsNextCard = sameItems.Where(x => x.Items.First().Play.ToString().StartsWith(cardsToNextCard)).ToList();
-                        if (sameItemsNextCard.Count <= 1 || sameItemsNextCard.Any(x => x.Items.Count != 2)) 
+                        if (sameItemsNextCard.Count <= 1) 
                             continue;
                         var sameItem = sameItemsNextCard.First();
                         var affectedCombinations = sameItemsNextCard.Select(y => y.Combination).ToList();
@@ -280,12 +281,15 @@ public class Calculate
                                 .Select((pair, index) => (pair, index))
                                 .FirstOrDefault(x => x.pair.first != x.pair.second)
                                 .index + 1;
+                        var affectedItems = lineItem.Items2.Where(x => affectedCombinations.Contains(x.Combination)).ToList();
+                        var faces = sameItem.Items.First().Play.Take(index);
+                        if (affectedItems.Any(x => x.Items.All(y => faces.SequenceEqual(y.Play.Take(index)))))
+                            continue;
                         
                         var newLineItems = GetNewLineItem(lineItem, sameItem, affectedCombinations, index);
                         extraLines.Add(newLineItems);
-                        lineItem.GeneratedLine = sameItem.Items.Last().Play;
-                        var faces = sameItem.Items.First().Play.Take(index);
-                        foreach (var item2 in lineItem.Items2.Where(x => affectedCombinations.Contains(x.Combination)))
+                        lineItem.GeneratedLines.Add(sameItem.Items.Last().Play);
+                        foreach (var item2 in affectedItems)
                         {
                             item2.Items.RemoveAll(x => faces.SequenceEqual(x.Play.Take(index)));
                             item2.Tricks = item2.Items.Select(x => x.Tricks).Distinct().ToArray();
@@ -308,8 +312,9 @@ public class Calculate
                     {
                         Line = lineItem.Line.ToList(),
                         Items2 = lineItem.Items2.Select(x => x.Clone()).ToList(),
-                        GeneratedLine = cards
+                        GeneratedLines = lineItem.GeneratedLines.ToList()
                     };
+                    newLineItems.GeneratedLines.Add(cards);
                     var enumerable = newLineItems.Items2.Where(x => affectedCombinations.Contains(x.Combination)).ToList();
                     var faces = sameItem.Items.Last().Play.Take(index).ToList();
                     foreach (var item2 in enumerable)
