@@ -118,18 +118,17 @@ public class Calculate
                     bool IsBadPlay(Item item, List<Item> items)
                     {
                         if (item.Play.ToString().Length < pos + 2) return false;
-                        var differentPlays = items.Where(x =>
-                            x.Play.ToString()[..(pos + 1)] == item.Play.ToString()[..(pos + 1)] &&
-                            x.Play.ToString()[pos + 1] != item.Play.ToString()[pos + 1]).ToList();
+                        var differentPlays = items.Where(x => UpToPos(x.Play) == UpToPos(item.Play) && AtPos(x.Play) != AtPos(item.Play)).ToList();
                         if (differentPlays.Count == 0) return false;
                         var differentPlaysTricks = differentPlays.GroupBy(x => x.Play[pos + 1]).Select(x => x.Select(y => y.Tricks)).ToList();
 
-                        var samePlays = items.Where(x =>
-                            x.Play.ToString()[..(pos + 1)] == item.Play.ToString()[..(pos + 1)] &&
-                            x.Play.ToString()[pos + 1] == item.Play.ToString()[pos + 1]);
+                        var samePlays = items.Where(x => UpToPos(x.Play) == UpToPos(item.Play) && AtPos(x.Play) == AtPos(item.Play));
                         var samePlaysTricks = samePlays.Select(y => y.Tricks).ToArray();
                         var isBadPlay = differentPlaysTricks.Any(x => IsBetterPlay(x.ToArray(), samePlaysTricks) == -1);
                         return isBadPlay;
+
+                        string UpToPos(Cards play) => play.ToString()[..(pos + 1)];
+                        char AtPos(Cards play) => play.ToString()[pos + 1];
                     }
                 }
             }
