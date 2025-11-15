@@ -3,9 +3,8 @@
 public class Item2
 {
     public Face[] Combination { get; init; }
-    public int[] Tricks { get; set; }
+    public int[] Tricks => Items.Count != 0 ? Items.Select(x => x.Tricks).Distinct().ToArray() : [-1];
     public bool IsDifferent { get; set; }
-    public double Probability { get; init; }
     public int TricksInSuitPlay { get; set; }
     public List<Item> Items { get; init; }
 
@@ -14,9 +13,7 @@ public class Item2
         var newItem = new Item2
         {
             Combination = Combination,
-            Tricks = Tricks,
             IsDifferent = IsDifferent,
-            Probability = Probability,
             TricksInSuitPlay = TricksInSuitPlay,
             Items = Items.ToList(),
         };

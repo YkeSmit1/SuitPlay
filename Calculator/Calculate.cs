@@ -81,8 +81,6 @@ public class Calculate
                             var item2 = new Item2
                             {
                                 Combination = type.Combination,
-                                Tricks = items.Count != 0 ? items.Select(x => x.Tricks).Distinct().ToArray() : [-1],
-                                Probability = distributionList[type.Combination].Probability,
                                 Items = items
                             };
                             return item2;
@@ -192,7 +190,6 @@ public class Calculate
                         foreach (var item2 in affectedItems)
                         {
                             item2.Items.RemoveAll(x => faces.SequenceEqual(x.Play.Take(index)));
-                            item2.Tricks = item2.Items.Select(x => x.Tricks).Distinct().ToArray();
                         }
                     }
                 }
@@ -221,7 +218,6 @@ public class Calculate
                     foreach (var item2 in enumerable)
                     {
                         item2.Items.RemoveAll(x => faces.SequenceEqual(x.Play.Take(index)));
-                        item2.Tricks = item2.Items.Select(x => x.Tricks).Distinct().ToArray();
                     }
 
                     return newLineItems;
@@ -232,8 +228,10 @@ public class Calculate
             {
                 foreach (var lineItem in lineItems)
                 {
-                    lineItem.Average = lineItem.Items2.Average(y => y.Probability * y.Tricks.Max()) / lineItem.Items2.Select(z => z.Probability).Average();
-                    lineItem.Probabilities = possibleNrOfTricks.Select(y => lineItem.Items2.Where(z => z.Tricks.Max() >= y).Sum(z => z.Probability)).ToList();
+                    lineItem.Average = lineItem.Items2.Average(y => distributionList[y.Combination].Probability * y.Tricks.Max()) /
+                                       lineItem.Items2.Select(z => distributionList[z.Combination].Probability).Average();
+                    lineItem.Probabilities = possibleNrOfTricks.Select(y => lineItem.Items2.Where(z => z.Tricks.Max() >= y)
+                            .Sum(z => distributionList[z.Combination].Probability)).ToList();
                 }
             }
             
