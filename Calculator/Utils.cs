@@ -179,12 +179,6 @@ public static class Utils
         var enumerable = cards.ToList();
         return enumerable.TakeWhile(x => enumerable.IndexOf(x) % 2 == 0 || x == Face.SmallCard).ToList();
     }
-    
-    public static List<Face> NoDummyEW(this IEnumerable<Face> cards)
-    {
-        var enumerable = cards.ToList();
-        return enumerable.TakeWhile(x => enumerable.IndexOf(x) % 2 == 0 || x != Face.Dummy).ToList();
-    }
 
     public static bool IsSmallCard(Face face, List<IEnumerable<Face>> segmentsNS)
     {
@@ -194,15 +188,6 @@ public static class Utils
         return (int)face < (int)segmentsNS[^index].Last();
     }
 
-    public static void SaveTrees(Result result, string filename)
-    {
-        using var stream = new FileStream(filename, FileMode.Create);
-        var treesForJson = result.RelevantPlays.Where(x => x.Key.Count() == 3)
-            .OrderByDescending(x => x.Value.Play)
-            .ToDictionary(x => x.Key.ToString(), x => x.Value.NrOfTricks);
-        JsonSerializer.Serialize(stream, (treesForJson, result.CombinationsInTree.Select(CardsToString)), JsonSerializerOptions);
-    }
-    
     public static void SaveTrees2(Result2 result, string filename)
     {
         using var stream = new FileStream(filename, FileMode.Create);
@@ -217,7 +202,7 @@ public static class Utils
     {
         var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "log.txt");
         Log.Logger = new LoggerConfiguration()
-            .Destructure.ByTransforming<Item>(x => new { x.Play, x.Tricks, x.Combination, Children = x.Children.Count})
+            .Destructure.ByTransforming<Item>(x => new { x.Play, x.Tricks, Children = x.Children.Count})
             .MinimumLevel.Information()
             .WriteTo.Console()
             .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)

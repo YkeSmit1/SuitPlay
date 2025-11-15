@@ -23,7 +23,7 @@ public partial class MainPage
 
     private readonly Dictionary<(string suit, string card), string> dictionary;
     private IDictionary<Face[], List<Item>> bestPlay;
-    private Result result;
+    private Result2 result;
 
     public MainPage()
     {
@@ -74,8 +74,6 @@ public partial class MainPage
 
     private void EnableButtons(bool enable)
     {
-        OverviewButton.IsEnabled = enable;
-        DistributionsButton.IsEnabled = enable;
         TreeItemsButton.IsEnabled = enable;
     }
 
@@ -105,9 +103,9 @@ public partial class MainPage
             bestPlay = await Task.Run(() => Calculate.CalculateBestPlay(northHand, southHand));
             var calculateElapsed = stopWatch.Elapsed;
             stopWatch.Restart();
-            result = await GetResult(northHand, southHand);
-            var backTrackingElapsed = stopWatch.Elapsed;
-            BestPlay.Text = $@"{GetBestPlayText(result.PlayList, northSouth)} (Calculate:{calculateElapsed:s\:ff} seconds. BackTracking:{backTrackingElapsed:s\:ff} seconds)";
+            result = Calculate.GetResult2(bestPlay, GetHand(North), GetHand(South));
+            var constructLinesElapsed = stopWatch.Elapsed;
+            BestPlay.Text = $@"{GetBestPlayText(result.LineItems, northSouth)} (Calculate:{calculateElapsed:s\:ff} seconds. Construct lines:{constructLinesElapsed:s\:ff} seconds)";
             EnableButtons(true);
         }
         catch (Exception exception)
@@ -120,15 +118,15 @@ public partial class MainPage
         }
     }
 
-    private static string GetBestPlayText(List<PlayItem> playList, Face[] northSouth)
+    private static string GetBestPlayText(List<LineItem> playList, Face[] northSouth)
     {
         var segmentsNS = northSouth.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
-        var bestPlay = playList.Where(x => x.Play.Count() == 7 && x.Play[1] == Face.SmallCard).MaxBy(x => x.Average);
-        var textTrickOne = GetTrickText(bestPlay.Play.Take(3).ToList());
-        var textTrickTwo = GetTrickText(bestPlay.Play.Skip(4).Take(3).ToList());
+        var bestPlay = playList.MaxBy(x => x.Average);
+        var textTrickOne = GetTrickText(bestPlay.LongestLine.Take(3).ToList());
+        var textTrickTwo = GetTrickText(bestPlay.LongestLine.Skip(4).Take(3).ToList());
         var bestPlayText = $"{textTrickOne.text} {textTrickOne.card}\n" +
                            $"Then, {textTrickTwo.text} {textTrickTwo.card}\n" +
-                           $"Sequence:{bestPlay.Play}\n" +
+                           $"Sequence:{bestPlay.LongestLine}\n" +
                            $"Average tricks:{bestPlay.Average:0.##}";
         return bestPlayText;
         
@@ -142,55 +140,17 @@ public partial class MainPage
         }
     }
 
-    private async void ButtonOverview_OnClicked(object sender, EventArgs e)
-    {
-        try
-        {
-            var overviewList = result.PlayList.Where(y => y.Play.Count() > 2 && y.Play.All(z => z != Face.Dummy)).Select(x => new OverviewItem
-                { FirstTrick = x.Play.ToString(), Average = x.Average, Count = x.NrOfTricks.Count }).ToList();
-            await Shell.Current.GoToAsync(nameof(OverviewPage), new Dictionary<string, object> { ["OverviewList"] = overviewList });
-        }
-        catch (Exception exception)
-        {
-            await DisplayAlert("Error", exception.Message, "OK");
-        }
-    }
-
-    private async void ButtonDistributions_OnClicked(object sender, EventArgs e)
-    {
-        try
-        {
-            await Shell.Current.GoToAsync(nameof(DistributionsPage), new Dictionary<string, object> { ["Result"] = result });
-        }
-        catch (Exception exception)
-        {
-            await DisplayAlert("Error", exception.Message, "OK");
-        }
-    }
-
     private static Face[] GetHand(HandView handView)
     {
         return ((HandViewModel)handView.BindingContext).Cards.Select(y => y.Face).ToArray();
-    }
-
-    private Task<Result> GetResult(Face[] north, Face[] south)
-    {
-        return Task.Run(() =>
-        {
-            var resultLocal = Calculate.GetResult(bestPlay, north, south);
-            var filename = Path.Combine(FileSystem.AppDataDirectory, $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json");
-            Utils.SaveTrees(resultLocal, filename);
-            return resultLocal;
-        });
     }
     
     private async void TreeItemsButton_OnClicked(object sender, EventArgs e)
     {
         try
         {
-            var lResult = Calculate.GetResult2(bestPlay, GetHand(North), GetHand(South));
             await Shell.Current.GoToAsync(nameof(DistributionsPage2), new Dictionary<string, object>
-                    { ["Result"] = lResult, ["OnlyLinesInSuitPlay"] = OnlyLinesInSuitPlayCheckBox.IsChecked });
+                    { ["Result"] = result, ["OnlyLinesInSuitPlay"] = OnlyLinesInSuitPlayCheckBox.IsChecked });
         }
         catch (Exception exception)
         {

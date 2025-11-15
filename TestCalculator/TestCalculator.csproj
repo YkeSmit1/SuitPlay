@@ -84,41 +84,43 @@
       <None Update="etalons-suitplay\AT32-Q654.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons-2\AJ92-K843-2.json">
+      <None Update="etalons-2\AJ92-K843.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons-2\AQJ-T987654-2.json">
+      <None Update="etalons-2\AQJ-T987654.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons-2\AQJ-T9876543-2.json">
+      <None Update="etalons-2\AQJ-T9876543.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons-2\AQT98-5432-2.json">
+      <None Update="etalons-2\AQT98-5432.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons-2\AT32-Q654-2.json">
+      <None Update="etalons-2\AT32-Q654.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons-2\QT98-A432-2.json">
+      <None Update="etalons-2\QT98-A432.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons-2\QJ2-AT3-2.json">
+      <None Update="etalons-2\QJ2-AT3.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons-2\AJ2-KT3-2.json">
+      <None Update="etalons-2\AJ2-KT3.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="etalons-2\AJ92-K843.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="etalons-2\AJ32-K954-2.json">
+      <None Update="etalons-2\AJ32-K954.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="etalons-suitplay\AJ32-K954.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="etalons-2\" />
-      <Folder Include="etalons\" />
     </ItemGroup>
 
 </Project>

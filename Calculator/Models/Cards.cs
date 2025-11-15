@@ -52,7 +52,7 @@ public class Cards(List<Face> data) : IEquatable<Cards>, IComparable<Cards>
     public IEnumerable<Face> Take(int i) => Data.Take(i);
     public bool All(Func<Face, bool> func) => Data.All(func);
     public IEnumerable<Face> Skip(int i) => Data.Skip(i);
-    public IEnumerable<(Face a, Face b)> Zip(Cards other, Func<Face, Face, (Face a, Face b)> func) => Data.Zip(other.Data, func);
+    private IEnumerable<(Face a, Face b)> Zip(Cards other, Func<Face, Face, (Face a, Face b)> func) => Data.Zip(other.Data, func);
 
     // IEquatable members
 

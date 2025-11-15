@@ -5,12 +5,9 @@ namespace Calculator;
 
 public static class MiniMax
 {
-    private static readonly ArrayEqualityComparer<Face> ArrayEqualityComparer = new();
-
     public static List<Item> CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
     {
         var tree = new List<Item>();
-        var transpositionTable = new Dictionary<Face[], Item>(ArrayEqualityComparer);
         var initialCards = cards.Select((x, index) => (x, index)).ToDictionary(item => (Player)item.index, item => item.x.ToList());
         var cardsNS = initialCards[Player.North].Concat(initialCards[Player.South]).OrderDescending().ToList();
         var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).OrderDescending().ToList();
@@ -69,13 +66,8 @@ public static class MiniMax
                 foreach (var card in GetPlayableCards(playedCards))
                 {
                     playedCards.Add(card);
-                    var value = playedCards.Count() % 4 == 0 && transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToArray(), out var item)
-                        ? new Item(playedCards.Clone(), 0, []) {TranspositionRef = item}
-                        : Minimax(playedCards, true);
-
+                    var value = Minimax(playedCards, true);
                     resultItem.Tricks = Math.Min(resultItem.Tricks, value.Tricks);
-                    // if (playedCards.Count() % 4 == 0 && !transpositionTable.TryGetValue(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), out _))
-                    //     transpositionTable.Add(playedCards.Chunk(4).Select(x => x.Order()).SelectMany(x => x).ToList(), value);
 
                     resultItem.Children.Add(value);
                     playedCards.RemoveAt(playedCards.Count() - 1);

@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.Text;
 using Calculator;
 using Calculator.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,9 +14,7 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
     [ObservableProperty] public partial int GreenItems { get; set; }
     [ObservableProperty] public partial int MinusOneItems { get; set; }
     [ObservableProperty] public partial string Combination { get; set; }
-    private Face[] North { get; set; }
-    private Face[] South { get; set; }
-    
+
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -29,27 +26,5 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
         RedItems = LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent);
         MinusOneItems = LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks.First() == -1);
         Combination = $"{Utils.CardsToString(result.North)} - {Utils.CardsToString(result.South)}";
-        North = result.North;
-        South = result.South;
     }
-    
-    public async Task ExportViewModelToCsv()
-    {
-        var sb = new StringBuilder();
-
-        // Header
-        sb.AppendLine("WestHand,EastHand,Plays");
-
-        // Rows
-        var cardsNS = North.Concat(South).OrderDescending().ToList();
-        foreach (var item in DistributionItems)
-        {
-            var itemItems = string.Join(",", LineItems.Select(x =>
-                    $"{x.Line}:{x.Items2.Single(y => y.Combination.ConvertToSmallCards(cardsNS).SequenceEqual(item.East)).Tricks}"));
-            sb.AppendLine($"{Utils.CardsToString(item.West)},{Utils.CardsToString(item.East)},{itemItems}");
-        }
-
-        var filePath = Path.Combine(FileSystem.AppDataDirectory, "ViewModelData.csv");
-        await File.WriteAllTextAsync(filePath, sb.ToString());
-    }    
 }

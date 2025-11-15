@@ -80,30 +80,6 @@ public class CalculateTest
         // Assert
         Assert.Equal(expected.Select(Utils.CharToCard), actual);
     }
-
-    [Theory]
-    [InlineData("AQT98", "5432")]
-    [InlineData("QT98", "A432")]
-    [InlineData("AJ92", "K843")]
-    [InlineData("AQJ", "T987654")]
-    [InlineData("AQJ", "T9876543")]
-    [InlineData("AT32", "Q654")]
-    public void TestEqualToEtalon(string north, string south)
-    {
-        // Arrange 
-        var northHand = Utils.StringToCardArray(north);
-        var southHand = Utils.StringToCardArray(south);
-        // Act
-        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
-        var filename = $"{north}-{south}.json";
-        var result = Calculate.GetResult(bestPlay, northHand, southHand);
-        Utils.SaveTrees(result, filename);
-        
-        // Assert
-        var json = File.ReadAllText(filename);
-        var etalon = File.ReadAllText(Path.Combine("etalons", filename));
-        Assert.Equal(etalon, json);
-    }
     
     [Theory]
     [InlineData("AQT98", "5432")]
@@ -122,7 +98,7 @@ public class CalculateTest
         var southHand = Utils.StringToCardArray(south);
         // Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
-        var filename2 = $"{north}-{south}-2.json";
+        var filename2 = $"{north}-{south}.json";
         var result2 = Calculate.GetResult2(bestPlay, northHand, southHand);
         Utils.SaveTrees2(result2, filename2);
         
@@ -133,23 +109,24 @@ public class CalculateTest
     }
 
     [Theory]
-    [InlineData("AQT98-5432.json", new[] {"2xQ", "2xA", "2x8"})]
-    [InlineData("QT98-A432.json", new[] {"8x2", "Qx2"})]
-    [InlineData("AJ92-K843.json", new[] {"2xK", "Ax3", "3xJ"})]
-    [InlineData("AQJ-T987654.json", new[] {"4xJ"})]
-    [InlineData("AQJ-T9876543.json", new[] {"3xA"})]
-    [InlineData("AT32-Q654.json", new[] {"Ax4", "2xQ"})]
-    public void CompareWithOld(string fileName, string[] plays)
+    [InlineData("AJ32-K954.json")]
+    [InlineData("AQT98-5432.json")]
+    [InlineData("QT98-A432.json")]
+    [InlineData("AJ92-K843.json")]
+    [InlineData("AQJ-T987654.json")]
+    [InlineData("AQJ-T9876543.json")]
+    [InlineData("AT32-Q654.json")]
+    public void CompareWithOld(string fileName)
     {
         using var fileStreamOld = new FileStream(Path.Combine("etalons-suitplay", fileName), FileMode.Open);
         var resultsOld = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStreamOld, JsonSerializerOptions);
         
-        using var fileStreamNew = new FileStream(Path.Combine("etalons", fileName), FileMode.Open);
+        using var fileStreamNew = new FileStream(Path.Combine("etalons-2", fileName), FileMode.Open);
         var resultsNew = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStreamNew, JsonSerializerOptions);
 
         Assert.Equal(resultsOld.Item2, resultsNew.Item2);
         var combinations = resultsOld.Item2.ToList();
-        foreach (var play in plays)
+        foreach (var play in resultsOld.treesForJson.Keys)
         {
             var zipped = resultsOld.treesForJson[play].Zip(resultsNew.treesForJson[play]);
             foreach (var tuple in zipped.Index()) 
