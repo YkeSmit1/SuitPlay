@@ -174,7 +174,7 @@ public class Calculate
                             {
                                 Combination = type.Combination,
                                 Tricks = items.Count != 0 ? items.Select(x => x.Tricks).Distinct().ToArray() : [-1],
-                                Probability = distributionList[type.Combination].Probability * distributionList[type.Combination].Occurrences,
+                                Probability = distributionList[type.Combination].Probability,
                                 Items = items
                             };
                             return item2;
@@ -324,8 +324,8 @@ public class Calculate
             {
                 foreach (var lineItem in lineItems)
                 {
-                    lineItem.Average = lineItem.Items2.Average(y => y.Probability * y.Tricks.First()) / lineItem.Items2.Select(z => z.Probability).Average();
-                    lineItem.Probabilities = possibleNrOfTricks.Select(y => lineItem.Items2.Where(z => z.Tricks.First() >= y).Sum(z => z.Probability) / lineItem.Items2.Sum(z => z.Probability)).ToList();
+                    lineItem.Average = lineItem.Items2.Average(y => y.Probability * y.Tricks.Max()) / lineItem.Items2.Select(z => z.Probability).Average();
+                    lineItem.Probabilities = possibleNrOfTricks.Select(y => lineItem.Items2.Where(z => z.Tricks.Max() >= y).Sum(z => z.Probability)).ToList();
                 }
             }
             
