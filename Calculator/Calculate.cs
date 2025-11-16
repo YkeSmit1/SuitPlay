@@ -173,19 +173,20 @@ public class Calculate
                             continue;
                         var sameItem = sameItemsNextCard.First();
                         var affectedCombinations = sameItemsNextCard.Select(y => y.Combination).ToList();
-                        var index = sameItem.Items.First().Play.Data
-                                .Zip(sameItem.Items.Last().Play.Data, (first, second) => (first, second))
+                        var sameItemItems = sameItem.Items.Where(x => x.Play.ToString().StartsWith(cardsToNextCard)).ToList();
+                        var index = sameItemItems.First().Play.Data
+                                .Zip(sameItemItems.Last().Play.Data, (first, second) => (first, second))
                                 .Select((pair, index) => (pair, index))
                                 .FirstOrDefault(x => x.pair.first != x.pair.second)
                                 .index + 1;
                         var affectedItems = lineItem.Items2.Where(x => affectedCombinations.Contains(x.Combination)).ToList();
-                        var faces = sameItem.Items.First().Play.Take(index);
+                        var faces = sameItemItems.First().Play.Take(index);
                         if (affectedItems.Any(x => x.Items.All(y => faces.SequenceEqual(y.Play.Take(index)))))
                             continue;
                         
                         var newLineItems = GetNewLineItem(lineItem, sameItem, affectedCombinations, index);
                         extraLines.Add(newLineItems);
-                        lineItem.GeneratedLines.Add(new Cards(sameItem.Items.Last().Play.Take(index).ToList()));
+                        lineItem.GeneratedLines.Add(new Cards(sameItemItems.Last().Play.Take(index).ToList()));
                         foreach (var item2 in affectedItems)
                         {
                             item2.Items.RemoveAll(x => faces.SequenceEqual(x.Play.Take(index)));
@@ -198,6 +199,8 @@ public class Calculate
                 bool HasSameItems(List<Item2> item2S, Item2 item2)
                 {
                     if (!item2.Items.All(x => x.Play.Count() > shortestCount))
+                        return false;
+                    if (!item2S.SelectMany(x => x.Items).All(x => x.Play.Count() > shortestCount))
                         return false;
                     return item2S.Where(y => y.Combination != item2.Combination).Any(x =>
                         x.Items.Select(x1 => x1.Play[shortestCount]).Intersect(item2.Items.Select(x2 => x2.Play[shortestCount])).Any());

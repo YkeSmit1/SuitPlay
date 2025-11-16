@@ -91,6 +91,7 @@ public class CalculateTest
     [InlineData("QJ2", "AT3")]
     [InlineData("AJ2", "KT3")]
     [InlineData("AJ32", "K954")]
+    [InlineData("J92", "A753")]
     public void TestEqualToEtalon2(string north, string south)
     {
         // Arrange 
@@ -109,13 +110,14 @@ public class CalculateTest
     }
 
     [Theory]
-    [InlineData("AJ32-K954.json")]
     [InlineData("AQT98-5432.json")]
     [InlineData("QT98-A432.json")]
     [InlineData("AJ92-K843.json")]
     [InlineData("AQJ-T987654.json")]
     [InlineData("AQJ-T9876543.json")]
     [InlineData("AT32-Q654.json")]
+    [InlineData("AJ32-K954.json")]
+    [InlineData("J92-A753.json")]
     public void CompareWithOld(string fileName)
     {
         using var fileStreamOld = new FileStream(Path.Combine("etalons-suitplay", fileName), FileMode.Open);

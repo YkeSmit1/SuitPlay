@@ -132,6 +132,8 @@ public partial class MainPage
         
         (string text, Face card) GetTrickText(List<Face> trick)
         {
+            if (trick.Count < 1)
+                return ("Trick to short", Face.Dummy);
             if (segmentsNS.First().Contains(trick[0]))
                 return ("Play the", trick[0]);
             if (segmentsNS.First().Contains(trick[2]))
