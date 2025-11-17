@@ -180,16 +180,18 @@ public class Calculate
                                 .FirstOrDefault(x => x.pair.first != x.pair.second)
                                 .index + 1;
                         var affectedItems = lineItem.Items2.Where(x => affectedCombinations.Contains(x.Combination)).ToList();
-                        var faces = sameItemItems.First().Play.Take(index);
+                        var faces = sameItemItems.First().Play.Take(index).ToList();
                         if (affectedItems.Any(x => x.Items.All(y => faces.SequenceEqual(y.Play.Take(index)))))
                             continue;
                         
-                        var newLineItems = GetNewLineItem(lineItem, sameItem, affectedCombinations, index);
+                        var newLineItems = GetNewLineItem(lineItem, affectedCombinations, faces);
                         extraLines.Add(newLineItems);
                         lineItem.GeneratedLines.Add(new Cards(sameItemItems.Last().Play.Take(index).ToList()));
+                        var play = sameItemItems.Last().Play.Take(index).ToList();
+                        var playMinOne = play.SkipLast(1);
                         foreach (var item2 in affectedItems)
                         {
-                            item2.Items.RemoveAll(x => faces.SequenceEqual(x.Play.Take(index)));
+                            item2.Items.RemoveAll(x => x.Play.Data.StartsWith(playMinOne) && !x.Play.Data.StartsWith(play));
                         }
                     }
                 }
@@ -206,7 +208,7 @@ public class Calculate
                         x.Items.Select(x1 => x1.Play[shortestCount]).Intersect(item2.Items.Select(x2 => x2.Play[shortestCount])).Any());
                 }
 
-                LineItem GetNewLineItem(LineItem lineItem, Item2 sameItem, List<Face[]> affectedCombinations, int index)
+                LineItem GetNewLineItem(LineItem lineItem, List<Face[]> affectedCombinations, List<Face> play)
                 {
                     var newLineItems = new LineItem
                     {
@@ -214,12 +216,12 @@ public class Calculate
                         Items2 = lineItem.Items2.Select(x => x.Clone()).ToList(),
                         GeneratedLines = lineItem.GeneratedLines.ToList()
                     };
-                    newLineItems.GeneratedLines.Add(new Cards(sameItem.Items.First().Play.Take(index).ToList()));
+                    newLineItems.GeneratedLines.Add(new Cards(play));
                     var enumerable = newLineItems.Items2.Where(x => affectedCombinations.Contains(x.Combination)).ToList();
-                    var faces = sameItem.Items.Last().Play.Take(index).ToList();
+                    var playMinOne = play.SkipLast(1);
                     foreach (var item2 in enumerable)
                     {
-                        item2.Items.RemoveAll(x => faces.SequenceEqual(x.Play.Take(index)));
+                        item2.Items.RemoveAll(x => x.Play.Data.StartsWith(playMinOne) && !x.Play.Data.StartsWith(play));
                     }
 
                     return newLineItems;

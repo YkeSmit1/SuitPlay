@@ -136,6 +136,8 @@ public partial class MainPage
                 return ("Trick to short", Face.Dummy);
             if (segmentsNS.First().Contains(trick[0]))
                 return ("Play the", trick[0]);
+            if (trick.Count < 3)
+                return ("Trick to short", Face.Dummy);
             if (segmentsNS.First().Contains(trick[2]))
                 return ("Play the", trick[2]);
             return trick[0] < trick[2] ? ("Play to the", trick[2]) : ("Run the", trick[0]);
