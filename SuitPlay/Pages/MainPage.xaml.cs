@@ -122,11 +122,11 @@ public partial class MainPage
     {
         var segmentsNS = northSouth.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         var bestPlay = playList.MaxBy(x => x.Average);
-        var textTrickOne = GetTrickText(bestPlay.LongestLine.Take(3).ToList());
-        var textTrickTwo = GetTrickText(bestPlay.LongestLine.Skip(4).Take(3).ToList());
+        var textTrickOne = GetTrickText(bestPlay.LongestLineIncludingGenerated.Take(3).ToList());
+        var textTrickTwo = GetTrickText(bestPlay.LongestLineIncludingGenerated.Skip(4).Take(3).ToList());
         var bestPlayText = $"{textTrickOne.text} {textTrickOne.card}\n" +
                            $"Then, {textTrickTwo.text} {textTrickTwo.card}\n" +
-                           $"Sequence:{bestPlay.LongestLine}\n" +
+                           $"Sequence:{bestPlay.LongestLineIncludingGenerated}\n" +
                            $"Average tricks:{bestPlay.Average:0.##}";
         return bestPlayText;
         

@@ -179,17 +179,13 @@ public class Calculate
                                 .Select((pair, index) => (pair, index))
                                 .FirstOrDefault(x => x.pair.first != x.pair.second)
                                 .index + 1;
-                        var affectedItems = lineItem.Items2.Where(x => affectedCombinations.Contains(x.Combination)).ToList();
                         var faces = sameItemItems.First().Play.Take(index).ToList();
-                        if (affectedItems.Any(x => x.Items.All(y => faces.SequenceEqual(y.Play.Take(index)))))
-                            continue;
-                        
                         var newLineItems = GetNewLineItem(lineItem, affectedCombinations, faces);
                         extraLines.Add(newLineItems);
-                        lineItem.GeneratedLines.Add(new Cards(sameItemItems.Last().Play.Take(index).ToList()));
                         var play = sameItemItems.Last().Play.Take(index).ToList();
+                        lineItem.GeneratedLines.Add(new Cards(play));
                         var playMinOne = play.SkipLast(1);
-                        foreach (var item2 in affectedItems)
+                        foreach (var item2 in lineItem.Items2.Where(x => affectedCombinations.Contains(x.Combination)).ToList())
                         {
                             item2.Items.RemoveAll(x => x.Play.Data.StartsWith(playMinOne) && !x.Play.Data.StartsWith(play));
                         }
@@ -217,9 +213,8 @@ public class Calculate
                         GeneratedLines = lineItem.GeneratedLines.ToList()
                     };
                     newLineItems.GeneratedLines.Add(new Cards(play));
-                    var enumerable = newLineItems.Items2.Where(x => affectedCombinations.Contains(x.Combination)).ToList();
                     var playMinOne = play.SkipLast(1);
-                    foreach (var item2 in enumerable)
+                    foreach (var item2 in newLineItems.Items2.Where(x => affectedCombinations.Contains(x.Combination)))
                     {
                         item2.Items.RemoveAll(x => x.Play.Data.StartsWith(playMinOne) && !x.Play.Data.StartsWith(play));
                     }
