@@ -119,6 +119,7 @@ public class CalculateTest
     [InlineData("AT32-Q654.json")]
     [InlineData("AJ32-K954.json")]
     [InlineData("J92-A753.json")]
+    [InlineData("J987-A432.json")]
     public void CompareWithOld(string fileName)
     {
         using var fileStreamOld = new FileStream(Path.Combine("etalons-suitplay", fileName), FileMode.Open);

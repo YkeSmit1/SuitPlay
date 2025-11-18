@@ -158,6 +158,7 @@ public class Calculate
             void CreateExtraLines(int shortestCount)
             {
                 var extraLines = new List<LineItem>();
+                var linesToRemove = new List<LineItem>();
                 foreach (var lineItem in lineItems)
                 {
                     var shortest = new Cards(lineItem.Line.MaxBy(x => x.Count()).Take(shortestCount).ToList());
@@ -179,19 +180,16 @@ public class Calculate
                                 .Select((pair, index) => (pair, index))
                                 .FirstOrDefault(x => x.pair.first != x.pair.second)
                                 .index + 1;
-                        var faces = sameItemItems.First().Play.Take(index).ToList();
-                        var newLineItems = GetNewLineItem(lineItem, affectedCombinations, faces);
-                        extraLines.Add(newLineItems);
-                        var play = sameItemItems.Last().Play.Take(index).ToList();
-                        lineItem.GeneratedLines.Add(new Cards(play));
-                        var playMinOne = play.SkipLast(1);
-                        foreach (var item2 in lineItem.Items2.Where(x => affectedCombinations.Contains(x.Combination)).ToList())
-                        {
-                            item2.Items.RemoveAll(x => x.Play.Data.StartsWith(playMinOne) && !x.Play.Data.StartsWith(play));
-                        }
+                        var faces = sameItemItems.First().Play.Take(index - 1).ToList();
+                        var groupBy = sameItemItems.GroupBy(x => x.Play[index - 1]);
+                        var newLineItems = groupBy.Select(group =>
+                            GetNewLineItem(lineItem, affectedCombinations, [..faces, group.Key]));
+                        extraLines.AddRange(newLineItems);
+                        linesToRemove.Add(lineItem);
                     }
                 }
                 lineItems.AddRange(extraLines);
+                lineItems.RemoveAll(x => linesToRemove.Contains(x));
                 return;
 
                 bool HasSameItems(List<Item2> item2S, Item2 item2)
