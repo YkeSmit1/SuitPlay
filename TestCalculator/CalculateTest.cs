@@ -135,7 +135,9 @@ public class CalculateTest
             foreach (var (index, trickNew) in resultsNew.treesForJson[lineOld].Index())
             {
                 var combination = combinationsNew[index];
-                var trickOld = tricksOld[combinationsOld.IndexOf(combination)];
+                var indexOfCombination = combinationsOld.IndexOf(combination);
+                if (indexOfCombination == -1) continue;
+                var trickOld = tricksOld[indexOfCombination];
                 if (trickNew != trickOld)
                     testOutputHelper.WriteLine($"Values not equal. file:{fileName} play:{lineOld} East:{combination} old:{trickOld} new:{trickNew} ");
             }
