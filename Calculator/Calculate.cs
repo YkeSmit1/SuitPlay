@@ -45,6 +45,7 @@ public class Calculate
         var combinationsInTree = bestPlay.Keys.OrderBy(x => x, FaceListComparer).ToList();
         var distributionList = GetDistributionItems(cardsNS, combinationsInTree);
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderDescending().SkipLast(1).ToList();
+        var combinationsInSuitPlay = new List<Face[]>();
 
         return new Result2
         {
@@ -52,7 +53,8 @@ public class Calculate
             LineItems = AssignLines(),
             PossibleNrOfTricks = possibleNrOfTricks, 
             North = north,
-            South = south
+            South = south,
+            CombinationsInSuitPlay = combinationsInSuitPlay 
         };
 
         List<LineItem> AssignLines()
@@ -240,7 +242,7 @@ public class Calculate
                     return;
                 using var fileStream = new FileStream(combine, FileMode.Open);
                 var results = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStream, JsonSerializerOptions);
-                var combinationsSuitplay = results.Item2.ToList();
+                combinationsInSuitPlay = results.Item2.Select(Utils.StringToCardArray).ToList();
             
                 foreach (var lineItem in lineItems)
                 {
@@ -249,7 +251,7 @@ public class Calculate
                     lineItem.LineInSuitPlay = true;
                     foreach (var item2 in lineItem.Items2)
                     {
-                        var indexOfCombination = combinationsSuitplay.IndexOf(Utils.CardsToString(item2.Combination));
+                        var indexOfCombination = combinationsInSuitPlay.FindIndex(x => x.SequenceEqual(item2.Combination.ConvertToSmallCards(cardsNS)));
                         item2.IsDifferent = item2.Tricks.First() != -1 && indexOfCombination != -1 && item2.Tricks.Max() != data[indexOfCombination];
                         item2.TricksInSuitPlay = indexOfCombination != -1 ? data[indexOfCombination] : 0;
                     }

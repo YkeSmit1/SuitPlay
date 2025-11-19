@@ -44,6 +44,7 @@ public partial class MainPage
         var north = Preferences.Get("North", "");
         var south = Preferences.Get("South", "");
         OnlyLinesInSuitPlayCheckBox.IsChecked = Preferences.Get("OnlyLinesInSuitPlay", false);
+        OnlyCombinationsInSuitPlayCheckBox.IsChecked = Preferences.Get("OnlyCombinationsInSuitPlay", false);
         var remainingCards = Utils.CardsToString(Utils.GetAllCards()).Except(north).Except(south);
         ((HandViewModel)North.BindingContext).ShowHand($"{north}", "default", dictionary);
         ((HandViewModel)South.BindingContext).ShowHand($"{south}", "default", dictionary);
@@ -153,8 +154,11 @@ public partial class MainPage
     {
         try
         {
-            await Shell.Current.GoToAsync(nameof(DistributionsPage2), new Dictionary<string, object>
-                    { ["Result"] = result, ["OnlyLinesInSuitPlay"] = OnlyLinesInSuitPlayCheckBox.IsChecked });
+            await Shell.Current.GoToAsync(nameof(DistributionsPage2), new Dictionary<string, object> {
+                    ["Result"] = result, 
+                    ["OnlyLinesInSuitPlay"] = OnlyLinesInSuitPlayCheckBox.IsChecked,
+                    ["OnlyCombinationsInSuitPlay"] = OnlyCombinationsInSuitPlayCheckBox.IsChecked
+                });
         }
         catch (Exception exception)
         {
@@ -165,5 +169,10 @@ public partial class MainPage
     private void OnlyLinesInSuitPlayCheckBox_OnCheckedChanged(object sender, CheckedChangedEventArgs e)
     {
         Preferences.Set("OnlyLinesInSuitPlay", e.Value);
+    }
+
+    private void OnlyCombinationsInSuitPlayCheckBox_OnCheckedChanged(object sender, CheckedChangedEventArgs e)
+    {
+        Preferences.Set("OnlyCombinationsInSuitPlay", e.Value);
     }
 }

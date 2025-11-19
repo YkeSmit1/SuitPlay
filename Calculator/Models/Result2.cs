@@ -7,5 +7,5 @@ public class Result2
     public List<int> PossibleNrOfTricks { get; init; }
     public Face[] North { get; init; }
     public Face[] South { get; init; }
-    
+    public List<Face[]> CombinationsInSuitPlay { get; set; }
 }

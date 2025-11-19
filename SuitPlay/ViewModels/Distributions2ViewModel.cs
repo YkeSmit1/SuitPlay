@@ -7,6 +7,7 @@ namespace SuitPlay.ViewModels;
 
 public partial class Distributions2ViewModel : ObservableObject, IQueryAttributable
 {
+    private readonly ArrayEqualityComparer<Face> arrayEqualityComparer = new();
     [ObservableProperty] public partial ObservableCollection<DistributionItem> DistributionItems { get; set; }
     [ObservableProperty] public partial ObservableCollection<LineItem> LineItems { get; set; }
     [ObservableProperty] public partial ObservableCollection<int> PossibleNrOfTricks { get; set; }
@@ -19,8 +20,20 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         var result = (Result2)query["Result"];
-        DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionItems);
-        LineItems = new ObservableCollection<LineItem>(result.LineItems.Where(x => !(bool)query["OnlyLinesInSuitPlay"] || x.LineInSuitPlay));
+        DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionItems.Where(x =>
+            !(bool)query["OnlyCombinationsInSuitPlay"] || result.CombinationsInSuitPlay.Contains(x.East, arrayEqualityComparer)));
+        var lineItems = result.LineItems.Where(x => !(bool)query["OnlyLinesInSuitPlay"] || x.LineInSuitPlay).ToList();
+        var cardsNS = result.North.Concat(result.South).OrderDescending().ToList();
+        if ((bool)query["OnlyCombinationsInSuitPlay"])
+        {
+            foreach (var lineItem in lineItems)
+            {
+                lineItem.Items2 = lineItem.Items2.Where(x => result.CombinationsInSuitPlay.Contains(x.Combination.ConvertToSmallCards(cardsNS),
+                        arrayEqualityComparer)).ToList();
+            }
+        }
+
+        LineItems = new ObservableCollection<LineItem>(lineItems);
         PossibleNrOfTricks = new ObservableCollection<int>(result.PossibleNrOfTricks);
         GreenItems = LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks.Length > 1);
         RedItems = LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent);

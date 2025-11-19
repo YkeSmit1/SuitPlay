@@ -30,6 +30,8 @@
             <HorizontalStackLayout>
                 <CheckBox x:Name="OnlyLinesInSuitPlayCheckBox" CheckedChanged="OnlyLinesInSuitPlayCheckBox_OnCheckedChanged"></CheckBox>
                 <Label Text="Only lines in suitplay"></Label>
+                <CheckBox x:Name="OnlyCombinationsInSuitPlayCheckBox" CheckedChanged="OnlyCombinationsInSuitPlayCheckBox_OnCheckedChanged"></CheckBox>
+                <Label Text="Only combinations in suitplay"></Label>
             </HorizontalStackLayout>
         </VerticalStackLayout>
     </ScrollView>
