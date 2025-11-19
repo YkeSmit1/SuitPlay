@@ -14,4 +14,34 @@
       <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
       <PackageReference Include="Universal.Common.Mathematics" Version="4.2.0" />
     </ItemGroup>
+
+    <ItemGroup>
+      <None Update="etalons-suitplay\AJ32-K954.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="etalons-suitplay\AJ92-K843.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="etalons-suitplay\AQJ-T987654.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="etalons-suitplay\AQJ-T9876543.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="etalons-suitplay\AQT98-5432.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="etalons-suitplay\AT32-Q654.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="etalons-suitplay\J92-A753.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="etalons-suitplay\J987-A432.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="etalons-suitplay\QT98-A432.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 </Project>
