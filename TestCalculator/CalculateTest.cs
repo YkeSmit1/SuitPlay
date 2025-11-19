@@ -128,15 +128,16 @@ public class CalculateTest
         using var fileStreamNew = new FileStream(Path.Combine("etalons-2", fileName), FileMode.Open);
         var resultsNew = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStreamNew, JsonSerializerOptions);
 
-        Assert.Equal(resultsOld.Item2, resultsNew.Item2);
-        var combinations = resultsOld.Item2.ToList();
-        foreach (var play in resultsOld.treesForJson.Keys)
+        var combinationsOld = resultsOld.Item2.ToList();
+        var combinationsNew = resultsNew.Item2.ToList();
+        foreach (var (lineOld, tricksOld) in resultsOld.treesForJson)
         {
-            var zipped = resultsOld.treesForJson[play].Zip(resultsNew.treesForJson[play]);
-            foreach (var tuple in zipped.Index()) 
+            foreach (var (index, trickNew) in resultsNew.treesForJson[lineOld].Index())
             {
-                if (tuple.Item.First != tuple.Item.Second)
-                    testOutputHelper.WriteLine($"Values not equal. file:{fileName} play:{play} East:{combinations[tuple.Index]} old:{tuple.Item.First} new:{tuple.Item.Second} ");
+                var combination = combinationsNew[index];
+                var trickOld = tricksOld[combinationsOld.IndexOf(combination)];
+                if (trickNew != trickOld)
+                    testOutputHelper.WriteLine($"Values not equal. file:{fileName} play:{lineOld} East:{combination} old:{trickOld} new:{trickNew} ");
             }
         }
     }

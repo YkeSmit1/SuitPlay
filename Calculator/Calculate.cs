@@ -240,17 +240,18 @@ public class Calculate
                     return;
                 using var fileStream = new FileStream(combine, FileMode.Open);
                 var results = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStream, JsonSerializerOptions);
+                var combinationsSuitplay = results.Item2.ToList();
             
                 foreach (var lineItem in lineItems)
                 {
                     var data = results.treesForJson.SingleOrDefault(a => lineItem.Header == a.Key).Value;
                     if (data == null) continue;
                     lineItem.LineInSuitPlay = true;
-                    var dataCounter = 0;
                     foreach (var item2 in lineItem.Items2)
                     {
-                        item2.IsDifferent = item2.Tricks.First() != -1 && item2.Tricks.Max() != data[dataCounter];
-                        item2.TricksInSuitPlay = data[dataCounter++];
+                        var indexOfCombination = combinationsSuitplay.IndexOf(Utils.CardsToString(item2.Combination));
+                        item2.IsDifferent = item2.Tricks.First() != -1 && indexOfCombination != -1 && item2.Tricks.Max() != data[indexOfCombination];
+                        item2.TricksInSuitPlay = indexOfCombination != -1 ? data[indexOfCombination] : 0;
                     }
                 }
             }
