@@ -30,9 +30,12 @@ public class CalculateTest
     }
 
     [Theory]
+    [InlineData(new[] { "KJ", "K3" }, "AQT2", new[]{"KJ", "K3"})]
+    [InlineData(new[] { "K5", "K4" }, "AQ32", new[]{"K4"})]
     [InlineData(new[] { "K74", "K65", "54", "76" }, "AQ32", new[]{"K74", "54"})]
     [InlineData(new[] { "KJ7", "KJ6", "K76", "54", "76" }, "AQT2", new[]{"KJ6", "K76", "54"})]
     [InlineData(new[] { "K76", "K75", "K65", "76", "75", "65" }, "AQT98432", new[]{"K65", "65"})]
+    [InlineData(new[] { "KQ", "K7", "K6", "Q7", "Q6", "76" }, "AJT2", new[]{"KQ", "Q6", "76"})]
     public void TestFilterCombinations(string[] combination, string cardsNS, string[] expected)
     {
         var actual = combination.Select(x => x.Select(Utils.CharToCard)).ToList();

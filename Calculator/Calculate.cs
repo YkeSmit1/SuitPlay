@@ -171,7 +171,7 @@ public class Calculate
                     foreach (var face in nextCard)
                     {
                         var cardsToNextCard = shortest.ToString() + Utils.CardToChar(face);
-                        var sameItemsNextCard = sameItems.Where(x => x.Items.First().Play.ToString().StartsWith(cardsToNextCard)).ToList();
+                        var sameItemsNextCard = sameItems.Where(x => x.Items.Any(y => y.Play.ToString().StartsWith(cardsToNextCard))).ToList();
                         if (sameItemsNextCard.Count <= 1) 
                             continue;
                         var sameItem = sameItemsNextCard.First();
@@ -400,5 +400,12 @@ public class Calculate
         {
             return segmentsNS.FindIndex(x => x.First() < face);
         }
+    }
+    
+    private static IEnumerable<IEnumerable<Face>> SimilarCombinations2(IEnumerable<IEnumerable<Face>> combinationList, IEnumerable<Face> combination, IEnumerable<Face> cardsNS)
+    {
+        var enumerable = cardsNS.ToList();
+        var similarCombinations = combinationList.Where(x => x.ConvertToSmallCards(enumerable).SequenceEqual(combination.ConvertToSmallCards(enumerable)));
+        return similarCombinations;
     }
 }
