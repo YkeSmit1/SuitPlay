@@ -163,6 +163,7 @@ public class Calculate
                 var linesToRemove = new List<LineItem>();
                 foreach (var lineItem in lineItems)
                 {
+                    var extraLinesLineItem = new List<LineItem>();
                     var shortest = new Cards(lineItem.Line.MaxBy(x => x.Count()).Take(shortestCount).ToList());
                     var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Length > 1)
                         .Where(x => x.Items.Any(y => y.OnlySmallCardsEW == shortest)).ToList();
@@ -171,24 +172,26 @@ public class Calculate
                     foreach (var face in nextCard)
                     {
                         var cardsToNextCard = shortest.ToString() + Utils.CardToChar(face);
-                        var sameItemsNextCard = sameItems.Where(x => x.Items.Any(y => y.Play.ToString().StartsWith(cardsToNextCard))).ToList();
-                        if (sameItemsNextCard.Count <= 1) 
-                            continue;
-                        var sameItem = sameItemsNextCard.First();
-                        var affectedCombinations = sameItemsNextCard.Select(y => y.Combination).ToList();
-                        var sameItemItems = sameItem.Items.Where(x => x.Play.ToString().StartsWith(cardsToNextCard)).ToList();
-                        var index = sameItemItems.First().Play.Data
-                                .Zip(sameItemItems.Last().Play.Data, (first, second) => (first, second))
-                                .Select((pair, index) => (pair, index))
-                                .FirstOrDefault(x => x.pair.first != x.pair.second)
-                                .index + 1;
-                        var faces = sameItemItems.First().Play.Take(index - 1).ToList();
-                        var groupBy = sameItemItems.GroupBy(x => x.Play[index - 1]);
-                        var newLineItems = groupBy.Select(group =>
-                            GetNewLineItem(lineItem, affectedCombinations, [..faces, group.Key]));
-                        extraLines.AddRange(newLineItems);
-                        linesToRemove.Add(lineItem);
+                        if (TryCreateLineItems(sameItems, lineItem, cardsToNextCard, out var newLineItems))
+                        {
+                            // Also create extra lines for the new lines
+                            var extraLines2 = new List<LineItem>();
+                            var linesToRemove2 = new List<LineItem>();
+                            foreach (var extraLine in extraLinesLineItem)
+                            {
+                                if (!TryCreateLineItems(sameItems, extraLine, cardsToNextCard, out var newLineItems2))
+                                    continue;
+                                extraLines2.AddRange(newLineItems2.ToList());
+                                linesToRemove2.Add(extraLine);
+                            }
+                            extraLinesLineItem.AddRange(extraLines2);
+                            linesToRemove.AddRange(linesToRemove2);
+                            
+                            extraLinesLineItem.AddRange(newLineItems.ToList());
+                            linesToRemove.Add(lineItem);
+                        }
                     }
+                    extraLines.AddRange(extraLinesLineItem);
                 }
                 lineItems.AddRange(extraLines);
                 lineItems.RemoveAll(x => linesToRemove.Contains(x));
@@ -203,6 +206,28 @@ public class Calculate
                     return item2S.Where(y => y.Combination != item2.Combination).Any(x =>
                         x.Items.Select(x1 => x1.Play[shortestCount]).Intersect(item2.Items.Select(x2 => x2.Play[shortestCount])).Any());
                 }
+                
+                bool TryCreateLineItems(List<Item2> sameItems, LineItem lineItem, string cardsToNextCard, out IEnumerable<LineItem> newLineItems)
+                {
+                    newLineItems = null;
+                    var sameItemsNextCard = sameItems.Where(x => x.Items.Any(y => y.Play.ToString().StartsWith(cardsToNextCard))).ToList();
+                    if (sameItemsNextCard.Count <= 1) 
+                        return false;
+                    var sameItem = sameItemsNextCard.First();
+                    var affectedCombinations = sameItemsNextCard.Select(y => y.Combination).ToList();
+                    var sameItemItems = sameItem.Items.Where(x => x.Play.ToString().StartsWith(cardsToNextCard)).ToList();
+                    var index = sameItemItems.First().Play.Data
+                        .Zip(sameItemItems.Last().Play.Data, (first, second) => (first, second))
+                        .Select((pair, index) => (pair, index))
+                        .FirstOrDefault(x => x.pair.first != x.pair.second)
+                        .index + 1;
+                    var faces = sameItemItems.First().Play.Take(index - 1).ToList();
+                    var groupBy = sameItemItems.GroupBy(x => x.Play[index - 1]);
+                    newLineItems = groupBy.Select(group =>
+                        GetNewLineItem(lineItem, affectedCombinations, [..faces, group.Key]));
+                    return true;
+                }
+                
 
                 LineItem GetNewLineItem(LineItem lineItem, List<Face[]> affectedCombinations, List<Face> play)
                 {
