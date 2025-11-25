@@ -169,9 +169,12 @@ public class Calculate
                         .Where(x => x.Items.Any(y => y.OnlySmallCardsEW == shortest)).ToList();
                     var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x)).ToList();
                     var nextCard = sameItems.SelectMany(x => x.Items).Select(x => x.Play[shortestCount]).Distinct().ToList();
-                    foreach (var face in nextCard)
+                    if (nextCard.Count == 0)
+                        continue;
+                    var segments = nextCard.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
+                    foreach (var face in segments)
                     {
-                        var cardsToNextCard = shortest.ToString() + Utils.CardToChar(face);
+                        var cardsToNextCard = shortest.ToString() + Utils.CardToChar(face.First());
                         if (TryCreateLineItems(sameItems, lineItem, cardsToNextCard, out var newLineItems))
                         {
                             // Also create extra lines for the new lines
