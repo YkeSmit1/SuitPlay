@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using Calculator.Models;
-using MoreLinq;
 using Serilog;
 
 namespace Calculator;
@@ -170,7 +169,7 @@ public static class Utils
     public static Face[] ConvertToSmallCards(this IEnumerable<Face> cards, IEnumerable<Face> cardsNS)
     {
         var enumerable = cardsNS.ToList();
-        var segmentsNS = enumerable.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
+        var segmentsNS = MoreLinq.MoreEnumerable.Segment(enumerable, (item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
         return cards.Select(x => !enumerable.Contains(x) && IsSmallCard(x, segmentsNS) ? Face.SmallCard : x).ToArray();
     }
     
@@ -208,4 +207,26 @@ public static class Utils
             .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
             .CreateLogger();
     }
+
+    public static bool IsSameLine(string a, string b, IEnumerable<Face> cardsNS)
+    {
+        var cardsA = a.Split(";").Select(StringToCardArray).ToList();
+        var cardsB = b.Split(";").Select(StringToCardArray).ToList();
+        if (cardsA.Count != cardsB.Count) return false;
+        var segmentsNS = MoreLinq.MoreEnumerable.Segment(cardsNS, (item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
+        var cardsNSAreTheSame = cardsA.Zip(cardsB, (x, y) => (x, y)).All(x => CardsOneTeam(x.x, 0).SequenceEqual(CardsOneTeam(x.y, 0)));
+        var cardsEWAreTheSame = cardsA.Zip(cardsB, (x, y) => (x, y)).All(x => GetSegmentsEW(x.x).SequenceEqual(GetSegmentsEW(x.y)));
+        return cardsNSAreTheSame && cardsEWAreTheSame;
+
+        IEnumerable<int> GetSegmentsEW(Face[] cards)
+        {
+            return CardsOneTeam(cards, 1).Select(face => segmentsNS.FindIndex(x => x.First() < face));
+        }
+
+        IEnumerable<Face> CardsOneTeam(Face[] cards, int i)
+        {
+            return cards.Index().Where(x => x.Index % 2 == i).Select(x => x.Item);
+        }
+    }
+    
 }

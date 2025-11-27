@@ -274,7 +274,7 @@ public class Calculate
             
                 foreach (var lineItem in lineItems)
                 {
-                    var data = results.treesForJson.SingleOrDefault(a => lineItem.Header == a.Key).Value;
+                    var data = results.treesForJson.SingleOrDefault(a => Utils.IsSameLine(lineItem.Header, a.Key, cardsNS)).Value;
                     if (data == null) continue;
                     lineItem.LineInSuitPlay = true;
                     foreach (var item2 in lineItem.Items2)

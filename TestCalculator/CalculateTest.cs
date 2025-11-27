@@ -133,9 +133,10 @@ public class CalculateTest
 
         var combinationsOld = resultsOld.Item2.ToList();
         var combinationsNew = resultsNew.Item2.ToList();
+        var cardsNS = Utils.StringToCardArray(new string(fileName.TakeWhile(x => x != '-').Concat(fileName.SkipWhile(x => x != '-').Skip(1).TakeWhile(x => x != '.')).ToArray())).OrderDescending();
         foreach (var (lineOld, tricksOld) in resultsOld.treesForJson)
         {
-            foreach (var (index, trickNew) in resultsNew.treesForJson[lineOld].Index())
+            foreach (var (index, trickNew) in resultsNew.treesForJson.Single(x => Utils.IsSameLine(x.Key, lineOld, cardsNS)).Value.Index())
             {
                 var combination = combinationsNew[index];
                 var indexOfCombination = combinationsOld.IndexOf(combination);
