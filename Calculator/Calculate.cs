@@ -163,38 +163,8 @@ public class Calculate
                 var linesToRemove = new List<LineItem>();
                 foreach (var lineItem in lineItems)
                 {
-                    var extraLinesLineItem = new List<LineItem>();
-                    var shortest = new Cards(lineItem.Line.MaxBy(x => x.Count()).Take(shortestCount).ToList());
-                    var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Length > 1)
-                        .Where(x => x.Items.Any(y => y.OnlySmallCardsEW == shortest)).ToList();
-                    var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x)).ToList();
-                    var nextCard = sameItems.SelectMany(x => x.Items).Select(x => x.Play[shortestCount]).Distinct().ToList();
-                    if (nextCard.Count == 0)
-                        continue;
-                    var segments = nextCard.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
-                    foreach (var face in segments)
-                    {
-                        var cardsToNextCard = shortest.ToString() + Utils.CardToChar(face.First());
-                        if (TryCreateLineItems(sameItems, lineItem, cardsToNextCard, out var newLineItems))
-                        {
-                            // Also create extra lines for the new lines
-                            var extraLines2 = new List<LineItem>();
-                            var linesToRemove2 = new List<LineItem>();
-                            foreach (var extraLine in extraLinesLineItem)
-                            {
-                                if (!TryCreateLineItems(sameItems, extraLine, cardsToNextCard, out var newLineItems2))
-                                    continue;
-                                extraLines2.AddRange(newLineItems2.ToList());
-                                linesToRemove2.Add(extraLine);
-                            }
-                            extraLinesLineItem.AddRange(extraLines2);
-                            linesToRemove.AddRange(linesToRemove2);
-                            
-                            extraLinesLineItem.AddRange(newLineItems.ToList());
-                            linesToRemove.Add(lineItem);
-                        }
-                    }
-                    extraLines.AddRange(extraLinesLineItem);
+                    var play = new Cards(lineItem.Line.MaxBy(x => x.Count()).Take(shortestCount).ToList());
+                    CreateExtraLinesForPlay(play, lineItem);
                 }
                 lineItems.AddRange(extraLines);
                 lineItems.RemoveAll(x => linesToRemove.Contains(x));
@@ -208,6 +178,38 @@ public class Calculate
                         return false;
                     return item2S.Where(y => y.Combination != item2.Combination).Any(x =>
                         x.Items.Select(x1 => x1.Play[shortestCount]).Intersect(item2.Items.Select(x2 => x2.Play[shortestCount])).Any());
+                }
+                
+                void CreateExtraLinesForPlay(Cards play, LineItem lineItem)
+                {
+                    var extraLinesForPlay = new List<LineItem>();
+                    var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Length > 1)
+                        .Where(x => x.Items.Any(y => y.OnlySmallCardsEW == play)).ToList();
+                    var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x)).ToList();
+                    var nextCards = sameItems.SelectMany(x => x.Items).Select(x => x.Play[shortestCount]).Distinct().ToList();
+                    if (nextCards.Count == 0)
+                        return;
+                    var segments = nextCards.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
+                    foreach (var segment in segments)
+                    {
+                        var cardsToNextCard = play.ToString() + Utils.CardToChar(segment.First());
+                        if (TryCreateLineItems(sameItems, lineItem, cardsToNextCard, out var newLineItems))
+                        {
+                            // Also create extra lines for the new lines
+                            var extraLinesForCard = new List<LineItem>();
+                            foreach (var extraLine in extraLinesForPlay)
+                            {
+                                if (!TryCreateLineItems(sameItems, extraLine, cardsToNextCard, out var newLineItems2))
+                                    continue;
+                                extraLinesForCard.AddRange(newLineItems2.ToList());
+                                linesToRemove.Add(extraLine);
+                            }
+                            extraLinesForPlay.AddRange(extraLinesForCard);
+                            extraLinesForPlay.AddRange(newLineItems.ToList());
+                            linesToRemove.Add(lineItem);
+                        }
+                    }
+                    extraLines.AddRange(extraLinesForPlay);
                 }
                 
                 bool TryCreateLineItems(List<Item2> sameItems, LineItem lineItem, string cardsToNextCard, out IEnumerable<LineItem> newLineItems)
@@ -227,12 +229,11 @@ public class Calculate
                     var faces = sameItemItems.First().Play.Take(index - 1).ToList();
                     var groupBy = sameItemItems.GroupBy(x => x.Play[index - 1]);
                     newLineItems = groupBy.Select(group =>
-                        GetNewLineItem(lineItem, affectedCombinations, [..faces, group.Key]));
+                        CreateLineItem(lineItem, affectedCombinations, [..faces, group.Key]));
                     return true;
                 }
-                
 
-                LineItem GetNewLineItem(LineItem lineItem, List<Face[]> affectedCombinations, List<Face> play)
+                LineItem CreateLineItem(LineItem lineItem, List<Face[]> affectedCombinations, List<Face> play)
                 {
                     var newLineItems = new LineItem
                     {
