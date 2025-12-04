@@ -22,7 +22,7 @@ jobs:
         echo "${{ secrets.KEYSTORE_FILE }}" > suitplay.keystore.asc
         gpg -d --passphrase "${{ secrets.KEYSTORE_PASSWORD_GPG }}" --batch suitplay.keystore.asc > suitplay.keystore          
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 9.0.x
         source-url: https://nuget.pkg.github.com/YkeSmit1/index.json
