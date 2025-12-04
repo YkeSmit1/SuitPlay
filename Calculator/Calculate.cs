@@ -164,7 +164,8 @@ public class Calculate
                 foreach (var lineItem in lineItems)
                 {
                     var play = new Cards(lineItem.Line.MaxBy(x => x.Count()).Take(shortestCount).ToList());
-                    CreateExtraLinesForPlay(play, lineItem);
+                    if (TryCreateExtraLinesForPlay(play, lineItem, out var lineItemsForPlay))
+                        extraLines.AddRange(lineItemsForPlay);
                 }
                 lineItems.AddRange(extraLines);
                 lineItems.RemoveAll(x => linesToRemove.Contains(x));
@@ -180,15 +181,15 @@ public class Calculate
                         x.Items.Select(x1 => x1.Play[shortestCount]).Intersect(item2.Items.Select(x2 => x2.Play[shortestCount])).Any());
                 }
                 
-                void CreateExtraLinesForPlay(Cards play, LineItem lineItem)
+                bool TryCreateExtraLinesForPlay(Cards play, LineItem lineItem, out List<LineItem> extraLinesForPlay)
                 {
-                    var extraLinesForPlay = new List<LineItem>();
+                    extraLinesForPlay = [];
                     var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Length > 1)
-                        .Where(x => x.Items.Any(y => y.OnlySmallCardsEW == play)).ToList();
+                        .Where(x => x.Items.Any(y => y.Play.StartsWith(play) && y.Play[play.Count()] != Face.SmallCard)).ToList();
                     var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x)).ToList();
                     var nextCards = sameItems.SelectMany(x => x.Items).Select(x => x.Play[shortestCount]).Distinct().ToList();
                     if (nextCards.Count == 0)
-                        return;
+                        return false;
                     var segments = nextCards.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
                     foreach (var segment in segments)
                     {
@@ -201,20 +202,20 @@ public class Calculate
                             {
                                 if (!TryCreateLineItems(sameItems, extraLine, cardsToNextCard, out var newLineItems2))
                                     continue;
-                                extraLinesForCard.AddRange(newLineItems2.ToList());
+                                extraLinesForCard.AddRange(newLineItems2);
                                 linesToRemove.Add(extraLine);
                             }
                             extraLinesForPlay.AddRange(extraLinesForCard);
-                            extraLinesForPlay.AddRange(newLineItems.ToList());
+                            extraLinesForPlay.AddRange(newLineItems);
                             linesToRemove.Add(lineItem);
                         }
                     }
-                    extraLines.AddRange(extraLinesForPlay);
+                    return true;
                 }
                 
-                bool TryCreateLineItems(List<Item2> sameItems, LineItem lineItem, string cardsToNextCard, out IEnumerable<LineItem> newLineItems)
+                bool TryCreateLineItems(List<Item2> sameItems, LineItem lineItem, string cardsToNextCard, out List<LineItem> newLineItems)
                 {
-                    newLineItems = null;
+                    newLineItems = [];
                     var sameItemsNextCard = sameItems.Where(x => x.Items.Any(y => y.Play.ToString().StartsWith(cardsToNextCard))).ToList();
                     if (sameItemsNextCard.Count <= 1) 
                         return false;
@@ -228,8 +229,7 @@ public class Calculate
                         .index + 1;
                     var faces = sameItemItems.First().Play.Take(index - 1).ToList();
                     var groupBy = sameItemItems.GroupBy(x => x.Play[index - 1]);
-                    newLineItems = groupBy.Select(group =>
-                        CreateLineItem(lineItem, affectedCombinations, [..faces, group.Key]));
+                    newLineItems = groupBy.Select(group => CreateLineItem(lineItem, affectedCombinations, [..faces, group.Key])).ToList();
                     return true;
                 }
 
