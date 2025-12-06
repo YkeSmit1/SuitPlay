@@ -229,4 +229,10 @@ public static class Utils
         }
     }
     
+    public static int FindFirstDifferentPosition(List<Cards> strings)
+    {
+        var minLength = strings.Min(s => s.Count());
+        var sameCount = Enumerable.Range(0, minLength).TakeWhile(i => strings.Select(s => s[i]).Distinct().Count() == 1).Count();
+        return Math.Min(sameCount, minLength);
+    }
 }

@@ -164,7 +164,7 @@ public class Calculate
                 foreach (var lineItem in lineItems)
                 {
                     var play = new Cards(lineItem.Line.MaxBy(x => x.Count()).Take(shortestCount).ToList());
-                    if (TryCreateExtraLinesForPlay(play, lineItem, out var lineItemsForPlay))
+                    if (TryCreateExtraLinesForPlay(play, lineItem, out var lineItemsForPlay, false))
                         extraLines.AddRange(lineItemsForPlay);
                 }
                 lineItems.AddRange(extraLines);
@@ -181,13 +181,13 @@ public class Calculate
                         x.Items.Select(x1 => x1.Play[shortestCount]).Intersect(item2.Items.Select(x2 => x2.Play[shortestCount])).Any());
                 }
                 
-                bool TryCreateExtraLinesForPlay(Cards play, LineItem lineItem, out List<LineItem> extraLinesForPlay)
+                bool TryCreateExtraLinesForPlay(Cards play, LineItem lineItem, out List<LineItem> extraLinesForPlay, bool includeSmallCards)
                 {
                     extraLinesForPlay = [];
                     var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Length > 1)
-                        .Where(x => x.Items.Any(y => y.Play.StartsWith(play) && y.Play[play.Count()] != Face.SmallCard)).ToList();
+                        .Where(x => x.Items.Any(y => y.Play.StartsWith(play) && (includeSmallCards || y.Play[play.Count()] != Face.SmallCard))).ToList();
                     var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x)).ToList();
-                    var nextCards = sameItems.SelectMany(x => x.Items).Select(x => x.Play[shortestCount]).Distinct().ToList();
+                    var nextCards = sameItems.SelectMany(x => x.Items).Select(x => x.Play[play.Count()]).Distinct().OrderDescending().ToList();
                     if (nextCards.Count == 0)
                         return false;
                     var segments = nextCards.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
@@ -219,17 +219,22 @@ public class Calculate
                     var sameItemsNextCard = sameItems.Where(x => x.Items.Any(y => y.Play.ToString().StartsWith(cardsToNextCard))).ToList();
                     if (sameItemsNextCard.Count <= 1) 
                         return false;
-                    var sameItem = sameItemsNextCard.First();
-                    var affectedCombinations = sameItemsNextCard.Select(y => y.Combination).ToList();
-                    var sameItemItems = sameItem.Items.Where(x => x.Play.ToString().StartsWith(cardsToNextCard)).ToList();
-                    var index = sameItemItems.First().Play.Data
-                        .Zip(sameItemItems.Last().Play.Data, (first, second) => (first, second))
-                        .Select((pair, index) => (pair, index))
-                        .FirstOrDefault(x => x.pair.first != x.pair.second)
-                        .index + 1;
-                    var faces = sameItemItems.First().Play.Take(index - 1).ToList();
-                    var groupBy = sameItemItems.GroupBy(x => x.Play[index - 1]);
-                    newLineItems = groupBy.Select(group => CreateLineItem(lineItem, affectedCombinations, [..faces, group.Key])).ToList();
+                    var cardsList = sameItemsNextCard.SelectMany(x => x.Items).Select(x => x.Play).Where(x => x.ToString().StartsWith(cardsToNextCard)).ToList();
+                    var index = Utils.FindFirstDifferentPosition(cardsList);
+                    var cards = new Cards(cardsList.First().Take(index).ToList());
+                    if (index % 2 == 0)
+                    {
+                        var sameItem = sameItemsNextCard.First();
+                        var affectedCombinations = sameItemsNextCard.Select(y => y.Combination).ToList();
+                        var sameItemItems = sameItem.Items.Where(x => x.Play.ToString().StartsWith(cardsToNextCard));
+                        var groupBy = sameItemItems.GroupBy(x => x.Play[index]);
+                        newLineItems = groupBy.Select(group => CreateLineItem(lineItem, affectedCombinations, [..cards.Data, group.Key])).ToList();
+                    }
+                    else
+                    {
+                        if (TryCreateExtraLinesForPlay(cards, lineItem, out var extraLinesForPlay, true))
+                            newLineItems = extraLinesForPlay;
+                    }
                     return true;
                 }
 
