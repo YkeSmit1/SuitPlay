@@ -171,17 +171,7 @@ public class Calculate
                 lineItems.AddRange(extraLines);
                 lineItems.RemoveAll(x => linesToRemove.Contains(x));
                 return;
-
-                bool HasSameItems(List<Item2> item2S, Item2 item2)
-                {
-                    if (!item2.Items.All(x => x.Play.Count() > shortestCount))
-                        return false;
-                    if (!item2S.SelectMany(x => x.Items).All(x => x.Play.Count() > shortestCount))
-                        return false;
-                    return item2S.Where(y => y.Combination != item2.Combination).Any(x =>
-                        x.Items.Select(x1 => x1.Play[shortestCount]).Intersect(item2.Items.Select(x2 => x2.Play[shortestCount])).Any());
-                }
-                
+               
                 bool TryCreateExtraLinesForPlay(Cards play, LineItem lineItem, out List<LineItem> extraLinesForPlay, bool includeSmallCards)
                 {
                     extraLinesForPlay = [];
@@ -212,6 +202,16 @@ public class Calculate
                         }
                     }
                     return extraLinesForPlay.Count > 0;
+                    
+                    bool HasSameItems(List<Item2> item2S, Item2 item2)
+                    {
+                        if (!item2.Items.All(x => x.Play.Count() > shortestCount))
+                            return false;
+                        if (!item2S.SelectMany(x => x.Items).All(x => x.Play.Count() > shortestCount))
+                            return false;
+                        return item2S.Where(y => y.Combination != item2.Combination).Any(x =>
+                            x.Items.Select(x1 => x1.Play[shortestCount]).Intersect(item2.Items.Select(x2 => x2.Play[shortestCount])).Any());
+                    }
                 }
                 
                 bool TryCreateLineItems(List<Item2> sameItems, LineItem lineItem, string cardsToNextCard, out List<LineItem> newLineItems)
@@ -229,7 +229,7 @@ public class Calculate
                         var affectedCombinations = sameItemsNextCard.Select(y => y.Combination).ToList();
                         var sameItemItems = sameItem.Items.Where(x => x.Play.ToString().StartsWith(cardsToNextCard));
                         var groupBy = sameItemItems.GroupBy(x => x.Play[index]);
-                        newLineItems = groupBy.Select(group => CreateLineItem(lineItem, affectedCombinations, [..cards.Data, group.Key])).ToList();
+                        newLineItems = groupBy.Select(group => CreateLineItem(affectedCombinations, [..cards.Data, group.Key])).ToList();
                     }
                     else
                     {
@@ -237,24 +237,24 @@ public class Calculate
                             newLineItems = extraLinesForPlay;
                     }
                     return newLineItems.Count > 0;
-                }
+                    
+                    LineItem CreateLineItem(List<Face[]> affectedCombinations, List<Face> play)
+                    {
+                        var newLineItems = new LineItem
+                        {
+                            Line = lineItem.Line.ToList(),
+                            Items2 = lineItem.Items2.Select(x => x.Clone()).ToList(),
+                            GeneratedLines = lineItem.GeneratedLines.ToList()
+                        };
+                        newLineItems.GeneratedLines.Add(new Cards(play));
+                        var playMinOne = play.SkipLast(1);
+                        foreach (var item2 in newLineItems.Items2.Where(x => affectedCombinations.Contains(x.Combination)))
+                        {
+                            item2.Items.RemoveAll(x => x.Play.Data.StartsWith(playMinOne) && !x.Play.Data.StartsWith(play));
+                        }
 
-                LineItem CreateLineItem(LineItem lineItem, List<Face[]> affectedCombinations, List<Face> play)
-                {
-                    var newLineItems = new LineItem
-                    {
-                        Line = lineItem.Line.ToList(),
-                        Items2 = lineItem.Items2.Select(x => x.Clone()).ToList(),
-                        GeneratedLines = lineItem.GeneratedLines.ToList()
-                    };
-                    newLineItems.GeneratedLines.Add(new Cards(play));
-                    var playMinOne = play.SkipLast(1);
-                    foreach (var item2 in newLineItems.Items2.Where(x => affectedCombinations.Contains(x.Combination)))
-                    {
-                        item2.Items.RemoveAll(x => x.Play.Data.StartsWith(playMinOne) && !x.Play.Data.StartsWith(play));
+                        return newLineItems;
                     }
-
-                    return newLineItems;
                 }
             }
             
