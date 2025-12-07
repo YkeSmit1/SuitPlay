@@ -94,12 +94,12 @@ public class Calculate
             CreateExtraLines(1);
             CreateExtraLines(3);
             CreateExtraLines(5);
-            lineItems = lineItems.OrderByDescending(x => x.Line.First()).ToList();
+            lineItems = lineItems.OrderByDescending(x => x.LongestLine).ToList();
             RemoveDuplicateLines();
             AddStatistics();
             AddSuitPlayStatistics();
 
-            return lineItems.OrderByDescending(x => x.LongestLine).ToList();
+            return lineItems;
             
             void RemoveBadPlays()
             {
