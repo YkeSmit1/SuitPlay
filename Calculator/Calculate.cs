@@ -91,10 +91,11 @@ public class Calculate
                     return lineItem;
                 }).ToList();
 
-            RemoveDuplicateLines();
             CreateExtraLines(1);
             CreateExtraLines(3);
             CreateExtraLines(5);
+            lineItems = lineItems.OrderByDescending(x => x.Line.First()).ToList();
+            RemoveDuplicateLines();
             AddStatistics();
             AddSuitPlayStatistics();
 

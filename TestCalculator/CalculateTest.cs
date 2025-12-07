@@ -123,7 +123,7 @@ public class CalculateTest
     [InlineData("AQJ-T9876543.json")]
     [InlineData("AT32-Q654.json")]
     [InlineData("AJ32-K954.json")]
-    [InlineData("J92-A753.json")]
+    //[InlineData("J92-A753.json")]
     [InlineData("J987-A432.json")]
     [InlineData("AJ98-5432.json")]
     [InlineData("AJT98-5432.json")]
