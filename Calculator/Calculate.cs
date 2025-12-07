@@ -9,8 +9,8 @@ namespace Calculator;
 
 public class Calculate
 {
-    private static readonly ArrayEqualityComparer<Face> ListEqualityComparer = new();
-    private static readonly FaceArrayComparer FaceListComparer = new();
+    private static readonly ArrayEqualityComparer<Face> ArrayEqualityComparer = new();
+    private static readonly FaceArrayComparer FaceArrayComparer = new();
     private static readonly JsonSerializerOptions JsonSerializerOptions  = new() { WriteIndented = false, IncludeFields = true };
 
     private static IEnumerable<Item> GetDescendents(Item resultItem)
@@ -34,7 +34,7 @@ public class Calculate
                 Occurrences = similarCombinationsCount,
                 Probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count) * similarCombinationsCount,
             };
-        }, ListEqualityComparer);
+        }, ArrayEqualityComparer);
         return distributionList;
     }
 
@@ -42,7 +42,7 @@ public class Calculate
     {
         Log.Information("Start GetResult2");
         var cardsNS = north.Concat(south).OrderDescending().ToArray();
-        var combinationsInTree = bestPlay.Keys.OrderBy(x => x, FaceListComparer).ToList();
+        var combinationsInTree = bestPlay.Keys.OrderBy(x => x, FaceArrayComparer).ToList();
         var distributionList = GetDistributionItems(cardsNS, combinationsInTree);
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderDescending().SkipLast(1).ToList();
         var combinationsInSuitPlay = new List<Face[]>();
@@ -65,7 +65,7 @@ public class Calculate
                 Items = x.Value.SelectMany(GetDescendents)
                     .Where(y => y.Children == null)
                     .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
-            }).OrderBy(x => x.Combination, FaceListComparer).ToList();
+            }).OrderBy(x => x.Combination, FaceArrayComparer).ToList();
             
             RemoveBadPlays();
 
@@ -210,7 +210,7 @@ public class Calculate
                             linesToRemove.Add(lineItem);
                         }
                     }
-                    return true;
+                    return extraLinesForPlay.Count > 0;
                 }
                 
                 bool TryCreateLineItems(List<Item2> sameItems, LineItem lineItem, string cardsToNextCard, out List<LineItem> newLineItems)
@@ -235,7 +235,7 @@ public class Calculate
                         if (TryCreateExtraLinesForPlay(cards, lineItem, out var extraLinesForPlay, true))
                             newLineItems = extraLinesForPlay;
                     }
-                    return true;
+                    return newLineItems.Count > 0;
                 }
 
                 LineItem CreateLineItem(LineItem lineItem, List<Face[]> affectedCombinations, List<Face> play)
@@ -401,7 +401,7 @@ public class Calculate
         var combinations = Combinations.AllCombinations(cardsEW.ToList());
         var cardsNS = north.Concat(south).OrderDescending();
         combinations.RemoveAll(faces => SimilarCombinationsCount(combinations, faces, cardsNS) > 0);
-        var result = new ConcurrentDictionary<Face[], List<Item>>(ListEqualityComparer);
+        var result = new ConcurrentDictionary<Face[], List<Item>>(ArrayEqualityComparer);
         Parallel.ForEach(combinations,combination =>
         {
             var cardsE = combination.ToArray();
@@ -416,10 +416,9 @@ public class Calculate
 
     public static int SimilarCombinationsCount(IEnumerable<IEnumerable<Face>> combinationList,  IEnumerable<Face> combination, IEnumerable<Face> cardsNS)
     {
-        var list = combination.ToList();
-        var similarCombinations = SimilarCombinations(combinationList, list, cardsNS);
-        var reversedList = list.AsEnumerable().Reverse().ToArray();
-        var hasSimilar = similarCombinations.Count(x => FaceListComparer.Compare(x.Reverse().ToArray(), reversedList) < 0);
+        var list = combination.ToArray();
+        var similarCombinations = SimilarCombinations(combinationList, list, cardsNS).ToList();
+        var hasSimilar = similarCombinations.Count(x => FaceArrayComparer.Compare(x.ToArray(), list) < 0);
         return hasSimilar;
     }
 
