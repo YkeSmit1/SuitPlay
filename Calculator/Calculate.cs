@@ -169,11 +169,8 @@ public class Calculate
                         extraLines.AddRange(lineItemsForPlay);
                     foreach (var line in lineItem.GeneratedLines)
                     {
-                        foreach (var lineItemForPlay in lineItemsForPlay)
-                        {
-                            if (TryCreateExtraLinesForPlay(new Cards(line.Take(shortestCount).ToList()), lineItemForPlay, out var generatedLineItemsForPlay, true))
-                                extraLines.AddRange(generatedLineItemsForPlay);
-                        }
+                        if (TryCreateExtraLinesForPlay(new Cards(line.Take(shortestCount).ToList()), lineItem, out var generatedLineItems, true))
+                            extraLines.AddRange(generatedLineItems);
                     }
                 }
                 lineItems.AddRange(extraLines);
