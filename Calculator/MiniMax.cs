@@ -182,7 +182,7 @@ public static class MiniMax
             var cardsOtherTeam = player is Player.North or Player.South ? cardsEW : cardsNS;
             var playedCardsExceptLastTrick = playedCards.Data.Count > 4 ? playedCards.Data.Chunk(4).SkipLast(1).SelectMany(x => x): [];
             var cardsOtherTeamNotPlayed = cardsOtherTeam.Except(playedCardsExceptLastTrick).ToList();
-            var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeamNotPlayed).ToList();
+            var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeamNotPlayed, player is Player.West).ToList();
 
             return availableCardsFiltered.ToList();
         }
@@ -261,10 +261,10 @@ public static class MiniMax
             initialCards.Single(y => y.Value.Contains(trick.Max())).Key is Player.North or Player.South);
     }
 
-    public static IEnumerable<Face> AvailableCardsFiltered(IEnumerable<Face> availableCards, IEnumerable<Face> availableCardsOtherTeam)
+    public static IEnumerable<Face> AvailableCardsFiltered(IEnumerable<Face> availableCards, IEnumerable<Face> availableCardsOtherTeam, bool takeFirst = false)
     {
-        var segmentsAvailableCards = GetSegments(availableCards, availableCardsOtherTeam);
-        var availableCardsFiltered = segmentsAvailableCards.Select(x => x.Last());
+        var segmentsAvailableCards = GetSegments(availableCards, availableCardsOtherTeam).ToList();
+        var availableCardsFiltered = segmentsAvailableCards.Index(0).Select(x => takeFirst && x.Key == segmentsAvailableCards.Count - 1 ? x.Value.First() : x.Value.Last());
         return availableCardsFiltered;
     }
 }
