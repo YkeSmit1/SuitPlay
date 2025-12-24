@@ -174,8 +174,10 @@ public class Calculate
                             extraLines.AddRange(generatedLineItems);
                     }
                 }
+                lineItems.Capacity = lineItems.Count +  extraLines.Count;
                 lineItems.AddRange(extraLines);
-                lineItems.RemoveAll(x => linesToRemove.Contains(x));
+                var removeSet = new HashSet<LineItem>(linesToRemove);
+                lineItems.RemoveAll(x => removeSet.Contains(x));
                 return;
                
                 bool TryCreateExtraLinesForPlay(Cards play, LineItem lineItem, out List<LineItem> extraLinesForPlay, bool includeSmallCards)
@@ -184,7 +186,8 @@ public class Calculate
                     var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Length > 1)
                         .Where(x => x.Items.Any(y => y.Play.StartsWith(play) && (includeSmallCards || y.Play[play.Count()] != Face.SmallCard))).ToList();
                     var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x)).ToList();
-                    var nextCards = sameItems.SelectMany(x => x.Items).Select(x => x.Play[play.Count()]).Distinct().OrderDescending().ToList();
+                    var nextCards = sameItems.SelectMany(x => x.Items).Where(x => x.Play.Count() > play.Count())
+                        .Select(x => x.Play[play.Count()]).Distinct().OrderDescending().ToList();
                     if (nextCards.Count == 0)
                         return false;
                     var segments = nextCards.Segment((item, prevItem, _) => (int)prevItem - (int)item > 1).ToList();
