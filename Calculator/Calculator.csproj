@@ -49,5 +49,8 @@
       <None Update="etalons-suitplay\AJT98-5432.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="etalons-suitplay\J92-A743.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 </Project>
