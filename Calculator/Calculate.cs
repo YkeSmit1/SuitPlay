@@ -167,12 +167,6 @@ public class Calculate
                     var play = new Cards(lineItem.Line.MaxBy(x => x.Count()).Take(shortestCount).ToList());
                     if (TryCreateExtraLinesForPlay(play, lineItem, out var lineItemsForPlay, false))
                         extraLines.AddRange(lineItemsForPlay);
-                    foreach (var line in lineItem.GeneratedLines)
-                    {
-                        var playGenerated = new Cards(line.Take(shortestCount).ToList());
-                        if (TryCreateExtraLinesForPlay(playGenerated, lineItem, out var generatedLineItems, true))
-                            extraLines.AddRange(generatedLineItems);
-                    }
                 }
                 lineItems.Capacity = lineItems.Count +  extraLines.Count;
                 lineItems.AddRange(extraLines);
