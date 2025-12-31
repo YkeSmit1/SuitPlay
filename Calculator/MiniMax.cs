@@ -264,7 +264,7 @@ public static class MiniMax
     public static IEnumerable<Face> AvailableCardsFiltered(IEnumerable<Face> availableCards, IEnumerable<Face> availableCardsOtherTeam, bool takeFirst = false)
     {
         var segmentsAvailableCards = GetSegments(availableCards, availableCardsOtherTeam).ToList();
-        var availableCardsFiltered = segmentsAvailableCards.Index(0).Select(x => takeFirst && x.Key == segmentsAvailableCards.Count - 1 ? x.Value.First() : x.Value.Last());
+        var availableCardsFiltered = segmentsAvailableCards.Index(0).Select(x => takeFirst && x.Key == 0 ? x.Value.First() : x.Value.Last());
         return availableCardsFiltered;
     }
 }

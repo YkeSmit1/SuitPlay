@@ -54,14 +54,22 @@ public class CalculateTest
     [InlineData("KJ7", "AQT985432", "KJ7")]
     [InlineData("AQT98", "KJ76", "AQ8")]
     [InlineData("QT9", "KJ765", "Q9")]
-    public void TestFilterAvailableCards(string cardsPlayer, string cardsOtherTeam, string expected)
+    [InlineData("KQ", "AJ985432", "Q", Player.East)]
+    [InlineData("KQ", "AJ985432", "K", Player.West)]
+    [InlineData("KQT", "AJ985432", "QT", Player.East)]
+    [InlineData("KQT", "AJ985432", "KT", Player.West)]
+    [InlineData("KQ6", "AJ985432", "Q6", Player.East)]
+    [InlineData("KQ6", "AJ985432", "K6", Player.West)]
+    [InlineData("KT9", "AJ85432", "K9", Player.East)]
+    [InlineData("KT9", "AJ85432", "K9", Player.West)]
+    public void TestFilterAvailableCards(string cardsPlayer, string cardsOtherTeam, string expected, Player player = Player.None)
     {
         // Arrange
         var cardsPlayerList = cardsPlayer.Select(Utils.CharToCard);
         var cardsOtherTeamList = cardsOtherTeam.Select(Utils.CharToCard);
         var expectedList = expected.Select(Utils.CharToCard);
         // Act
-        var actual = MiniMax.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList());
+        var actual = MiniMax.AvailableCardsFiltered(cardsPlayerList.ToList(), cardsOtherTeamList.ToList(), player == Player.West);
         // Assert
         Assert.Equal(expectedList, actual);
     }
