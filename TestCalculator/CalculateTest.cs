@@ -265,4 +265,38 @@ public class CalculateTest
         }
     }
     
+    [Theory]
+    [InlineData("AQT98", "5432")]
+    [InlineData("QT98", "A432")]
+    [InlineData("AJ92", "K843")]
+    [InlineData("AQJ", "T987654")]
+    [InlineData("AQJ", "T9876543")]
+    [InlineData("AT32", "Q654")]
+    [InlineData("QJ2", "AT3")]
+    [InlineData("AJ2", "KT3")]
+    [InlineData("AJ32", "K954")]
+    [InlineData("J92", "A743")]
+    //[InlineData("J92", "A753")]
+    [InlineData("J987", "A432")]
+    [InlineData("J98", "A432")]
+    [InlineData("AJ98", "5432")]
+    [InlineData("AJT98", "5432")]
+    public void CheckResults2(string north, string south)
+    {
+        // Arrange 
+        var northHand = Utils.StringToCardArray(north);
+        var southHand = Utils.StringToCardArray(south);
+        // Act
+        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
+        var result2 = Calculate.GetResult2(bestPlay, northHand, southHand);
+        var results = Utils.CheckTree2(result2);
+        testOutputHelper.WriteLine($"{north} - {south}");
+        testOutputHelper.WriteLine("");
+        foreach (var result in results)
+        {
+            testOutputHelper.WriteLine(result);
+        }
+    }
+    
+    
 }

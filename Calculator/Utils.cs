@@ -246,4 +246,15 @@ public static class Utils
                 select $"Header: {lineItem.Header} Combination: {CardsToString(item2.Combination)} Plays: {string.Join(",", item2.Items.Select(x => $"{x.Play}:{x.Tricks}"))}")
             .ToList();
     }
+    
+    public static List<string> CheckTree2(Result2 result)
+    {
+        return (from lineItem in result.LineItems
+                where lineItem.LineInSuitPlay
+                from item2 in lineItem.Items2
+                where item2.Items.Max(x => x.Tricks) != item2.TricksInSuitPlay
+                select $"Header: {lineItem.Header} Combination: {CardsToString(item2.Combination)} Plays: {string.Join(",", item2.Items.Select(x => $"{x.Play}:{x.Tricks}"))}")
+            .ToList();
+    }
+    
 }
