@@ -256,12 +256,23 @@ public class CalculateTest
         // Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
         var result2 = Calculate.GetResult2(bestPlay, northHand, southHand);
-        var results = Utils.CheckTree(result2);
+        var results = CheckTree(result2);
         testOutputHelper.WriteLine($"{north} - {south}");
         testOutputHelper.WriteLine("");
         foreach (var result in results)
         {
             testOutputHelper.WriteLine(result);
+        }
+        return;
+
+        IEnumerable<string> CheckTree(Result2 result)
+        {
+            return result.LineItems.Where(lineItem => lineItem.LineInSuitPlay)
+                .SelectMany(lineItem => lineItem.Items2, (lineItem, item2) => new { lineItem, item2 })
+                .Where(t => t.item2.Items.Select(y => y.Tricks).Distinct().Count() > 1)
+                .Where(t => Utils.FindFirstDifferentPosition(t.item2.Items.Select(x => x.Play).ToList()) % 2 == 0)
+                .Select(t => $"Header: {t.lineItem.Header} Combination: {Utils.CardsToString(t.item2.Combination)} " +
+                             $"Plays: {string.Join(",", t.item2.Items.Select(x => $"{x.Play}:{x.Tricks}"))}");
         }
     }
     
@@ -289,14 +300,22 @@ public class CalculateTest
         // Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
         var result2 = Calculate.GetResult2(bestPlay, northHand, southHand);
-        var results = Utils.CheckTree2(result2);
+        var results = CheckTree2(result2);
         testOutputHelper.WriteLine($"{north} - {south}");
         testOutputHelper.WriteLine("");
         foreach (var result in results)
         {
             testOutputHelper.WriteLine(result);
         }
+        return;
+
+        IEnumerable<string> CheckTree2(Result2 result)
+        {
+            return result.LineItems.Where(lineItem => lineItem.LineInSuitPlay)
+                .SelectMany(lineItem => lineItem.Items2, (lineItem, item2) => new { lineItem, item2 })
+                .Where(t => t.item2.Items.Max(x => x.Tricks) != t.item2.TricksInSuitPlay)
+                .Select(t => $"Header: {t.lineItem.Header} Combination: {Utils.CardsToString(t.item2.Combination)} " +
+                              $"Plays: {string.Join(",", t.item2.Items.Select(x => $"{x.Play}:{x.Tricks}"))}");
+        }
     }
-    
-    
 }

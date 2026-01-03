@@ -235,26 +235,4 @@ public static class Utils
         var sameCount = Enumerable.Range(0, minLength).TakeWhile(i => strings.Select(s => s[i]).Distinct().Count() == 1).Count();
         return Math.Min(sameCount, minLength);
     }
-
-    public static List<string> CheckTree(Result2 result)
-    {
-        return (from lineItem in result.LineItems
-                where lineItem.LineInSuitPlay
-                from item2 in lineItem.Items2
-                where item2.Items.Select(x => x.Tricks).Distinct().Count() > 1
-                where FindFirstDifferentPosition(item2.Items.Select(x => x.Play).ToList()) % 2 == 0
-                select $"Header: {lineItem.Header} Combination: {CardsToString(item2.Combination)} Plays: {string.Join(",", item2.Items.Select(x => $"{x.Play}:{x.Tricks}"))}")
-            .ToList();
-    }
-    
-    public static List<string> CheckTree2(Result2 result)
-    {
-        return (from lineItem in result.LineItems
-                where lineItem.LineInSuitPlay
-                from item2 in lineItem.Items2
-                where item2.Items.Max(x => x.Tricks) != item2.TricksInSuitPlay
-                select $"Header: {lineItem.Header} Combination: {CardsToString(item2.Combination)} Plays: {string.Join(",", item2.Items.Select(x => $"{x.Play}:{x.Tricks}"))}")
-            .ToList();
-    }
-    
 }
