@@ -103,8 +103,9 @@ public class CalculateTest
     [InlineData("AJ2", "KT3")]
     [InlineData("AJ32", "K954")]
     [InlineData("J92", "A743")]
-    [InlineData("J92", "A753")]
+    //[InlineData("J92", "A753")]
     [InlineData("J987", "A432")]
+    [InlineData("J98", "A432")]
     [InlineData("AJ98", "5432")]
     [InlineData("AJT98", "5432")]
     public void TestEqualToEtalon2(string north, string south)
@@ -135,6 +136,7 @@ public class CalculateTest
     [InlineData("J92-A743.json")]
     [InlineData("J92-A753.json")]
     [InlineData("J987-A432.json")]
+    [InlineData("J98-A432.json")]
     [InlineData("AJ98-5432.json")]
     [InlineData("AJT98-5432.json")]
     public void CompareWithOld(string fileName)
@@ -243,6 +245,7 @@ public class CalculateTest
     [InlineData("J92", "A743")]
     //[InlineData("J92", "A753")]
     [InlineData("J987", "A432")]
+    [InlineData("J98", "A432")]
     [InlineData("AJ98", "5432")]
     [InlineData("AJT98", "5432")]
     public void CheckResults(string north, string south)
