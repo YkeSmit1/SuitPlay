@@ -179,7 +179,7 @@ public class Calculate
                     extraLinesForPlay = [];
                     var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Length > 1)
                         .Where(x => x.Items.Any(y => y.Play.StartsWith(play) && (includeSmallCards || y.Play[play.Count()] != Face.SmallCard))).ToList();
-                    var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x)).ToList();
+                    var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x, play.Count())).ToList();
                     var nextCards = sameItems.SelectMany(x => x.Items).Where(x => x.Play.Count() > play.Count())
                         .Select(x => x.Play[play.Count()]).Distinct().OrderDescending().ToList();
                     if (nextCards.Count == 0)
@@ -206,14 +206,10 @@ public class Calculate
                     }
                     return extraLinesForPlay.Count > 0;
                     
-                    bool HasSameItems(List<Item2> item2S, Item2 item2)
+                    bool HasSameItems(List<Item2> item2S, Item2 item2, int playCount)
                     {
-                        if (!item2.Items.All(x => x.Play.Count() > shortestCount))
-                            return false;
-                        if (!item2S.SelectMany(x => x.Items).All(x => x.Play.Count() > shortestCount))
-                            return false;
                         return item2S.Where(y => y.Combination != item2.Combination).Any(x =>
-                            x.Items.Select(x1 => x1.Play[shortestCount]).Intersect(item2.Items.Select(x2 => x2.Play[shortestCount])).Any());
+                            x.Items.Select(x1 => x1.Play[playCount]).Intersect(item2.Items.Select(x2 => x2.Play[playCount])).Any());
                     }
                 }
                 
