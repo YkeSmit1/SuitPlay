@@ -108,6 +108,8 @@ public class CalculateTest
     [InlineData("J98", "A432")]
     [InlineData("AJ98", "5432")]
     [InlineData("AJT98", "5432")]
+    [InlineData("QJ82", "A93")]
+    [InlineData("KJ2", "A9876")]
     public void TestEqualToEtalon2(string north, string south)
     {
         // Arrange 
@@ -139,6 +141,8 @@ public class CalculateTest
     [InlineData("J98-A432.json")]
     [InlineData("AJ98-5432.json")]
     [InlineData("AJT98-5432.json")]
+    [InlineData("QJ82-A93.json")]
+    [InlineData("KJ2-A9876.json")]
     public void CompareWithOld(string fileName)
     {
         using var fileStreamOld = new FileStream(Path.Combine("etalons-suitplay", fileName), FileMode.Open);
@@ -248,6 +252,8 @@ public class CalculateTest
     [InlineData("J98", "A432")]
     [InlineData("AJ98", "5432")]
     [InlineData("AJT98", "5432")]
+    [InlineData("QJ82", "A93")]
+    [InlineData("KJ2", "A9876")]
     public void CheckResults(string north, string south)
     {
         // Arrange 
@@ -292,6 +298,8 @@ public class CalculateTest
     [InlineData("J98", "A432")]
     [InlineData("AJ98", "5432")]
     [InlineData("AJT98", "5432")]
+    [InlineData("QJ82", "A93")]
+    [InlineData("KJ2", "A9876")]
     public void CheckResults2(string north, string south)
     {
         // Arrange 
