@@ -205,9 +205,10 @@ public static class MiniMax
         var longestSuit = Math.Min(Math.Max(cardsNorth.Length, cardsSouth.Length), cardsEW.Length);
         var cardsNS = cardsNorth.Concat(cardsSouth).OrderDescending().ToList();
         var segmentsNS = GetSegments(cardsNS, cardsEW).ToList();
-        var lastRelevantCard = segmentsNS.Single(x => x.Contains(cardsNS[longestSuit - 1])).Min();
+        var lastRelevantSegment = segmentsNS.Single(x => x.Contains(cardsNS[longestSuit - 1])).ToList();
+        var lastRelevantCard = lastRelevantSegment.Min();
         if (lastRelevantCard > cardsEW.Max())
-            return [lastRelevantCard];
+            return lastRelevantSegment;
         // One or zero segment and the other more than one. Play the lowest of   
         var relevantSegmentsNorth = GetSegments(cardsNorth.Where(x => x >= lastRelevantCard), cardsEW).ToList();
         var relevantSegmentsSouth = GetSegments(cardsSouth.Where(x => x >= lastRelevantCard), cardsEW).ToList();
