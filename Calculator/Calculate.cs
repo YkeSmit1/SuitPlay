@@ -177,7 +177,7 @@ public class Calculate
                 bool TryCreateExtraLinesForPlay(Cards play, LineItem lineItem, out List<LineItem> extraLinesForPlay, bool includeSmallCards)
                 {
                     extraLinesForPlay = [];
-                    var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Length > 1)
+                    var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Distinct().Count() > 1)
                         .Where(x => x.Items.Any(y => y.Play.StartsWith(play) && (includeSmallCards || y.Play[play.Count()] != Face.SmallCard))).ToList();
                     var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x, play.Count())).ToList();
                     var nextCards = sameItems.SelectMany(x => x.Items).Where(x => x.Play.Count() > play.Count())
@@ -216,7 +216,7 @@ public class Calculate
                 bool TryCreateLineItems(List<Item2> sameItems, LineItem lineItem, string cardsToNextCard, out List<LineItem> newLineItems)
                 {
                     newLineItems = [];
-                    var sameItemsNextCard = sameItems.Where(x => x.Items.Any(y => y.Play.ToString().StartsWith(cardsToNextCard))).ToList();
+                    var sameItemsNextCard = sameItems.Where(x => x.Items.Any(y => y.Play.ToString().StartsWith(cardsToNextCard)) && x.Tricks.Distinct().Count() > 1).ToList();
                     if (sameItemsNextCard.Count <= 1) 
                         return false;
                     var cardsList = sameItemsNextCard.SelectMany(x => x.Items).Select(x => x.Play).Where(x => x.ToString().StartsWith(cardsToNextCard)).ToList();
