@@ -202,6 +202,10 @@ public static class MiniMax
 
     public static List<Face> GetAvailableCardsForks(Face[] cardsNorth, Face[] cardsSouth, Face[] cardsEW)
     {
+        if (cardsNorth.Length == 1)
+            return cardsNorth.ToList();
+        if (cardsSouth.Length == 1)
+            return cardsSouth.ToList();
         var longestSuit = Math.Min(Math.Max(cardsNorth.Length, cardsSouth.Length), cardsEW.Length);
         var cardsNS = cardsNorth.Concat(cardsSouth).OrderDescending().ToList();
         var segmentsNS = GetSegments(cardsNS, cardsEW).ToList();
