@@ -95,7 +95,7 @@ public class Calculate
             CreateExtraLines(3);
             CreateExtraLines(5);
             lineItems = lineItems.OrderByDescending(x => x.LongestLine).ToList();
-            RemoveDuplicateLines();
+            //RemoveDuplicateLines();
             AddStatistics();
             AddSuitPlayStatistics();
 
@@ -217,11 +217,16 @@ public class Calculate
                     var cards = new Cards(cardsList.First().Take(index).ToList());
                     if (index % 2 == 0)
                     {
-                        var sameItem = sameItemsNextCard.First();
                         var affectedCombinations = sameItemsNextCard.Select(y => y.Combination).ToList();
-                        var sameItemItems = sameItem.Items.Where(x => x.Play.ToString().StartsWith(cardsToNextCard));
-                        var groupBy = sameItemItems.GroupBy(x => x.Play[index]);
-                        newLineItems = groupBy.Select(group => CreateLineItem(affectedCombinations, [..cards.Data, group.Key])).ToList();
+                        var groupBy = sameItemsNextCard.First().Items.Where(x => x.Play.ToString().StartsWith(cardsToNextCard)).GroupBy(x => x.Play[index]);
+                        newLineItems = groupBy.SelectMany(group =>
+                        {
+                            List<Face> faces = [..cards.Data, group.Key];
+                            var item = CreateLineItem(affectedCombinations, faces);
+                            if (TryCreateLineItems(sameItemsNextCard, item, Utils.CardsToString(faces), out var extraLinesForPlay))
+                                return extraLinesForPlay;
+                            return new List<LineItem>([item]);
+                        }).ToList();
                     }
                     else
                     {
