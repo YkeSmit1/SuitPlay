@@ -179,8 +179,7 @@ public class Calculate
                     extraLinesForPlay = [];
                     var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Distinct().Count() > 1)
                         .Where(x => x.Items.Any(y => y.Play.StartsWith(play) && (includeSmallCards || y.Play[play.Count()] != Face.SmallCard))).ToList();
-                    var sameItems = ambivalentItems.Where(x => HasSameItems(ambivalentItems, x, play.Count())).ToList();
-                    var nextCards = sameItems.SelectMany(x => x.Items).Where(x => x.Play.Count() > play.Count())
+                    var nextCards = ambivalentItems.SelectMany(x => x.Items).Where(x => x.Play.Count() > play.Count())
                         .Select(x => x.Play[play.Count()]).Distinct().OrderDescending().ToList();
                     if (nextCards.Count == 0)
                         return false;
@@ -188,13 +187,13 @@ public class Calculate
                     foreach (var segment in segments)
                     {
                         var cardsToNextCard = play.ToString() + Utils.CardToChar(segment.First());
-                        if (TryCreateLineItems(sameItems, lineItem, cardsToNextCard, out var newLineItems))
+                        if (TryCreateLineItems(ambivalentItems, lineItem, cardsToNextCard, out var newLineItems))
                         {
                             // Also create extra lines for the new lines
                             var extraLinesForCard = new List<LineItem>();
                             foreach (var extraLine in extraLinesForPlay)
                             {
-                                if (!TryCreateLineItems(sameItems, extraLine, cardsToNextCard, out var newLineItems2))
+                                if (!TryCreateLineItems(ambivalentItems, extraLine, cardsToNextCard, out var newLineItems2))
                                     continue;
                                 extraLinesForCard.AddRange(newLineItems2);
                                 linesToRemove.Add(extraLine);
@@ -205,12 +204,6 @@ public class Calculate
                         }
                     }
                     return extraLinesForPlay.Count > 0;
-                    
-                    bool HasSameItems(List<Item2> item2S, Item2 item2, int playCount)
-                    {
-                        return item2S.Where(y => y.Combination != item2.Combination).Any(x =>
-                            x.Items.Select(x1 => x1.Play[playCount]).Intersect(item2.Items.Select(x2 => x2.Play[playCount])).Any());
-                    }
                 }
                 
                 bool TryCreateLineItems(List<Item2> sameItems, LineItem lineItem, string cardsToNextCard, out List<LineItem> newLineItems)
