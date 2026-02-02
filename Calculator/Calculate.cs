@@ -94,6 +94,7 @@ public class Calculate
             CreateExtraLines(1);
             CreateExtraLines(3);
             CreateExtraLines(5);
+            CreateExtraLines(7);
             lineItems = lineItems.OrderByDescending(x => x.LongestLine).ToList();
             //RemoveDuplicateLines();
             AddStatistics();
