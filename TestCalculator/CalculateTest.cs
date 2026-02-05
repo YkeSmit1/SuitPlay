@@ -221,6 +221,8 @@ public class CalculateTest
     [InlineData("J32", "K54", "", "KJ42")]
     [InlineData("32", "K4", "", "2")]
     [InlineData("AJ92", "K843", "", "AKJ9832")]
+    [InlineData("J2", "A74", "KQ65", "J2")]
+    [InlineData("J2", "A743", "KQ65", "AJ732")]
     public void TestGetAvailableCardsForks(string cardsNorth, string cardsSouth, string cardsEastWest, string expected)
     {
         // Arrange

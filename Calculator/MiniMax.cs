@@ -217,9 +217,9 @@ public static class MiniMax
         var relevantSegmentsNorth = GetSegments(cardsNorth.Where(x => x >= lastRelevantCard), cardsEW).ToList();
         var relevantSegmentsSouth = GetSegments(cardsSouth.Where(x => x >= lastRelevantCard), cardsEW).ToList();
         if (cardsNorth.Length > 0 && relevantSegmentsNorth.Count < 2 && relevantSegmentsSouth.Count > 1 && LastSegmentIsTheSame(relevantSegmentsNorth, relevantSegmentsSouth))
-            return [cardsNorth.Min()];
+            return cardsNorth.Length < cardsSouth.Length ? cardsNorth.ToList() : [cardsNorth.Min()];
         if (cardsSouth.Length > 0 && relevantSegmentsSouth.Count < 2 && relevantSegmentsNorth.Count > 1 && LastSegmentIsTheSame(relevantSegmentsNorth, relevantSegmentsSouth))
-            return [cardsSouth.Min()];
+            return cardsSouth.Length < cardsNorth.Length ? cardsSouth.ToList() : [cardsSouth.Min()];
         // Both has one segment, play the lowest if the other player has the highest card
         if (relevantSegmentsNorth.Count == 1 && relevantSegmentsSouth.Count == 1)
         {
