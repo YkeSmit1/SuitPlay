@@ -44,10 +44,11 @@ public static class MiniMax
                 return new Item(playedCards.Clone(), trickCount);
             }
 
+            var playableCards = GetPlayableCards(playedCards);
             if (maximizingPlayer)
             {
                 var resultItem = new Item (playedCards.Clone(), int.MinValue, []);
-                foreach (var card in GetPlayableCards(playedCards))
+                foreach (var card in playableCards)
                 {
                     playedCards.Add(card);
                     var value = Minimax(playedCards, false);
@@ -63,7 +64,7 @@ public static class MiniMax
             else
             {
                 var resultItem = new Item ( playedCards.Clone(),  int.MaxValue, []);
-                foreach (var card in GetPlayableCards(playedCards))
+                foreach (var card in playableCards)
                 {
                     playedCards.Add(card);
                     var value = Minimax(playedCards, true);
@@ -228,10 +229,10 @@ public static class MiniMax
             if (segments.Count == 1)
                 return [cardsPlayerNotHighestCard.Min()];
         }
-        // Play a high card if we have the top highest cards
+        // Play a high card if we have the top highest cards and North and South lengths are the same
         if (relevantSegmentsNorth.Count > 1 && relevantSegmentsSouth.Count > 1 && cardsNS.Max() > cardsEW.Max())
         {
-            if (segmentsNS[0].Count() > 1 && segmentsNS[1].Count() > 1)
+            if (segmentsNS[0].Count() > 1 && segmentsNS[1].Count() > 1 && cardsNorth.Length == cardsSouth.Length)
                 return [cardsNorth.Max(), cardsSouth.Max()];
         }
         
