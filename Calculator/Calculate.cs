@@ -99,6 +99,7 @@ public class Calculate
             //RemoveDuplicateLines();
             AddStatistics();
             AddSuitPlayStatistics();
+            Log.Information("End GetResult2");
 
             return lineItems;
             
@@ -188,7 +189,15 @@ public class Calculate
                     foreach (var segment in segments)
                     {
                         var cardsToNextCard = play.ToString() + Utils.CardToChar(segment.First());
-                        if (TryCreateLineItems(ambivalentItems, lineItem, cardsToNextCard, out var newLineItems))
+                        if (extraLinesForPlay.Count == 0)
+                        {
+                            if (TryCreateLineItems(ambivalentItems, lineItem, cardsToNextCard, out var newLineItems))
+                            {
+                                extraLinesForPlay.AddRange(newLineItems);
+                                linesToRemove.Add(lineItem);
+                            }
+                        }
+                        else
                         {
                             // Also create extra lines for the new lines
                             var extraLinesForCard = new List<LineItem>();
@@ -200,8 +209,6 @@ public class Calculate
                                 linesToRemove.Add(extraLine);
                             }
                             extraLinesForPlay.AddRange(extraLinesForCard);
-                            extraLinesForPlay.AddRange(newLineItems);
-                            linesToRemove.Add(lineItem);
                         }
                     }
                     return extraLinesForPlay.Count > 0;
