@@ -17,7 +17,7 @@ public static class MiniMax
         void FindBestMove()
         {
             var playedCards = new Cards([]);
-            var playableCards = GetPlayableCards(playedCards);
+            var playableCards = GetPlayableCards(initialCards, playedCards, cardsEW, cardsNS);
             foreach (var card in playableCards)
             {
                 playedCards.Add(card);
@@ -44,7 +44,7 @@ public static class MiniMax
                 return new Item(playedCards.Clone(), trickCount);
             }
 
-            var playableCards = GetPlayableCards(playedCards);
+            var playableCards = GetPlayableCards(initialCards, playedCards, cardsEW, cardsNS);
             if (maximizingPlayer)
             {
                 var resultItem = new Item (playedCards.Clone(), int.MinValue, []);
@@ -82,124 +82,126 @@ public static class MiniMax
             }
         }
 
-        List<Face> GetPlayableCards(Cards playedCards)
+    }
+
+    public static List<Face> GetPlayableCards(Dictionary<Player, List<Face>> initialCards, Cards playedCards, List<Face> cardsEW, List<Face> cardsNS)
+    {
+        var cardsEWNotPlayed = cardsEW.Except(playedCards.Data).ToList();
+        if (playedCards.Count() % 4 == 0)
+            return ApplyStrategyPosition1();
+
+        var lastTrick = playedCards.Chunk(4).Last();
+        var nextPlayer = NextPlayer(GetCurrentPlayer());
+        var availableCards = initialCards[nextPlayer].Except(playedCards.Data).ToList();
+            
+        if (availableCards.Count == 0) 
+            return [Face.Dummy];
+
+        var playableCards = lastTrick.Length switch
         {
-            var cardsEWNotPlayed = cardsEW.Except(playedCards.Data).ToList();
-            if (playedCards.Count() % 4 == 0)
-                return ApplyStrategyPosition1();
+            1 => ApplyStrategyPosition2(),
+            2 => ApplyStrategyPosition3(),
+            3 => ApplyStrategyPosition4(),
+            _ => availableCards
+        };
 
-            var nextPlayer = NextPlayer(GetCurrentPlayer(playedCards));
-            var availableCards = initialCards[nextPlayer].Except(playedCards.Data).ToList();
-                
-            if (availableCards.Count == 0) 
+        return playableCards.Count == 0 ? [Face.Dummy] : FilterAvailableCards(nextPlayer, playableCards) ;
+
+        List<Face> ApplyStrategyPosition1()
+        {
+            var availableCardsNorth = initialCards[Player.North].Except(playedCards.Data).ToList();
+            var availableCardsSouth = initialCards[Player.South].Except(playedCards.Data).ToList();
+            var availableCardsNS = availableCardsNorth.Concat(availableCardsSouth).OrderDescending().ToList();
+            if (availableCardsNS.Count == 0)
                 return [Face.Dummy];
-            var lastTrick = playedCards.Chunk(4).Last();
-
-            var playableCards = lastTrick.Length switch
-            {
-                1 => ApplyStrategyPosition2(),
-                2 => ApplyStrategyPosition3(),
-                3 => ApplyStrategyPosition4(),
-                _ => availableCards
-            };
-
-            return playableCards.Count == 0 ? [Face.Dummy] : FilterAvailableCards(nextPlayer, playedCards, playableCards) ;
-
-            List<Face> ApplyStrategyPosition1()
-            {
-                var availableCardsNorth = initialCards[Player.North].Except(playedCards.Data).ToList();
-                var availableCardsSouth = initialCards[Player.South].Except(playedCards.Data).ToList();
-                var availableCardsNS = availableCardsNorth.Concat(availableCardsSouth).OrderDescending().ToList();
-                if (availableCardsNS.Count == 0)
-                    return [Face.Dummy];
-                // Play only high cards when the rest of the tricks is certain
-                if (cardsEWNotPlayed.Count == 1)
-                    return [availableCardsNS.Max()];
-                // Only play from the hand without forks
-                var cardsResult = GetAvailableCardsForks(availableCardsNorth.ToArray(), availableCardsSouth.ToArray(), cardsEWNotPlayed.ToArray());
-                return cardsResult;
-            }
-            
-            List<Face> ApplyStrategyPosition2()
-            {
-                // TODO maybe use falsecards
-                // Play lowest card when first hand plays a high one
-                if (availableCards.All(x => x < lastTrick[0]))
-                    return [availableCards.Min()];
-                // Play the lowest card when partner has no cards and a high card cannot benefit
-                var player = NextPlayer(nextPlayer);
-                var cardsNextPlayer = initialCards[player].Except(playedCards.Data).ToList();
-                var cardsPartner = initialCards[NextPlayer(player)].Except(playedCards.Data).ToList();
-                if (cardsPartner.Count == 0 && cardsNextPlayer.Count > 1 && availableCards.Count > 1 &&
-                    cardsNextPlayer.Max() > availableCards.Max() && cardsNextPlayer.Skip(1).Max() > availableCards.Skip(1).Max())
-                    return [availableCards.Min()];
-
-                return availableCards;
-            }
-            
-            List<Face> ApplyStrategyPosition3()
-            {
-                // Play the lowest card when it's not possible to win the trick
-                var availableCardsNorth = initialCards[Player.North].Except(playedCards.Data).ToList();
-                var availableCardsSouth = initialCards[Player.South].Except(playedCards.Data).ToList();
-                
-                if (availableCards.All(x => x < lastTrick[0]) || availableCards.All(x => x < lastTrick[1]))
-                    return [availableCards.Min()];
-                if (lastTrick[0] < lastTrick[1])
-                {
-                    // Play a high card when 2nd hand plays the highest card
-                    if (lastTrick[1] > cardsEWNotPlayed.Max()) 
-                        return availableCards.Where(x => x > lastTrick[1]).ToList();
-                    // Play a high card if you have the highest card
-                    if (availableCards.Any(x => x > cardsEWNotPlayed.Max()))
-                        return availableCards.Where(x => x > lastTrick[1]).ToList();
-                    // Cover if it's free
-                    if (availableCards.Contains(lastTrick[1] + 1) &&
-                        (availableCardsNorth.Contains(lastTrick[1] - 1) || availableCardsSouth.Contains(lastTrick[1] - 1)))
-                        return availableCards.Where(x => x > lastTrick[1]).ToList();
-                }
-
-                // Don't play an unnecessary high card
-                var partnersCards = GetCurrentPlayer(playedCards) == Player.East ? availableCardsNorth : availableCardsSouth;
-                if (lastTrick[1] != Face.Dummy && !partnersCards.All(x => x > lastTrick[0]) && lastTrick[1] < lastTrick[0])
-                    return [availableCards.Min()];
-                return availableCards;
-            }
-
-            List<Face> ApplyStrategyPosition4()
-            {
-                // TODO maybe use falsecards
-                var highestCardOtherTeam = (Face)Math.Max((int)lastTrick[0], (int)lastTrick[2]);
-                var highestCardsOurTeam = availableCards.Where(x => x > highestCardOtherTeam && highestCardOtherTeam > lastTrick[1]).ToList();
-                // Win is cheap is possible
-                if (highestCardsOurTeam.Count > 0) 
-                    return [highestCardsOurTeam.Min()];
+            // Play only high cards when the rest of the tricks is certain
+            if (cardsEWNotPlayed.Count == 1)
+                return [availableCardsNS.Max()];
+            // Only play from the hand without forks
+            var cardsResult = GetAvailableCardsForks(availableCardsNorth.ToArray(), availableCardsSouth.ToArray(), cardsEWNotPlayed.ToArray());
+            return cardsResult;
+        }
+        
+        List<Face> ApplyStrategyPosition2()
+        {
+            // TODO maybe use falsecards
+            // Play lowest card when first hand plays a high one
+            if (availableCards.All(x => x < lastTrick[0]))
                 return [availableCards.Min()];
+            // Play the lowest card when partner has no cards and a high card cannot benefit
+            var player = NextPlayer(nextPlayer);
+            var cardsNextPlayer = initialCards[player].Except(playedCards.Data).ToList();
+            var cardsPartner = initialCards[NextPlayer(player)].Except(playedCards.Data).ToList();
+            if (cardsPartner.Count == 0 && cardsNextPlayer.Count > 1 && availableCards.Count > 1 &&
+                cardsNextPlayer.Max() > availableCards.Max() && cardsNextPlayer.Skip(1).Max() > availableCards.Skip(1).Max())
+                return [availableCards.Min()];
+
+            return availableCards;
+        }
+        
+        List<Face> ApplyStrategyPosition3()
+        {
+            var availableCardsNorth = initialCards[Player.North].Except(playedCards.Data).ToList();
+            var availableCardsSouth = initialCards[Player.South].Except(playedCards.Data).ToList();
+            
+            // Play the lowest card when it's not possible to win the trick
+            if (availableCards.All(x => x < lastTrick[0]) || availableCards.All(x => x < lastTrick[1]))
+                return [availableCards.Min()];
+            if (lastTrick[0] < lastTrick[1])
+            {
+                // Play a high card when 2nd hand plays the highest card
+                if (lastTrick[1] > cardsEWNotPlayed.Max()) 
+                    return availableCards.Where(x => x > lastTrick[1]).ToList();
+                // Play a high card if you have the highest card
+                if (availableCards.Any(x => x > cardsEWNotPlayed.Max()))
+                    return availableCards.Where(x => x > lastTrick[1]).ToList();
+                // Cover if it's free
+                if (availableCards.Contains(lastTrick[1] + 1) &&
+                    (availableCardsNorth.Contains(lastTrick[1] - 1) || availableCardsSouth.Contains(lastTrick[1] - 1)))
+                    return availableCards.Where(x => x > lastTrick[1]).ToList();
             }
+
+            // Don't play an unnecessary high card
+            var partnersCards = GetCurrentPlayer() == Player.East ? availableCardsNorth : availableCardsSouth;
+            if (lastTrick[1] != Face.Dummy && !partnersCards.All(x => x > lastTrick[0]) && lastTrick[1] < lastTrick[0])
+                return [availableCards.Min()];
+            return availableCards;
         }
 
-        List<Face> FilterAvailableCards(Player player, Cards playedCards, List<Face> availableCards)
+        List<Face> ApplyStrategyPosition4()
+        {
+            // TODO maybe use falsecards
+            var highestCardOtherTeam = (Face)Math.Max((int)lastTrick[0], (int)lastTrick[2]);
+            var highestCardsOurTeam = availableCards.Where(x => x > highestCardOtherTeam && highestCardOtherTeam > lastTrick[1]).ToList();
+            // Win is cheap is possible
+            if (highestCardsOurTeam.Count > 0) 
+                return [highestCardsOurTeam.Min()];
+            return [availableCards.Min()];
+        }
+
+        List<Face> FilterAvailableCards(Player player, List<Face> cards)
         {
             var cardsOtherTeam = player is Player.North or Player.South ? cardsEW : cardsNS;
             var playedCardsExceptLastTrick = playedCards.Data.Count > 4 ? playedCards.Data.Chunk(4).SkipLast(1).SelectMany(x => x): [];
             var cardsOtherTeamNotPlayed = cardsOtherTeam.Except(playedCardsExceptLastTrick).ToList();
-            var availableCardsFiltered = AvailableCardsFiltered(availableCards, cardsOtherTeamNotPlayed, player is Player.West).ToList();
+            var availableCardsFiltered = AvailableCardsFiltered(cards, cardsOtherTeamNotPlayed, player is Player.West).ToList();
 
             return availableCardsFiltered.ToList();
         }
 
-        Player GetCurrentPlayer(Cards playedCards)
+        Player GetCurrentPlayer()
         {
-            var lastTrick = playedCards.Chunk(4).Last();
             var playerToLead = initialCards.Single(x => x.Value.Contains(lastTrick.First())).Key;
             return (Player)((lastTrick.Length + (int)playerToLead) % 4 - 1);
         }
-        
-        static Player NextPlayer(Player player)
-        {
-            return player == Player.West ? Player.North : player + 1;
-        }
+    
     }
+    
+    static Player NextPlayer(Player player)
+    {
+        return player == Player.West ? Player.North : player + 1;
+    }
+    
 
     public static List<Face> GetAvailableCardsForks(Face[] cardsNorth, Face[] cardsSouth, Face[] cardsEW)
     {

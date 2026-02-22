@@ -328,4 +328,28 @@ public class CalculateTest
                               $"Plays: {string.Join(",", t.item2.Items.Select(x => $"{x.Play}:{x.Tricks}"))}");
         }
     }
+
+    [Theory]
+    //[InlineData("AQT98", "5432", "76", "KJ", "", "2")]
+    [InlineData("J92", "A743", "KQ5", "T86", "", "AJ9732")]
+    [InlineData("J92", "A753", "KQ64", "T8", "3TJQ9KA826", "7")]
+    //[InlineData("J92", "A743", "Q76", "KT8", "3TJQ4K2x9x", "7")]
+    public void TestGetPlayableCards(string north, string south, string east, string west, string playedCards, string expected)
+    {
+        // Arrange
+        var initialCards = new Dictionary<Player, List<Face>>
+        {
+            { Player.North, Utils.StringToCardArray(north).ToList() },
+            { Player.East, Utils.StringToCardArray(east).ToList() },
+            { Player.South, Utils.StringToCardArray(south).ToList() },
+            { Player.West, Utils.StringToCardArray(west).ToList() }
+        };
+        var cardsNS = initialCards[Player.North].Concat(initialCards[Player.South]).OrderDescending().ToList();
+        var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).OrderDescending().ToList();
+        var cards = new Cards(playedCards);
+        // Act
+        var actual = MiniMax.GetPlayableCards(initialCards, cards, cardsEW, cardsNS);
+        // Assert
+        Assert.Equal(Utils.StringToCardArray(expected).Order(), actual.Order());
+    }
 }
