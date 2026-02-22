@@ -231,17 +231,18 @@ public class Calculate
                         {
                             List<Face> faces = [..cards.Data, group.Key];
                             var item = CreateLineItem(affectedCombinations, faces);
-                            if (TryCreateLineItems(sameItemsNextCard, item, Utils.CardsToString(faces), out var extraLinesForPlay))
-                                return extraLinesForPlay;
-                            return new List<LineItem>([item]);
+                            if (TryCreateLineItems(sameItemsNextCard, item, Utils.CardsToString(faces), out var extraLines2))
+                                return extraLines2;
+                            return [item];
                         }).ToList();
                     }
                     else
                     {
-                        if (TryCreateExtraLinesForPlay(cards, lineItem, out var extraLinesForPlay, true))
-                            newLineItems = extraLinesForPlay;
+                        if (!TryCreateExtraLinesForPlay(cards, lineItem, out var extraLinesForPlay, true)) 
+                            return false;
+                        newLineItems = extraLinesForPlay;
                     }
-                    return newLineItems.Count > 0;
+                    return true;
                     
                     LineItem CreateLineItem(List<Face[]> affectedCombinations, List<Face> play)
                     {
