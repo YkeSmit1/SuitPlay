@@ -141,8 +141,9 @@ public static class MiniMax
         
         List<Face> ApplyStrategyPosition3()
         {
-            var availableCardsNorth = initialCards[Player.North].Except(playedCards.Data).ToList();
-            var availableCardsSouth = initialCards[Player.South].Except(playedCards.Data).ToList();
+            var playedCardsData = playedCards.Data.Chunk(4).SkipLast(1).SelectMany(x => x).ToList();
+            var availableCardsNorth = initialCards[Player.North].Except(playedCardsData).ToList();
+            var availableCardsSouth = initialCards[Player.South].Except(playedCardsData).ToList();
             
             // Play the lowest card when it's not possible to win the trick
             if (availableCards.All(x => x < lastTrick[0]) || availableCards.All(x => x < lastTrick[1]))
@@ -160,11 +161,20 @@ public static class MiniMax
                     (availableCardsNorth.Contains(lastTrick[1] - 1) || availableCardsSouth.Contains(lastTrick[1] - 1)))
                     return availableCards.Where(x => x > lastTrick[1]).ToList();
             }
-
+            
             // Don't play an unnecessary high card
             var partnersCards = GetCurrentPlayer() == Player.East ? availableCardsNorth : availableCardsSouth;
-            if (lastTrick[1] != Face.Dummy && !partnersCards.All(x => x > lastTrick[0]) && lastTrick[1] < lastTrick[0])
+            if (lastTrick[1] != Face.Dummy && lastTrick[1] < lastTrick[0] && !partnersCards.All(x => x >= lastTrick[0])) 
                 return [availableCards.Min()];
+
+            // Don't play a card from the same segment as partner if you have cards from lower segments
+            var cardsNSNotPlayed = availableCardsNorth.Concat(availableCardsSouth).OrderDescending();
+            var segmentsNS = GetSegments(cardsNSNotPlayed, cardsEWNotPlayed).ToList();
+            var lowerSegments = segmentsNS.SkipWhile(x => !x.Contains(lastTrick[0])).Skip(1).ToList();
+            var higherSegments = segmentsNS.TakeWhile(x => !x.Contains(lastTrick[0])).ToList();
+            if (availableCards.Any(x => lowerSegments.Any(y => y.Contains(x))))
+                return higherSegments.SelectMany(x => x).Intersect(availableCards).Concat([availableCards.Min()]).ToList();
+
             return availableCards;
         }
 

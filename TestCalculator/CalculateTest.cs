@@ -333,7 +333,23 @@ public class CalculateTest
     //[InlineData("AQT98", "5432", "76", "KJ", "", "2")]
     [InlineData("J92", "A743", "KQ5", "T86", "", "AJ9732")]
     [InlineData("J92", "A753", "KQ64", "T8", "3TJQ9KA826", "7")]
-    //[InlineData("J92", "A743", "Q76", "KT8", "3TJQ4K2x9x", "7")]
+    [InlineData("J92", "A743", "Q65", "KT8", "3TJQ4K2596", "7")]
+    [InlineData("AQJ", "T987654", "2", "K3", "43", "AJ")]
+    [InlineData("AJ2", "KT3", "Q54", "9876", "K6", "2")]
+    [InlineData("AJ2", "KT3", "Q54", "9876", "T6", "2")]
+    [InlineData("AJ", "KT3", "Q54", "9876", "T6", "J")]
+    [InlineData("A", "K2", "43", "65", "", "A")]
+    [InlineData("A", "K2", "43", "65", "A3", "2")]
+    [InlineData("A", "KJ", "43", "65", "", "A")]
+    [InlineData("A", "KJ", "43", "65", "A3", "J")]
+    [InlineData("Q", "J2", "43", "K5", "Q3", "2")]
+    [InlineData("Q2", "AJ", "K3", "54", "", "2")]
+    [InlineData("Q2", "AJ", "K3", "54", "23", "AJ")]
+    [InlineData("QJ", "AT", "K3", "54", "J3", "AT")]
+    [InlineData("Q", "AJ", "K3", "54", "Q3", "AJ")]
+    [InlineData("J98", "A432", "KQ65", "T7", "2T", "J")]
+    [InlineData("J98", "A432", "KQ65", "T7", "2", "T7")]
+    [InlineData("J98", "A432", "KQ65", "T7", "2TJQ85", "A3")]
     public void TestGetPlayableCards(string north, string south, string east, string west, string playedCards, string expected)
     {
         // Arrange
@@ -344,12 +360,15 @@ public class CalculateTest
             { Player.South, Utils.StringToCardArray(south).ToList() },
             { Player.West, Utils.StringToCardArray(west).ToList() }
         };
+        // Check for duplicates
+        var allCards = initialCards.SelectMany(x => x.Value).ToList();
+        Assert.Equal(allCards.Count, allCards.Distinct().Count());
         var cardsNS = initialCards[Player.North].Concat(initialCards[Player.South]).OrderDescending().ToList();
         var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).OrderDescending().ToList();
         var cards = new Cards(playedCards);
         // Act
         var actual = MiniMax.GetPlayableCards(initialCards, cards, cardsEW, cardsNS);
         // Assert
-        Assert.Equal(Utils.StringToCardArray(expected).Order(), actual.Order());
+        Assert.Equal(Utils.StringToCardArray(expected).OrderDescending(), actual.OrderDescending());
     }
 }
