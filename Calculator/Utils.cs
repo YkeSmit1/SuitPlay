@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Calculator.Models;
+using Microsoft.Maui.Storage;
 using Serilog;
 
 namespace Calculator;
@@ -199,11 +200,10 @@ public static class Utils
 
     public static void SetupLogging()
     {
-        var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "log.txt");
+        var filePath = Path.Combine(FileSystem.Current.AppDataDirectory, "logs", "log.txt");
         Log.Logger = new LoggerConfiguration()
             .Destructure.ByTransforming<Item>(x => new { x.Play, x.Tricks, Children = x.Children.Count})
             .MinimumLevel.Information()
-            .WriteTo.Console()
             .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
             .CreateLogger();
     }
