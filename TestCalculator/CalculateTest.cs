@@ -11,11 +11,13 @@ public class CalculateTest
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions  = new() { WriteIndented = false, IncludeFields = true };
     [UsedImplicitly] private readonly ITestOutputHelper testOutputHelper;
+    private readonly string etalonsDirectory;    
 
     public CalculateTest(ITestOutputHelper testOutputHelper)
     {
         this.testOutputHelper = testOutputHelper;
-        Utils.SetupLogging();
+        etalonsDirectory = Path.Combine(AppContext.BaseDirectory, "etalons-suitplay");
+        Utils.SetupLogging(AppDomain.CurrentDomain.BaseDirectory);
     }
 
     [Theory]
@@ -118,7 +120,7 @@ public class CalculateTest
         // Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
         var filename2 = $"{north}-{south}.json";
-        var result2 = Calculate.GetResult2(bestPlay, northHand, southHand);
+        var result2 = Calculate.GetResult2(bestPlay, northHand, southHand, etalonsDirectory);
         Utils.SaveTrees2(result2, filename2);
         
         // Assert
@@ -263,7 +265,7 @@ public class CalculateTest
         var southHand = Utils.StringToCardArray(south);
         // Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
-        var result2 = Calculate.GetResult2(bestPlay, northHand, southHand);
+        var result2 = Calculate.GetResult2(bestPlay, northHand, southHand, etalonsDirectory);
         var results = CheckTree(result2);
         testOutputHelper.WriteLine($"{north} - {south}");
         testOutputHelper.WriteLine("");
@@ -309,7 +311,7 @@ public class CalculateTest
         var southHand = Utils.StringToCardArray(south);
         // Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
-        var result2 = Calculate.GetResult2(bestPlay, northHand, southHand);
+        var result2 = Calculate.GetResult2(bestPlay, northHand, southHand, etalonsDirectory);
         var results = CheckTree2(result2);
         testOutputHelper.WriteLine($"{north} - {south}");
         testOutputHelper.WriteLine("");

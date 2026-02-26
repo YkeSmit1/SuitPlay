@@ -38,7 +38,7 @@ public class Calculate
         return distributionList;
     }
 
-    public static Result2 GetResult2(IDictionary<Face[], List<Item>> bestPlay, Face[] north, Face[] south)
+    public static Result2 GetResult2(IDictionary<Face[], List<Item>> bestPlay, Face[] north, Face[] south, string etalonsDirectory)
     {
         Log.Information("Start GetResult2");
         var cardsNS = north.Concat(south).OrderDescending().ToArray();
@@ -278,7 +278,7 @@ public class Calculate
             void AddSuitPlayStatistics()
             {
                 var filename = $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json";
-                var combine = Path.Combine(AppContext.BaseDirectory, "etalons-suitplay", filename);
+                var combine = Path.Combine(etalonsDirectory, filename);
                 if (!File.Exists(combine))
                     return;
                 using var fileStream = new FileStream(combine, FileMode.Open);

@@ -19,7 +19,7 @@ public static class MauiProgram
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
-        Utils.SetupLogging();
+        Utils.SetupLogging(FileSystem.Current.AppDataDirectory);
 
         return builder.Build();
     }

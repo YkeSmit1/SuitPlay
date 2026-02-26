@@ -104,7 +104,7 @@ public partial class MainPage
             bestPlay = await Task.Run(() => Calculate.CalculateBestPlay(northHand, southHand));
             var calculateElapsed = stopWatch.Elapsed;
             stopWatch.Restart();
-            result = Calculate.GetResult2(bestPlay, GetHand(North), GetHand(South));
+            result = Calculate.GetResult2(bestPlay, GetHand(North), GetHand(South), Path.Combine(FileSystem.Current.AppDataDirectory, "Calculator.etalons_suitplay"));
             var constructLinesElapsed = stopWatch.Elapsed;
             BestPlay.Text = $@"{GetBestPlayText(result.LineItems, northSouth)} (Calculate:{calculateElapsed:s\:ff} seconds. Construct lines:{constructLinesElapsed:s\:ff} seconds)";
             EnableButtons(true);

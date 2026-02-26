@@ -17,50 +17,65 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="etalons-suitplay\AJ32-K954.json">
+      <None Remove="etalons-suitplay\AJ32-K954.json" />
+      <EmbeddedResource Include="etalons-suitplay\AJ32-K954.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\AJ92-K843.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\AJ92-K843.json" />
+      <EmbeddedResource Include="etalons-suitplay\AJ92-K843.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\AQJ-T987654.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\AJ98-5432.json" />
+      <EmbeddedResource Include="etalons-suitplay\AJ98-5432.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\AQJ-T9876543.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\AJT98-5432.json" />
+      <EmbeddedResource Include="etalons-suitplay\AJT98-5432.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\AQT98-5432.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\AQJ-T987654.json" />
+      <EmbeddedResource Include="etalons-suitplay\AQJ-T987654.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\AT32-Q654.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\AQJ-T9876543.json" />
+      <EmbeddedResource Include="etalons-suitplay\AQJ-T9876543.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\J92-A753.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\AQT98-5432.json" />
+      <EmbeddedResource Include="etalons-suitplay\AQT98-5432.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\J987-A432.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\AT32-Q654.json" />
+      <EmbeddedResource Include="etalons-suitplay\AT32-Q654.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\QT98-A432.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\J92-A743.json" />
+      <EmbeddedResource Include="etalons-suitplay\J92-A743.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\AJ98-5432.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\J92-A753.json" />
+      <EmbeddedResource Include="etalons-suitplay\J92-A753.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\AJT98-5432.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\J98-A432.json" />
+      <EmbeddedResource Include="etalons-suitplay\J98-A432.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\J92-A743.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\J987-A432.json" />
+      <EmbeddedResource Include="etalons-suitplay\J987-A432.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\J98-A432.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\KJ2-A9876.json" />
+      <EmbeddedResource Include="etalons-suitplay\KJ2-A9876.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\KJ2-A9876.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\QJ82-A93.json" />
+      <EmbeddedResource Include="etalons-suitplay\QJ82-A93.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="etalons-suitplay\QJ82-A93.json">
+      </EmbeddedResource>
+      <None Remove="etalons-suitplay\QT98-A432.json" />
+      <EmbeddedResource Include="etalons-suitplay\QT98-A432.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
+      </EmbeddedResource>
     </ItemGroup>
 </Project>

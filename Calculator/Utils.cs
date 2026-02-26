@@ -2,6 +2,7 @@
 using Calculator.Models;
 using Microsoft.Maui.Storage;
 using Serilog;
+using System.Reflection;
 
 namespace Calculator;
 
@@ -198,9 +199,9 @@ public static class Utils
         JsonSerializer.Serialize(stream, (treesForJson, result.DistributionItems.Select(x => x.East).Select(CardsToString)), JsonSerializerOptions);
     }
 
-    public static void SetupLogging()
+    public static void SetupLogging(string baseDirectory)
     {
-        var filePath = Path.Combine(FileSystem.Current.AppDataDirectory, "logs", "log.txt");
+        var filePath = Path.Combine(baseDirectory, "logs", "log.txt");
         Log.Logger = new LoggerConfiguration()
             .Destructure.ByTransforming<Item>(x => new { x.Play, x.Tricks, Children = x.Children.Count})
             .MinimumLevel.Information()
@@ -234,5 +235,44 @@ public static class Utils
         var minLength = strings.Min(s => s.Count());
         var sameCount = Enumerable.Range(0, minLength).TakeWhile(i => strings.Select(s => s[i]).Distinct().Count() == 1).Count();
         return Math.Min(sameCount, minLength);
+    }
+
+    /// <summary>
+    /// Copies all embedded resources from a given folder (namespace prefix) in the specified assembly
+    /// to a target directory inside the app's data directory, preserving folder structure.
+    /// </summary>
+    /// <param name="assembly">Assembly containing the embedded resources.</param>
+    /// <param name="resourceFolderPrefix">Full namespace prefix of the folder (e.g., "MySharedLibrary.Resources").</param>
+    public static async Task CopyEmbeddedFolderAsync(Assembly assembly, string resourceFolderPrefix)
+    {
+        var allResources = assembly.GetManifestResourceNames();
+
+        var folderResources = allResources.Where(r => r.StartsWith(resourceFolderPrefix)).ToList();
+
+        if (folderResources.Count == 0)
+            throw new DirectoryNotFoundException(
+                $"No embedded resources found with prefix '{resourceFolderPrefix}'.");
+
+        var targetDir = Path.Combine(FileSystem.Current.AppDataDirectory, resourceFolderPrefix);
+        if (!Directory.Exists(targetDir))
+            Directory.CreateDirectory(targetDir);
+
+        foreach (var resourceName in folderResources)
+        {
+            if (!Directory.Exists(targetDir))
+                Directory.CreateDirectory(targetDir);
+
+            var relativePath = resourceName[resourceFolderPrefix.Length..].TrimStart('.');
+            var targetFile = Path.Combine(targetDir, relativePath);
+            if (File.Exists(targetFile))
+                continue;
+
+            await using var resourceStream = assembly.GetManifestResourceStream(resourceName);
+            if (resourceStream == null)
+                throw new InvalidOperationException($"Resource '{resourceName}' could not be loaded.");
+
+            await using var fileStream = File.Create(targetFile);
+            await resourceStream.CopyToAsync(fileStream);
+        }
     }
 }
