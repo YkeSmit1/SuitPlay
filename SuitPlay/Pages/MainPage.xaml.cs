@@ -43,8 +43,6 @@ public partial class MainPage
     {
         var north = Preferences.Get("North", "");
         var south = Preferences.Get("South", "");
-        OnlyLinesInSuitPlayCheckBox.IsChecked = Preferences.Get("OnlyLinesInSuitPlay", false);
-        OnlyCombinationsInSuitPlayCheckBox.IsChecked = Preferences.Get("OnlyCombinationsInSuitPlay", false);
         var remainingCards = Utils.CardsToString(Utils.GetAllCards()).Except(north).Except(south);
         ((HandViewModel)North.BindingContext).ShowHand($"{north}", "default", dictionary);
         ((HandViewModel)South.BindingContext).ShowHand($"{south}", "default", dictionary);
@@ -75,7 +73,7 @@ public partial class MainPage
 
     private void EnableButtons(bool enable)
     {
-        TreeItemsButton.IsEnabled = enable;
+        DistributionsButton.IsEnabled = enable;
     }
 
     private void TapGestureRecognizer_OnHandTapped(object sender, HandView handView)
@@ -149,30 +147,29 @@ public partial class MainPage
     {
         return ((HandViewModel)handView.BindingContext).Cards.Select(y => y.Face).ToArray();
     }
-    
-    private async void TreeItemsButton_OnClicked(object sender, EventArgs e)
+
+    private async void DistributionsButton_OnClicked(object sender, EventArgs e)
     {
         try
         {
-            await Shell.Current.GoToAsync(nameof(DistributionsPage2), new Dictionary<string, object> {
-                    ["Result"] = result, 
-                    ["OnlyLinesInSuitPlay"] = OnlyLinesInSuitPlayCheckBox.IsChecked,
-                    ["OnlyCombinationsInSuitPlay"] = OnlyCombinationsInSuitPlayCheckBox.IsChecked
-                });
+            await Shell.Current.GoToAsync(nameof(DistributionsPage2), new Dictionary<string, object> { ["Result"] = result});
         }
         catch (Exception exception)
         {
             await DisplayAlert("Error", exception.Message, "OK");
         }
     }
-
-    private void OnlyLinesInSuitPlayCheckBox_OnCheckedChanged(object sender, CheckedChangedEventArgs e)
+    
+    private async void SettingsButton_OnClicked(object sender, EventArgs e)
     {
-        Preferences.Set("OnlyLinesInSuitPlay", e.Value);
+        try
+        {
+            await Shell.Current.GoToAsync(nameof(SettingsPage));
+        }
+        catch (Exception exception)
+        {
+            await DisplayAlert("Error", exception.Message, "OK");
+        }
     }
-
-    private void OnlyCombinationsInSuitPlayCheckBox_OnCheckedChanged(object sender, CheckedChangedEventArgs e)
-    {
-        Preferences.Set("OnlyCombinationsInSuitPlay", e.Value);
-    }
+    
 }

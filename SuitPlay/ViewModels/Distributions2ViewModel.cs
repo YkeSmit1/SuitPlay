@@ -8,6 +8,7 @@ namespace SuitPlay.ViewModels;
 public partial class Distributions2ViewModel : ObservableObject, IQueryAttributable
 {
     private readonly ArrayEqualityComparer<Face> arrayEqualityComparer = new();
+    [ObservableProperty] public partial bool DeveloperMode { get; set; } = Preferences.Get("DeveloperMode", true);
     [ObservableProperty] public partial ObservableCollection<DistributionItem> DistributionItems { get; set; }
     [ObservableProperty] public partial ObservableCollection<LineItem> LineItems { get; set; }
     [ObservableProperty] public partial ObservableCollection<int> PossibleNrOfTricks { get; set; }
@@ -20,11 +21,13 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         var result = (Result2)query["Result"];
+        var onlyLinesInSuitPlay = Preferences.Get("OnlyLinesInSuitPlay", true);
+        var onlyCombinationsInSuitPlay = Preferences.Get("OnlyCombinationsInSuitPlay", true);
         DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionItems.Where(x =>
-            !(bool)query["OnlyCombinationsInSuitPlay"] || result.CombinationsInSuitPlay.Contains(x.East, arrayEqualityComparer)));
-        var lineItems = result.LineItems.Where(x => !(bool)query["OnlyLinesInSuitPlay"] || x.LineInSuitPlay).ToList();
+            !onlyCombinationsInSuitPlay || result.CombinationsInSuitPlay.Contains(x.East, arrayEqualityComparer)));
+        var lineItems = result.LineItems.Where(x => !onlyLinesInSuitPlay || x.LineInSuitPlay).ToList();
         var cardsNS = result.North.Concat(result.South).OrderDescending().ToList();
-        if ((bool)query["OnlyCombinationsInSuitPlay"])
+        if (onlyCombinationsInSuitPlay)
         {
             foreach (var lineItem in lineItems)
             {

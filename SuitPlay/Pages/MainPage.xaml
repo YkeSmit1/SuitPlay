@@ -3,37 +3,46 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:views="clr-namespace:SuitPlay.Views"
              x:Class="SuitPlay.Pages.MainPage">
+    
+    <ContentPage.Resources>
+        <Style TargetType="Button" x:Key="ToolbarButton">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="WidthRequest" Value="100"/>
+            <Setter Property="HeightRequest" Value="75"/>
+            <Setter Property="ContentLayout" Value="Bottom, 10"/>
+        </Style>
+    </ContentPage.Resources>
 
-    <ScrollView>
-        <VerticalStackLayout
-            Padding="20,0"
-            Spacing="15">
-            <Border>
-                <views:HandView x:Name="Cards" Padding="10"/>
-            </Border>
-            <Border>
-                <views:HandView x:Name="North" Padding="10"/>
-            </Border>
-            <Label Text="North" HorizontalOptions="Center" Style="{StaticResource SubHeadline}"/>
-            <Border>
-                <views:HandView x:Name="South" Padding="10"/>
-            </Border>
-            <Label Text="South" HorizontalOptions="Center" Style="{StaticResource SubHeadline}"/>
-            <HorizontalStackLayout>
-                <Button Text="Reset" Clicked="ResetButton_OnClicked" Margin="20"></Button>
-                <Button Text="Calculate" x:Name="CalculateButton" Clicked="CalculateButton_OnClicked" Margin="20"></Button>                
-            </HorizontalStackLayout>
-            <Label x:Name="BestPlay" Text="Best play&#10;Average"></Label>
-            <HorizontalStackLayout>
-                <Button x:Name="TreeItemsButton" Text="TreeItems" Clicked="TreeItemsButton_OnClicked" Margin="5" IsEnabled="False"></Button>
-            </HorizontalStackLayout>
-            <HorizontalStackLayout>
-                <CheckBox x:Name="OnlyLinesInSuitPlayCheckBox" CheckedChanged="OnlyLinesInSuitPlayCheckBox_OnCheckedChanged"></CheckBox>
-                <Label Text="Only lines in suitplay"></Label>
-                <CheckBox x:Name="OnlyCombinationsInSuitPlayCheckBox" CheckedChanged="OnlyCombinationsInSuitPlayCheckBox_OnCheckedChanged"></CheckBox>
-                <Label Text="Only combinations in suitplay"></Label>
-            </HorizontalStackLayout>
-        </VerticalStackLayout>
-    </ScrollView>
-
+    <Grid RowDefinitions="*,auto">
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout
+                Padding="20,0"
+                Spacing="15">
+                <Border>
+                    <views:HandView x:Name="Cards" Padding="10"/>
+                </Border>
+                <Border>
+                    <views:HandView x:Name="North" Padding="10"/>
+                </Border>
+                <Label Text="North" HorizontalOptions="Center" Style="{StaticResource SubHeadline}"/>
+                <Border>
+                    <views:HandView x:Name="South" Padding="10"/>
+                </Border>
+                <Label Text="South" HorizontalOptions="Center" Style="{StaticResource SubHeadline}"/>
+                <HorizontalStackLayout>
+                    <Button Text="Reset" Clicked="ResetButton_OnClicked" Margin="20"></Button>
+                    <Button Text="Calculate" x:Name="CalculateButton" Clicked="CalculateButton_OnClicked" Margin="20"></Button>                
+                </HorizontalStackLayout>
+                <Label x:Name="BestPlay" Text="Best play&#10;Average"></Label>
+            </VerticalStackLayout>
+        </ScrollView>
+        <HorizontalStackLayout Grid.Row="1">
+            <Button Text="Settings" ImageSource="icons8_settings_32.png" 
+                    Clicked="SettingsButton_OnClicked" Style="{StaticResource ToolbarButton}"
+            ></Button>
+            <Button x:Name="DistributionsButton" Text="Distributions" ImageSource="icons8_normal_distribution_histogram_32.png" 
+                    Clicked="DistributionsButton_OnClicked" Style="{StaticResource ToolbarButton}"
+                    IsEnabled="False"></Button>
+        </HorizontalStackLayout>
+    </Grid>
 </ContentPage>

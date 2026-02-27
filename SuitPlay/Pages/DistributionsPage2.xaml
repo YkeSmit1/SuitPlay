@@ -85,9 +85,12 @@
                     </CollectionView.ItemTemplate>
                 </CollectionView>
             </Grid>
-            <Label Text="{Binding RedItems}"  Grid.Row="4" Grid.Column="0" TextColor="Red"></Label>
-            <Label Text="{Binding GreenItems}" Grid.Row="3" Grid.Column="0" TextColor="Green"></Label>
-            <Label Text="{Binding MinusOneItems}"  Grid.Row="5" Grid.Column="0" TextColor="Yellow"></Label>
+            <Label Text="{Binding RedItems}"  Grid.Row="4" Grid.Column="0" TextColor="Red" 
+                   IsVisible="{Binding DeveloperMode}"/>
+            <Label Text="{Binding GreenItems}" Grid.Row="3" Grid.Column="0" TextColor="Green" 
+                   IsVisible="{Binding DeveloperMode}"/>
+            <Label Text="{Binding MinusOneItems}"  Grid.Row="5" Grid.Column="0" TextColor="Yellow" 
+                   IsVisible="{Binding DeveloperMode}"/>
         </Grid>
     </ContentPage.Content>
 </ContentPage>
