@@ -20,6 +20,8 @@
                     IsEnabled="{Binding DeveloperMode}"/>
             <Label Grid.Column="0" Grid.Row="3" Text="Max lines in calculations"></Label>
             <Entry Grid.Column="1" Grid.Row="3" Text="{Binding MaxLinesInCalculate}" Keyboard="Numeric" WidthRequest="100" HorizontalOptions="Start"></Entry>
+            <Label Grid.Column="0" Grid.Row="4" Text="Max lines in distributions"></Label>
+            <Entry Grid.Column="1" Grid.Row="4" Text="{Binding MaxLinesInDistributions}" Keyboard="Numeric" WidthRequest="100" HorizontalOptions="Start"></Entry>
         </Grid>
         
     </ContentPage.Content>

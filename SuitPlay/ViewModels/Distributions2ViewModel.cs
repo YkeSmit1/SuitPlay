@@ -21,22 +21,27 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         var result = (Result2)query["Result"];
-        var onlyLinesInSuitPlay = Preferences.Get("OnlyLinesInSuitPlay", true);
-        var onlyCombinationsInSuitPlay = Preferences.Get("OnlyCombinationsInSuitPlay", true);
+        var onlyLinesInSuitPlay = DeveloperMode && Preferences.Get("OnlyLinesInSuitPlay", true);
+        var onlyCombinationsInSuitPlay = DeveloperMode && Preferences.Get("OnlyCombinationsInSuitPlay", true);
+        var maxLinesInDistributions = Preferences.Get("MaxLinesInDistributions", 5);
         DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionItems.Where(x =>
             !onlyCombinationsInSuitPlay || result.CombinationsInSuitPlay.Contains(x.East, arrayEqualityComparer)));
-        var lineItems = result.LineItems.Where(x => !onlyLinesInSuitPlay || x.LineInSuitPlay).ToList();
+        var lineItems = DeveloperMode
+            ? result.LineItems.Where(x => !onlyLinesInSuitPlay || x.LineInSuitPlay)
+            : result.LineItems.GroupBy(x => x.Line.First()).Select(x => x.MaxBy(y => y.Average)).ToList();
+        var lineItemsOrdered = lineItems
+            .OrderByDescending(x => x.Average).Take(maxLinesInDistributions).ToList();
         var cardsNS = result.North.Concat(result.South).OrderDescending().ToList();
         if (onlyCombinationsInSuitPlay)
         {
-            foreach (var lineItem in lineItems)
+            foreach (var lineItem in lineItemsOrdered)
             {
                 lineItem.Items2 = lineItem.Items2.Where(x => result.CombinationsInSuitPlay.Contains(x.Combination.ConvertToSmallCards(cardsNS),
                         arrayEqualityComparer)).ToList();
             }
         }
 
-        LineItems = new ObservableCollection<LineItem>(lineItems);
+        LineItems = new ObservableCollection<LineItem>(lineItemsOrdered);
         PossibleNrOfTricks = new ObservableCollection<int>(result.PossibleNrOfTricks);
         GreenItems = LineItems.SelectMany(x => x.Items2).Count(x => x.Tricks.Length > 1);
         RedItems = LineItems.SelectMany(x => x.Items2).Count(x => x.IsDifferent);

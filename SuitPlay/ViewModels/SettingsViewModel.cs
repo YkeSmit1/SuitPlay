@@ -13,6 +13,7 @@ public partial class SettingsViewModel : ObservableObject
     public bool OnlyLinesInSuitPlay { get; set; }
     public bool OnlyCombinationsInSuitPlay { get; set; }
     public int MaxLinesInCalculate { get; set; }
+    public int MaxLinesInDistributions { get; set; }
 
     private void Load()
     {
@@ -20,6 +21,7 @@ public partial class SettingsViewModel : ObservableObject
         OnlyLinesInSuitPlay = Preferences.Get("OnlyLinesInSuitPlay", true);
         OnlyCombinationsInSuitPlay = Preferences.Get("OnlyCombinationsInSuitPlay", true);
         MaxLinesInCalculate = Preferences.Get("MaxLinesInCalculate", 10000);
+        MaxLinesInDistributions = Preferences.Get("MaxLinesInDistributions", 5);
     }
 
     public void Save()
@@ -28,5 +30,6 @@ public partial class SettingsViewModel : ObservableObject
         Preferences.Set("OnlyLinesInSuitPlay", OnlyLinesInSuitPlay);
         Preferences.Set("OnlyCombinationsInSuitPlay", OnlyCombinationsInSuitPlay);
         Preferences.Set("MaxLinesInCalculate", MaxLinesInCalculate);
+        Preferences.Set("MaxLinesInDistributions", MaxLinesInDistributions);
     }
 }
