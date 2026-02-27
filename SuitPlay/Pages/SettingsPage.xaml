@@ -18,6 +18,8 @@
             <Label Grid.Column="0" Grid.Row="2" Text="Show Only Combinations In SuitPlay"/>
             <Switch Grid.Column="1" Grid.Row="2" IsToggled="{Binding OnlyCombinationsInSuitPlay}" 
                     IsEnabled="{Binding DeveloperMode}"/>
+            <Label Grid.Column="0" Grid.Row="3" Text="Max lines in calculations"></Label>
+            <Entry Grid.Column="1" Grid.Row="3" Text="{Binding MaxLinesInCalculate}" Keyboard="Numeric" WidthRequest="100" HorizontalOptions="Start"></Entry>
         </Grid>
         
     </ContentPage.Content>

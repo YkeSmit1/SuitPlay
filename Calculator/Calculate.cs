@@ -9,6 +9,11 @@ namespace Calculator;
 
 public class Calculate
 {
+    public class CalculateSettings
+    {
+        public string EtalonsDirectory { get; set; }
+        public int MaxLines { get; set; } = 10000;
+    }
     private static readonly ArrayEqualityComparer<Face> ArrayEqualityComparer = new();
     private static readonly FaceArrayComparer FaceArrayComparer = new();
     private static readonly JsonSerializerOptions JsonSerializerOptions  = new() { WriteIndented = false, IncludeFields = true };
@@ -38,7 +43,7 @@ public class Calculate
         return distributionList;
     }
 
-    public static Result2 GetResult2(IDictionary<Face[], List<Item>> bestPlay, Face[] north, Face[] south, string etalonsDirectory)
+    public static Result2 GetResult2(IDictionary<Face[], List<Item>> bestPlay, Face[] north, Face[] south, CalculateSettings calculateSettings)
     {
         Log.Information("Start GetResult2");
         var cardsNS = north.Concat(south).OrderDescending().ToArray();
@@ -168,7 +173,11 @@ public class Calculate
                 {
                     var play = new Cards(lineItem.Line.MaxBy(x => x.Count()).Take(shortestCount).ToList());
                     if (TryCreateExtraLinesForPlay(play, lineItem, out var lineItemsForPlay, false))
+                    {
                         extraLines.AddRange(lineItemsForPlay);
+                        if (lineItems.Count + extraLines.Count > calculateSettings.MaxLines)
+                            throw new MaxLinesException();
+                    }
                 }
                 lineItems.Capacity = lineItems.Count +  extraLines.Count;
                 lineItems.AddRange(extraLines);
@@ -278,7 +287,7 @@ public class Calculate
             void AddSuitPlayStatistics()
             {
                 var filename = $"{Utils.CardsToString(north)}-{Utils.CardsToString(south)}.json";
-                var combine = Path.Combine(etalonsDirectory, filename);
+                var combine = Path.Combine(calculateSettings.EtalonsDirectory, filename);
                 if (!File.Exists(combine))
                     return;
                 using var fileStream = new FileStream(combine, FileMode.Open);

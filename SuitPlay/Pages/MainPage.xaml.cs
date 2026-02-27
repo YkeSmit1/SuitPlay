@@ -102,10 +102,17 @@ public partial class MainPage
             bestPlay = await Task.Run(() => Calculate.CalculateBestPlay(northHand, southHand));
             var calculateElapsed = stopWatch.Elapsed;
             stopWatch.Restart();
-            result = Calculate.GetResult2(bestPlay, GetHand(North), GetHand(South), Path.Combine(FileSystem.Current.AppDataDirectory, "Calculator.etalons_suitplay"));
+            var calculateSettings = new Calculate.CalculateSettings
+                { EtalonsDirectory = Path.Combine(FileSystem.Current.AppDataDirectory, "Calculator.etalons_suitplay"), 
+                    MaxLines = Preferences.Get("MaxLinesInCalculate", 10000) };
+            result = Calculate.GetResult2(bestPlay, GetHand(North), GetHand(South), calculateSettings);
             var constructLinesElapsed = stopWatch.Elapsed;
             BestPlay.Text = $@"{GetBestPlayText(result.LineItems, northSouth)} (Calculate:{calculateElapsed:s\:ff} seconds. Construct lines:{constructLinesElapsed:s\:ff} seconds)";
             EnableButtons(true);
+        }
+        catch (MaxLinesException)
+        {
+            await DisplayAlert("Too many lines", "Too many lines were generated.\nSimplify the combination or increase the value of \"Max lines in calculation\" in the settings.", "OK");
         }
         catch (Exception exception)
         {

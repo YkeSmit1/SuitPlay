@@ -12,12 +12,14 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] public partial bool DeveloperMode { get; set; }
     public bool OnlyLinesInSuitPlay { get; set; }
     public bool OnlyCombinationsInSuitPlay { get; set; }
+    public int MaxLinesInCalculate { get; set; }
 
     private void Load()
     {
         DeveloperMode = Preferences.Get("DeveloperMode", true);
         OnlyLinesInSuitPlay = Preferences.Get("OnlyLinesInSuitPlay", true);
         OnlyCombinationsInSuitPlay = Preferences.Get("OnlyCombinationsInSuitPlay", true);
+        MaxLinesInCalculate = Preferences.Get("MaxLinesInCalculate", 10000);
     }
 
     public void Save()
@@ -25,5 +27,6 @@ public partial class SettingsViewModel : ObservableObject
         Preferences.Set("DeveloperMode", DeveloperMode);
         Preferences.Set("OnlyLinesInSuitPlay", OnlyLinesInSuitPlay);
         Preferences.Set("OnlyCombinationsInSuitPlay", OnlyCombinationsInSuitPlay);
+        Preferences.Set("MaxLinesInCalculate", MaxLinesInCalculate);
     }
 }
