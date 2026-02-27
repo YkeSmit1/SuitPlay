@@ -104,7 +104,7 @@ public partial class MainPage
             stopWatch.Restart();
             var calculateSettings = new Calculate.CalculateSettings
                 { EtalonsDirectory = Path.Combine(FileSystem.Current.AppDataDirectory, "Calculator.etalons_suitplay"), 
-                    MaxLines = Preferences.Get("MaxLinesInCalculate", 10000) };
+                    MaxLines = Preferences.Get(Constants.MaxLinesInCalculate, 10000) };
             result = Calculate.GetResult2(bestPlay, GetHand(North), GetHand(South), calculateSettings);
             var constructLinesElapsed = stopWatch.Elapsed;
             BestPlay.Text = $@"{GetBestPlayText(result.LineItems, northSouth)} (Calculate:{calculateElapsed:s\:ff} seconds. Construct lines:{constructLinesElapsed:s\:ff} seconds)";

@@ -17,19 +17,19 @@ public partial class SettingsViewModel : ObservableObject
 
     private void Load()
     {
-        DeveloperMode = Preferences.Get("DeveloperMode", true);
-        OnlyLinesInSuitPlay = Preferences.Get("OnlyLinesInSuitPlay", true);
-        OnlyCombinationsInSuitPlay = Preferences.Get("OnlyCombinationsInSuitPlay", true);
-        MaxLinesInCalculate = Preferences.Get("MaxLinesInCalculate", 10000);
-        MaxLinesInDistributions = Preferences.Get("MaxLinesInDistributions", 5);
+        DeveloperMode = Preferences.Get(Constants.DeveloperMode, true);
+        OnlyLinesInSuitPlay = Preferences.Get(Constants.OnlyLinesInSuitPlay, true);
+        OnlyCombinationsInSuitPlay = Preferences.Get(Constants.OnlyCombinationsInSuitPlay, true);
+        MaxLinesInCalculate = Preferences.Get(Constants.MaxLinesInCalculate, 10000);
+        MaxLinesInDistributions = Preferences.Get(Constants.MaxLinesInDistributions, 5);
     }
 
     public void Save()
     {
-        Preferences.Set("DeveloperMode", DeveloperMode);
-        Preferences.Set("OnlyLinesInSuitPlay", OnlyLinesInSuitPlay);
-        Preferences.Set("OnlyCombinationsInSuitPlay", OnlyCombinationsInSuitPlay);
-        Preferences.Set("MaxLinesInCalculate", MaxLinesInCalculate);
-        Preferences.Set("MaxLinesInDistributions", MaxLinesInDistributions);
+        Preferences.Set(Constants.DeveloperMode, DeveloperMode);
+        Preferences.Set(Constants.OnlyLinesInSuitPlay, OnlyLinesInSuitPlay);
+        Preferences.Set(Constants.OnlyCombinationsInSuitPlay, OnlyCombinationsInSuitPlay);
+        Preferences.Set(Constants.MaxLinesInCalculate, MaxLinesInCalculate);
+        Preferences.Set(Constants.MaxLinesInDistributions, MaxLinesInDistributions);
     }
 }

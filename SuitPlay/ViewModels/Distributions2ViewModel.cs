@@ -8,7 +8,7 @@ namespace SuitPlay.ViewModels;
 public partial class Distributions2ViewModel : ObservableObject, IQueryAttributable
 {
     private readonly ArrayEqualityComparer<Face> arrayEqualityComparer = new();
-    [ObservableProperty] public partial bool DeveloperMode { get; set; } = Preferences.Get("DeveloperMode", true);
+    [ObservableProperty] public partial bool DeveloperMode { get; set; } = Preferences.Get(Constants.DeveloperMode, true);
     [ObservableProperty] public partial ObservableCollection<DistributionItem> DistributionItems { get; set; }
     [ObservableProperty] public partial ObservableCollection<LineItem> LineItems { get; set; }
     [ObservableProperty] public partial ObservableCollection<int> PossibleNrOfTricks { get; set; }
@@ -21,9 +21,9 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         var result = (Result2)query["Result"];
-        var onlyLinesInSuitPlay = DeveloperMode && Preferences.Get("OnlyLinesInSuitPlay", true);
-        var onlyCombinationsInSuitPlay = DeveloperMode && Preferences.Get("OnlyCombinationsInSuitPlay", true);
-        var maxLinesInDistributions = Preferences.Get("MaxLinesInDistributions", 5);
+        var onlyLinesInSuitPlay = DeveloperMode && Preferences.Get(Constants.OnlyLinesInSuitPlay, true);
+        var onlyCombinationsInSuitPlay = DeveloperMode && Preferences.Get(Constants.OnlyCombinationsInSuitPlay, true);
+        var maxLinesInDistributions = Preferences.Get(Constants.MaxLinesInDistributions, 5);
         DistributionItems = new ObservableCollection<DistributionItem>(result.DistributionItems.Where(x =>
             !onlyCombinationsInSuitPlay || result.CombinationsInSuitPlay.Contains(x.East, arrayEqualityComparer)));
         var lineItems = DeveloperMode
