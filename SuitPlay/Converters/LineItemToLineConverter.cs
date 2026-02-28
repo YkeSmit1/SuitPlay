@@ -1,21 +1,20 @@
 ﻿using System.Globalization;
 using Calculator.Models;
+using SuitPlay.Pages;
 using SuitPlay.ViewModels;
 
 namespace SuitPlay.Converters;
 
-public class ItemToTricksConverter : IValueConverter
+public class LineItemToLineConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        var item = (Item2)value;
-        if (item == null)
+        var lineItem = (LineItem)value;
+        if (lineItem == null)
             return "";
         var viewModel = (Distributions2ViewModel)((Binding)parameter)?.Source;
         var developerMode = viewModel?.DeveloperMode == true;
-        
-        var tricksInSuitPlay = item.Tricks.Length > 1 ? $"({item.TricksInSuitPlay})" : "";
-        return developerMode ? $"{string.Join(',', item.Tricks)}" + tricksInSuitPlay : item.Tricks.Max().ToString();
+        return developerMode ? lineItem!.Header : lineItem!.Line.MinBy(x => x.Count()).ToString();
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

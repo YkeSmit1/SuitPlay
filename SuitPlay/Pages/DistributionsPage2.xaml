@@ -13,9 +13,10 @@
         <converters:ProbabilityConverter x:Key="ProbabilityConverter" />
         <converters:ItemToTextColorConverter x:Key="ItemToTextColorConverter" />
         <converters:ItemToTricksConverter x:Key="ItemToTricksConverter" />
+        <converters:LineItemToLineConverter x:Key="LineItemToLineConverter" />
     </ContentPage.Resources>
     <ContentPage.BindingContext>
-        <viewModels:Distributions2ViewModel/>
+        <viewModels:Distributions2ViewModel x:Name="Distributions2ViewModel"/>
     </ContentPage.BindingContext>
     <ContentPage.Content>
         <Grid Margin="10" RowDefinitions="auto,auto,auto,auto,auto,auto" ColumnDefinitions="*,*">
@@ -51,13 +52,20 @@
                         <DataTemplate x:DataType="models:LineItem">
                             <StackLayout Orientation="Vertical">
                                 <!-- Lines -->
-                                <Label Text="{Binding Header}" Margin="5"></Label>
+                                <Label Margin="5" Text="{Binding 
+                                    Converter={StaticResource LineItemToLineConverter},
+                                    ConverterParameter={Binding Path=., Source={x:Reference Distributions2ViewModel}}}" 
+                                >
+                                </Label>
                                 <!-- Tricks -->
                                     <StackLayout BindableLayout.ItemsSource="{Binding Items2}" Orientation="Vertical">
                                         <BindableLayout.ItemTemplate>
                                             <DataTemplate x:DataType="models:Item2">
-                                                <Label Text="{Binding Converter={StaticResource ItemToTricksConverter}}" Margin="5" HorizontalTextAlignment="Center"
-                                                       TextColor="{Binding Converter={StaticResource ItemToTextColorConverter}}" />
+                                                <Label Text="{Binding Converter={StaticResource ItemToTricksConverter},
+                                                            ConverterParameter={Binding Path=., Source={x:Reference Distributions2ViewModel}}}"
+                                                       Margin="5" HorizontalTextAlignment="Center"
+                                                       TextColor="{Binding Converter={StaticResource ItemToTextColorConverter},
+                                                       ConverterParameter={Binding Path=., Source={x:Reference Distributions2ViewModel}}}" />
                                             </DataTemplate>
                                         </BindableLayout.ItemTemplate>
                                     </StackLayout>
