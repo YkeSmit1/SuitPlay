@@ -216,23 +216,23 @@ public static class MiniMax
     public static List<Face> GetAvailableCardsForks(Face[] cardsNorth, Face[] cardsSouth, Face[] cardsEW)
     {
         if (cardsNorth.Length == 1)
-            return cardsNorth.ToList();
+            return AvailableCardsFiltered(cardsNorth, cardsEW).ToList();
         if (cardsSouth.Length == 1)
-            return cardsSouth.ToList();
+            return AvailableCardsFiltered(cardsSouth, cardsEW).ToList();
         var longestSuit = Math.Min(Math.Max(cardsNorth.Length, cardsSouth.Length), cardsEW.Length);
         var cardsNS = cardsNorth.Concat(cardsSouth).OrderDescending().ToList();
         var segmentsNS = GetSegments(cardsNS, cardsEW).ToList();
         var lastRelevantSegment = segmentsNS.Single(x => x.Contains(cardsNS[longestSuit - 1])).ToList();
         var lastRelevantCard = lastRelevantSegment.Min();
         if (lastRelevantCard > cardsEW.Max())
-            return lastRelevantSegment;
+            return AvailableCardsFiltered(lastRelevantSegment, cardsEW).ToList();
         // One or zero segment and the other more than one. Play the lowest of   
         var relevantSegmentsNorth = GetSegments(cardsNorth.Where(x => x >= lastRelevantCard), cardsEW).ToList();
         var relevantSegmentsSouth = GetSegments(cardsSouth.Where(x => x >= lastRelevantCard), cardsEW).ToList();
         if (cardsNorth.Length > 0 && relevantSegmentsNorth.Count < 2 && relevantSegmentsSouth.Count > 1 && LastSegmentIsTheSame(relevantSegmentsNorth, relevantSegmentsSouth))
-            return cardsNorth.Length < cardsSouth.Length ? cardsNorth.ToList() : [cardsNorth.Min()];
+            return cardsNorth.Length < cardsSouth.Length ? AvailableCardsFiltered(cardsNorth, cardsEW).ToList() : [cardsNorth.Min()];
         if (cardsSouth.Length > 0 && relevantSegmentsSouth.Count < 2 && relevantSegmentsNorth.Count > 1 && LastSegmentIsTheSame(relevantSegmentsNorth, relevantSegmentsSouth))
-            return cardsSouth.Length < cardsNorth.Length ? cardsSouth.ToList() : [cardsSouth.Min()];
+            return cardsSouth.Length < cardsNorth.Length ? AvailableCardsFiltered(cardsSouth, cardsEW).ToList() : [cardsSouth.Min()];
         // Both has one segment, play the lowest if the other player has the highest card
         if (relevantSegmentsNorth.Count == 1 && relevantSegmentsSouth.Count == 1)
         {
