@@ -282,11 +282,15 @@ public class Calculate
                     lineItem.Probabilities = possibleNrOfTricks.Select(y => new Probability {Value = lineItem.Items2.Where(z => z.Tricks.Max() >= y)
                             .Sum(z => distributionList[z.Combination].Probability), Tricks = y}).ToList();
                 }
-
+                
                 lineItems.OrderByDescending(x => x.Average.Value).First().Average.IsBestValue = true;
-                foreach (var possibleNrOfTrick in possibleNrOfTricks)
+                foreach (var i in Enumerable.Range(0, possibleNrOfTricks.Count))
                 {
-                    lineItems.Select(x => x.Probabilities.Single(y => y.Tricks == possibleNrOfTrick)).OrderByDescending(x => x.Value).First().IsBestValue = true;
+                    var maxProbability = lineItems.Max(x => x.Probabilities[i].Value);
+                    foreach (var probability in lineItems.Where(x => Math.Abs(x.Probabilities[i].Value  - maxProbability ) < 0.001))
+                    {
+                        probability.Probabilities[i].IsBestValue = true;
+                    }
                 }
             }
             

@@ -28,7 +28,7 @@ public partial class Distributions2ViewModel : ObservableObject, IQueryAttributa
             !onlyCombinationsInSuitPlay || result.CombinationsInSuitPlay.Contains(x.East, arrayEqualityComparer)));
         var lineItems = DeveloperMode
             ? result.LineItems.Where(x => !onlyLinesInSuitPlay || x.LineInSuitPlay)
-            : result.LineItems.GroupBy(x => x.Line.First()).Select(x => x.MaxBy(y => y.Average.Value)).ToList();
+            : result.LineItems.GroupBy(x => x.LongestLine).Select(x => x.MaxBy(y => y.Average.Value)).ToList();
         var lineItemsOrdered = lineItems
             .OrderByDescending(x => x.Average.Value).Take(maxLinesInDistributions).ToList();
         var cardsNS = result.North.Concat(result.South).OrderDescending().ToList();

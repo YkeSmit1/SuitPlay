@@ -14,7 +14,7 @@ public class LineItemToLineConverter : IValueConverter
             return "";
         var viewModel = (Distributions2ViewModel)((Binding)parameter)?.Source;
         var developerMode = viewModel?.DeveloperMode == true;
-        return developerMode ? lineItem!.Header : lineItem!.Line.MinBy(x => x.Count()).ToString();
+        return developerMode ? lineItem!.Header : lineItem!.Line.MaxBy(x => x.Count()).ToString();
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
