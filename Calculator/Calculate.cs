@@ -277,10 +277,16 @@ public class Calculate
             {
                 foreach (var lineItem in lineItems)
                 {
-                    lineItem.Average = lineItem.Items2.Average(y => distributionList[y.Combination].Probability * y.Tricks.Max()) /
-                                       lineItem.Items2.Select(z => distributionList[z.Combination].Probability).Average();
-                    lineItem.Probabilities = possibleNrOfTricks.Select(y => lineItem.Items2.Where(z => z.Tricks.Max() >= y)
-                            .Sum(z => distributionList[z.Combination].Probability)).ToList();
+                    lineItem.Average = new Average {Value = lineItem.Items2.Average(y => distributionList[y.Combination].Probability * y.Tricks.Max()) / 
+                                                            lineItem.Items2.Select(z => distributionList[z.Combination].Probability).Average()};
+                    lineItem.Probabilities = possibleNrOfTricks.Select(y => new Probability {Value = lineItem.Items2.Where(z => z.Tricks.Max() >= y)
+                            .Sum(z => distributionList[z.Combination].Probability), Tricks = y}).ToList();
+                }
+
+                lineItems.OrderByDescending(x => x.Average.Value).First().Average.IsBestValue = true;
+                foreach (var possibleNrOfTrick in possibleNrOfTricks)
+                {
+                    lineItems.Select(x => x.Probabilities.Single(y => y.Tricks == possibleNrOfTrick)).OrderByDescending(x => x.Value).First().IsBestValue = true;
                 }
             }
             
