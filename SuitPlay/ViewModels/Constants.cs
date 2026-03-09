@@ -7,4 +7,6 @@ public static class Constants
     public const string OnlyCombinationsInSuitPlay = "OnlyCombinationsInSuitPlay";
     public const string MaxLinesInCalculate = "MaxLinesInCalculate";
     public const string MaxLinesInDistributions = "MaxLinesInDistributions";
+    public const string FilterInferiorLines = "FilterInferiorLines";
+    public const string RemoveDuplicateLines = "RemoveDuplicateLines";
 }

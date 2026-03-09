@@ -2,6 +2,7 @@
 using Calculator;
 using Calculator.Models;
 using MoreLinq;
+using SuitPlay.Services;
 using SuitPlay.ViewModels;
 using SuitPlay.Views;
 
@@ -21,13 +22,16 @@ public partial class MainPage
         }
     }
 
+    private readonly SettingsService settingsService;
     private readonly Dictionary<(string suit, string card), string> dictionary;
     private IDictionary<Face[], List<Item>> bestPlay;
     private Result2 result;
 
-    public MainPage()
+    public MainPage(SettingsService settingsService)
     {
         InitializeComponent();
+        this.settingsService = settingsService;
+        this.settingsService.SettingsChanged += (_, _) => EnableButtons(false);
         dictionary = SplitImages.Split(CardImageSettings.GetCardImageSettings("default"));
         Cards.OnImageTapped += TapGestureRecognizer_OnImageTapped;
         North.OnImageTapped += TapGestureRecognizer_OnImageTapped;
@@ -104,7 +108,10 @@ public partial class MainPage
             stopWatch.Restart();
             var calculateSettings = new Calculate.CalculateSettings
                 { EtalonsDirectory = Path.Combine(FileSystem.Current.AppDataDirectory, "Calculator.etalons_suitplay"), 
-                    MaxLines = Preferences.Get(Constants.MaxLinesInCalculate, 10000) };
+                    MaxLines = Preferences.Get(Constants.MaxLinesInCalculate, 10000),
+                    FilterInferiorLines = Preferences.Get(Constants.FilterInferiorLines, false),
+                    RemoveDuplicateLines = Preferences.Get(Constants.RemoveDuplicateLines, false)
+                };
             result = Calculate.GetResult2(bestPlay, GetHand(North), GetHand(South), calculateSettings);
             var constructLinesElapsed = stopWatch.Elapsed;
             BestPlay.Text = $@"{GetBestPlayText(result.LineItems, northSouth)} (Calculate:{calculateElapsed:s\:ff} seconds. Construct lines:{constructLinesElapsed:s\:ff} seconds)";

@@ -14,6 +14,8 @@ public partial class SettingsViewModel : ObservableObject
     public bool OnlyCombinationsInSuitPlay { get; set; }
     public int MaxLinesInCalculate { get; set; }
     public int MaxLinesInDistributions { get; set; }
+    public bool FilterInferiorLines { get; set; }
+    public bool RemoveDuplicateLines { get; set; }
 
     private void Load()
     {
@@ -22,6 +24,8 @@ public partial class SettingsViewModel : ObservableObject
         OnlyCombinationsInSuitPlay = Preferences.Get(Constants.OnlyCombinationsInSuitPlay, true);
         MaxLinesInCalculate = Preferences.Get(Constants.MaxLinesInCalculate, 10000);
         MaxLinesInDistributions = Preferences.Get(Constants.MaxLinesInDistributions, 5);
+        FilterInferiorLines = Preferences.Get(Constants.FilterInferiorLines, false);
+        RemoveDuplicateLines = Preferences.Get(Constants.RemoveDuplicateLines, false);
     }
 
     public void Save()
@@ -31,5 +35,7 @@ public partial class SettingsViewModel : ObservableObject
         Preferences.Set(Constants.OnlyCombinationsInSuitPlay, OnlyCombinationsInSuitPlay);
         Preferences.Set(Constants.MaxLinesInCalculate, MaxLinesInCalculate);
         Preferences.Set(Constants.MaxLinesInDistributions, MaxLinesInDistributions);
+        Preferences.Set(Constants.FilterInferiorLines, FilterInferiorLines);
+        Preferences.Set(Constants.RemoveDuplicateLines, RemoveDuplicateLines);
     }
 }

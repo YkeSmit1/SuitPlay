@@ -11,8 +11,10 @@ public class Calculate
 {
     public class CalculateSettings
     {
-        public string EtalonsDirectory { get; set; }
-        public int MaxLines { get; set; } = 10000;
+        public string EtalonsDirectory { get; init; }
+        public int MaxLines { get; init; } = 10000;
+        public bool FilterInferiorLines { get; init; }
+        public bool RemoveDuplicateLines { get; init; }
     }
     private static readonly ArrayEqualityComparer<Face> ArrayEqualityComparer = new();
     private static readonly FaceArrayComparer FaceArrayComparer = new();
@@ -100,8 +102,9 @@ public class Calculate
             CreateExtraLines(3);
             CreateExtraLines(5);
             CreateExtraLines(7);
+            if (calculateSettings.RemoveDuplicateLines)
+                RemoveDuplicateLines();
             lineItems = lineItems.OrderByDescending(x => x.LongestLine).ToList();
-            //RemoveDuplicateLines();
             AddStatistics();
             AddSuitPlayStatistics();
             Log.Information("End GetResult2");
@@ -244,6 +247,8 @@ public class Calculate
                                 return extraLines2;
                             return [item];
                         }).ToList();
+                        if (calculateSettings.FilterInferiorLines)
+                            newLineItems = FilterInferiorLines(newLineItems);
                     }
                     else
                     {
@@ -271,16 +276,21 @@ public class Calculate
                         return newLineItems;
                     }
                 }
+
+                List<LineItem> FilterInferiorLines(List<LineItem> newLineItems3)
+                {
+                    var maxAverageLineItem = newLineItems3.MaxBy(x => CalculateAverage(x, distributionList));
+                    var maxProbabilitiesLineItems = possibleNrOfTricks.Select(x => newLineItems3.MaxBy(y => CalculateProbability(y, distributionList, x)));
+                    return maxProbabilitiesLineItems.Concat([maxAverageLineItem]).Distinct().ToList();
+                }
             }
             
             void AddStatistics()
             {
                 foreach (var lineItem in lineItems)
                 {
-                    lineItem.Average = new Average {Value = lineItem.Items2.Average(y => distributionList[y.Combination].Probability * y.Tricks.Max()) / 
-                                                            lineItem.Items2.Select(z => distributionList[z.Combination].Probability).Average()};
-                    lineItem.Probabilities = possibleNrOfTricks.Select(y => new Probability {Value = lineItem.Items2.Where(z => z.Tricks.Max() >= y)
-                            .Sum(z => distributionList[z.Combination].Probability), Tricks = y}).ToList();
+                    lineItem.Average = new Average {Value = CalculateAverage(lineItem, distributionList)};
+                    lineItem.Probabilities = possibleNrOfTricks.Select(y => new Probability {Value = CalculateProbability(lineItem, distributionList, y), Tricks = y}).ToList();
                 }
                 
                 lineItems.OrderByDescending(x => x.Average.Value).First().Average.IsBestValue = true;
@@ -337,6 +347,17 @@ public class Calculate
                 return [];
             }
         }
+    }
+
+    private static double CalculateAverage(LineItem lineItem, Dictionary<Face[], DistributionItem> distributionList)
+    {
+        return lineItem.Items2.Average(y => distributionList[y.Combination].Probability * y.Tricks.Max()) / 
+               lineItem.Items2.Select(z => distributionList[z.Combination].Probability).Average();
+    }
+
+    private static double CalculateProbability(LineItem lineItem, Dictionary<Face[], DistributionItem> distributionList, int y)
+    {
+        return lineItem.Items2.Where(z => z.Tricks.Max() >= y).Sum(z => distributionList[z.Combination].Probability);
     }
 
     public static int IsBetterPlay(int[] tricksA, int[] tricksB)

@@ -264,8 +264,6 @@ public static class Utils
 
             var relativePath = resourceName[resourceFolderPrefix.Length..].TrimStart('.');
             var targetFile = Path.Combine(targetDir, relativePath);
-            if (File.Exists(targetFile))
-                continue;
 
             await using var resourceStream = assembly.GetManifestResourceStream(resourceName);
             if (resourceStream == null)

@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SuitPlay.Services;
 using SuitPlay.ViewModels;
 
 namespace SuitPlay.Pages;
 
 public partial class SettingsPage : ContentPage
 {
-    public SettingsPage()
+    private readonly SettingsService settingsService;
+    
+    public SettingsPage(SettingsService settingsService)
     {
+        this.settingsService = settingsService;
         InitializeComponent();
     }
 
@@ -18,5 +17,6 @@ public partial class SettingsPage : ContentPage
     {
         var settingsViewModel = (SettingsViewModel)BindingContext;
         settingsViewModel.Save();
+        settingsService.NotifySettingsChanged();
     }
 }

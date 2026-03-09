@@ -1,5 +1,6 @@
 ﻿using Calculator;
 using Microsoft.Extensions.Logging;
+using SuitPlay.Services;
 
 namespace SuitPlay;
 
@@ -20,6 +21,7 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
         Utils.SetupLogging(FileSystem.Current.AppDataDirectory);
+        builder.Services.AddSingleton<SettingsService>();
 
         return builder.Build();
     }
