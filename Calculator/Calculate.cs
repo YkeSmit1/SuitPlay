@@ -192,7 +192,7 @@ public class Calculate
                 {
                     extraLinesForPlay = [];
                     var ambivalentItems = lineItem.Items2.Where(x => x.Tricks.Distinct().Count() > 1)
-                        .Where(x => x.Items.Any(y => y.Play.StartsWith(play) && (includeSmallCards || y.Play[play.Count()] != Face.SmallCard))).ToList();
+                        .Where(x => x.Items.Any(y => y.Play.StartsWith(play) && (includeSmallCards || (y.Play.Count() > play.Count() && y.Play[play.Count()] != Face.SmallCard)))).ToList();
                     var nextCards = ambivalentItems.SelectMany(x => x.Items).Where(x => x.Play.Count() > play.Count())
                         .Select(x => x.Play[play.Count()]).Distinct().OrderDescending().ToList();
                     if (nextCards.Count == 0)
