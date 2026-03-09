@@ -147,11 +147,22 @@ public class CalculateTest
     [InlineData("KJ2-A9876.json")]
     public void CompareWithOld(string fileName)
     {
+        // Arrange
+        var combinationToTest = fileName[..fileName.LastIndexOf('.')];
+        var northHand = Utils.StringToCardArray(combinationToTest.Split('-')[0]);
+        var southHand = Utils.StringToCardArray(combinationToTest.Split('-')[1]);
+        //Act
+        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
+        var result2 = Calculate.GetResult2(bestPlay, northHand, southHand, calculateSettings);
+        if (!Directory.Exists("tmp"))
+            Directory.CreateDirectory("tmp");
+        Utils.SaveTrees2(result2, Path.Combine("tmp", fileName));
+
+        using var fileStreamNew = new FileStream(Path.Combine("tmp", fileName), FileMode.Open);
+        var resultsNew = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStreamNew, JsonSerializerOptions);
+        //Assert
         using var fileStreamOld = new FileStream(Path.Combine("etalons-suitplay", fileName), FileMode.Open);
         var resultsOld = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStreamOld, JsonSerializerOptions);
-        
-        using var fileStreamNew = new FileStream(Path.Combine("etalons-2", fileName), FileMode.Open);
-        var resultsNew = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStreamNew, JsonSerializerOptions);
 
         var combinationsOld = resultsOld.Item2.ToList();
         var combinationsNew = resultsNew.Item2.ToList();
