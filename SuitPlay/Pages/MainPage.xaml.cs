@@ -112,6 +112,12 @@ public partial class MainPage
                     FilterInferiorLines = Preferences.Get(Constants.FilterInferiorLines, false),
                     RemoveDuplicateLines = Preferences.Get(Constants.RemoveDuplicateLines, false)
                 };
+            if (Preferences.Get(Constants.EnableVacantPlaces, true))
+            {
+                calculateSettings.VacantPlacesWest = Preferences.Get(Constants.VacantPlacesWest, 13);
+                calculateSettings.VacantPlacesEast = Preferences.Get(Constants.VacantPlacesEast, 13);
+            }
+            
             result = Calculate.GetResult2(bestPlay, GetHand(North), GetHand(South), calculateSettings);
             var constructLinesElapsed = stopWatch.Elapsed;
             BestPlay.Text = $@"{GetBestPlayText(result.LineItems, northSouth)} (Calculate:{calculateElapsed:s\:ff} seconds. Construct lines:{constructLinesElapsed:s\:ff} seconds)";
@@ -185,5 +191,16 @@ public partial class MainPage
             await DisplayAlert("Error", exception.Message, "OK");
         }
     }
-    
+
+    private async void OtherFactorsButton_OnClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            await Shell.Current.GoToAsync(nameof(FilterPage));
+        }
+        catch (Exception exception)
+        {
+            await DisplayAlert("Error", exception.Message, "OK");
+        }
+    }
 }

@@ -100,16 +100,18 @@ public static class Utils
         };
     }
     
-    public static double GetDistributionProbabilitySpecific(int a, int b)
+    public static double GetDistributionProbabilitySpecific(int a, int b, int vacantPlacesEast, int vacantPlacesWest)
     {
-        return GetDistributionProbability(a, b) / GetDistributionOccurrence(a, b);
+        return GetDistributionProbability(a, b, vacantPlacesEast, vacantPlacesWest) / GetDistributionOccurrence(a, b);
     }
 
-    public static double GetDistributionProbability(int a, int b)
+    public static double GetDistributionProbability(int a, int b, int vacantPlacesEast = 13, int vacantPlacesWest = 13)
     {
+        if (vacantPlacesEast < a || vacantPlacesWest < b )
+            return 0.0;
         var combinations = Alias.Factorial(a + b) / (Alias.Factorial(a) * Alias.Factorial(b));
-        var nominator = Math.Pow(Alias.Factorial(13), 2) * Alias.Factorial(26 - a - b);
-        var denominator = Alias.Factorial(26) * Alias.Factorial(13 - a) * Alias.Factorial(13 - b);
+        var nominator = Alias.Factorial(vacantPlacesEast) * Alias.Factorial(vacantPlacesWest) * Alias.Factorial(vacantPlacesEast + vacantPlacesWest - a - b);
+        var denominator = Alias.Factorial(vacantPlacesEast + vacantPlacesWest) * Alias.Factorial(vacantPlacesEast- a) * Alias.Factorial(vacantPlacesWest - b);
         var res = combinations * (nominator / denominator);
         return res;
     }

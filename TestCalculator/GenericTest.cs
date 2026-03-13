@@ -24,6 +24,18 @@ public class GenericTest
         {
             testOutputHelper.WriteLine($"{a - i}-{i} {Utils.GetDistributionProbability(a - i, i) * 100:F2}");
         }
-        
+    }
+    
+    [Theory]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    [InlineData(6)]
+    public void TestGetDistributionProbability2(int a)
+    {
+        for (var i = 0; i <= a; i++)
+        {
+            testOutputHelper.WriteLine($"{a - i}-{i} {Utils.GetDistributionProbability(a - i, i, 10, 6) * 100:F2}");
+        }
     }
 }

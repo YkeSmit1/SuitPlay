@@ -15,6 +15,8 @@ public class Calculate
         public int MaxLines { get; init; } = 10000;
         public bool FilterInferiorLines { get; init; }
         public bool RemoveDuplicateLines { get; init; }
+        public int VacantPlacesWest { get; set; } = 13;
+        public int VacantPlacesEast { get; set; } = 13;
     }
     private static readonly ArrayEqualityComparer<Face> ArrayEqualityComparer = new();
     private static readonly FaceArrayComparer FaceArrayComparer = new();
@@ -25,7 +27,7 @@ public class Calculate
         return resultItem.Children == null ? [] : resultItem.Children.Concat(resultItem.Children.SelectMany(GetDescendents));
     }
 
-    private static Dictionary<Face[], DistributionItem> GetDistributionItems(Face[] cardsNS, List<Face[]> combinationsInTree)
+    private static Dictionary<Face[], DistributionItem> GetDistributionItems(Face[] cardsNS, List<Face[]> combinationsInTree, int vacantPlacesEast, int vacantPlacesWest)
     {
         var cardsEW = Utils.GetAllCards().Except(cardsNS).ToList();
         var combinations = Combinations.AllCombinations(cardsEW);
@@ -39,7 +41,7 @@ public class Calculate
                 West = westHand.ConvertToSmallCards(cardsNS),
                 East = eastHand.ConvertToSmallCards(cardsNS),
                 Occurrences = similarCombinationsCount,
-                Probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count) * similarCombinationsCount,
+                Probability = Utils.GetDistributionProbabilitySpecific(eastHand.Count, westHand.Count, vacantPlacesEast, vacantPlacesWest) * similarCombinationsCount,
             };
         }, ArrayEqualityComparer);
         return distributionList;
@@ -50,7 +52,7 @@ public class Calculate
         Log.Information("Start GetResult2");
         var cardsNS = north.Concat(south).OrderDescending().ToArray();
         var combinationsInTree = bestPlay.Keys.OrderBy(x => x, FaceArrayComparer).ToList();
-        var distributionList = GetDistributionItems(cardsNS, combinationsInTree);
+        var distributionList = GetDistributionItems(cardsNS, combinationsInTree, calculateSettings.VacantPlacesEast, calculateSettings.VacantPlacesWest);
         var possibleNrOfTricks = bestPlay.SelectMany(x => x.Value).Select(x => x.Tricks).Distinct().OrderDescending().SkipLast(1).ToList();
         var combinationsInSuitPlay = new List<Face[]>();
 

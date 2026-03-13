@@ -30,19 +30,20 @@
                 </Border>
                 <Label Text="South" HorizontalOptions="Center" Style="{StaticResource SubHeadline}"/>
                 <HorizontalStackLayout>
-                    <Button Text="Reset" Clicked="ResetButton_OnClicked" Margin="20"></Button>
-                    <Button Text="Calculate" x:Name="CalculateButton" Clicked="CalculateButton_OnClicked" Margin="20"></Button>                
+                    <Button Text="Reset" Clicked="ResetButton_OnClicked" Margin="20"/>
+                    <Button Text="Calculate" x:Name="CalculateButton" Clicked="CalculateButton_OnClicked" Margin="20"/>                
                 </HorizontalStackLayout>
-                <Label x:Name="BestPlay" Text="Best play&#10;Average"></Label>
+                <Label x:Name="BestPlay" Text="Best play&#10;Average"/>
             </VerticalStackLayout>
         </ScrollView>
         <HorizontalStackLayout Grid.Row="1">
             <Button Text="Settings" ImageSource="icons8_settings_32.png" 
-                    Clicked="SettingsButton_OnClicked" Style="{StaticResource ToolbarButton}"
-            ></Button>
+                    Clicked="SettingsButton_OnClicked" Style="{StaticResource ToolbarButton}"/>
             <Button x:Name="DistributionsButton" Text="Distributions" ImageSource="icons8_normal_distribution_histogram_32.png" 
                     Clicked="DistributionsButton_OnClicked" Style="{StaticResource ToolbarButton}"
-                    IsEnabled="False"></Button>
+                    IsEnabled="False"/>
+            <Button Text="Filter" ImageSource="icons8_filter_32.png" 
+                    Clicked="OtherFactorsButton_OnClicked" Style="{StaticResource ToolbarButton}"/>
         </HorizontalStackLayout>
     </Grid>
 </ContentPage>

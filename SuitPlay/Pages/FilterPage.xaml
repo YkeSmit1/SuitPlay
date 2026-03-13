@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="using:SuitPlay.ViewModels"
+             x:Class="SuitPlay.Pages.FilterPage">
+    <ContentPage.BindingContext>
+        <viewModels:FilterViewModel/>
+    </ContentPage.BindingContext>
+    <ContentPage.Content>
+        <Grid RowDefinitions="auto, auto" ColumnDefinitions="auto, auto, auto, auto, auto">
+            <Switch Grid.Row="0" Grid.Column="0" IsToggled="{Binding EnableVacantPlaces}"/>
+            <Label Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="4" Text="Number of vacant places"/>
+            <Label Grid.Row="1" Grid.Column="1" Text="West"/>
+            <Entry Grid.Row="1" Grid.Column="2" Text="{Binding VacantPlacesWest}" 
+                   IsEnabled="{Binding EnableVacantPlaces}" Keyboard="Numeric"/>
+            <Label Grid.Row="1" Grid.Column="3" Text="East"/>
+            <Entry Grid.Row="1" Grid.Column="4" Text="{Binding VacantPlacesEast}" 
+                   IsEnabled="{Binding EnableVacantPlaces}" Keyboard="Numeric"/>
+        </Grid>
+        
+    </ContentPage.Content>
+</ContentPage>

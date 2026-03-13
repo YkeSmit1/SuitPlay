@@ -9,4 +9,7 @@ public static class Constants
     public const string MaxLinesInDistributions = "MaxLinesInDistributions";
     public const string FilterInferiorLines = "FilterInferiorLines";
     public const string RemoveDuplicateLines = "RemoveDuplicateLines";
+    public const string EnableVacantPlaces = "EnableVacantPlaces";
+    public const string VacantPlacesEast = "VacantPlacesEast";
+    public const string VacantPlacesWest = "VacantPlacesWest";
 }
