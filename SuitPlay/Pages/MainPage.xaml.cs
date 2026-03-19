@@ -110,7 +110,8 @@ public partial class MainPage
                 { EtalonsDirectory = Path.Combine(FileSystem.Current.AppDataDirectory, "Calculator.etalons_suitplay"), 
                     MaxLines = Preferences.Get(Constants.MaxLinesInCalculate, 10000),
                     FilterInferiorLines = Preferences.Get(Constants.FilterInferiorLines, false),
-                    RemoveDuplicateLines = Preferences.Get(Constants.RemoveDuplicateLines, false)
+                    RemoveDuplicateLines = Preferences.Get(Constants.RemoveDuplicateLines, false),
+                    RemoveTranspositions = Preferences.Get(Constants.RemoveTranspositions, false)
                 };
             if (Preferences.Get(Constants.EnableVacantPlaces, true))
             {

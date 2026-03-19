@@ -16,6 +16,7 @@ public partial class SettingsViewModel : ObservableObject
     public int MaxLinesInDistributions { get; set; }
     public bool FilterInferiorLines { get; set; }
     public bool RemoveDuplicateLines { get; set; }
+    public bool RemoveTranspositions { get; set; }
 
     private void Load()
     {
@@ -26,6 +27,7 @@ public partial class SettingsViewModel : ObservableObject
         MaxLinesInDistributions = Preferences.Get(Constants.MaxLinesInDistributions, 5);
         FilterInferiorLines = Preferences.Get(Constants.FilterInferiorLines, false);
         RemoveDuplicateLines = Preferences.Get(Constants.RemoveDuplicateLines, false);
+        RemoveTranspositions = Preferences.Get(Constants.RemoveTranspositions, false);
     }
 
     public void Save()
@@ -37,5 +39,6 @@ public partial class SettingsViewModel : ObservableObject
         Preferences.Set(Constants.MaxLinesInDistributions, MaxLinesInDistributions);
         Preferences.Set(Constants.FilterInferiorLines, FilterInferiorLines);
         Preferences.Set(Constants.RemoveDuplicateLines, RemoveDuplicateLines);
+        Preferences.Set(Constants.RemoveTranspositions, RemoveTranspositions);
     }
 }

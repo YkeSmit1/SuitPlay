@@ -15,6 +15,7 @@ public class Calculate
         public int MaxLines { get; init; } = 10000;
         public bool FilterInferiorLines { get; init; }
         public bool RemoveDuplicateLines { get; init; }
+        public bool RemoveTranspositions { get; init; }
         public int VacantPlacesWest { get; set; } = 13;
         public int VacantPlacesEast { get; set; } = 13;
     }
@@ -76,6 +77,8 @@ public class Calculate
                     .Select(z => new Item(z.Play.RemoveAfterDummy().ConvertToSmallCards(cardsNS), z.Tricks)).ToList()
             }).OrderBy(x => x.Combination, FaceArrayComparer).ToList();
             
+            if (calculateSettings.RemoveTranspositions)
+                RemoveTranspositions();
             RemoveBadPlays();
 
             var lines2NdHigh = treeItems.SelectMany(x => x.Items).Where(x => x.Play.Count() > 1 && x.Play.Data[1] != Face.SmallCard).Select(x => x.Play).ToList();
@@ -112,6 +115,31 @@ public class Calculate
             Log.Information("End GetResult2");
 
             return lineItems;
+
+            void RemoveTranspositions()
+            {
+                foreach (var items in treeItems)
+                {
+                    var itemsToRemove = new HashSet<Item>();
+                    foreach (var item in items.Items)
+                    {
+                        foreach (var item1 in items.Items.Where(x => x != item && !itemsToRemove.Contains(x)))
+                        {
+                            var firstDifferentTrick = item.Play.Data.Chunk(4).Zip(item1.Play.Data.Chunk(4))
+                                .First(x => !x.First.SequenceEqual(x.Second));
+                            if (firstDifferentTrick.First.Length != 4 || firstDifferentTrick.Second.Length != 4)
+                                continue;
+                            var first = firstDifferentTrick.First.ToArray();
+                            (first[0], first[2]) = (first[2], first[0]);
+                            if (!first.SequenceEqual(firstDifferentTrick.Second)) 
+                                continue;
+                            itemsToRemove.Add(firstDifferentTrick.First[0] > firstDifferentTrick.Second[0] ? item1 : item);
+                            break;
+                        }
+                    }
+                    items.Items.RemoveAll(x => itemsToRemove.Contains(x));
+                }
+            }
             
             void RemoveBadPlays()
             {
