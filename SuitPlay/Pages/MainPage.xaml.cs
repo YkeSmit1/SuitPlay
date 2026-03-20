@@ -103,7 +103,8 @@ public partial class MainPage
             var northHand = GetHand(North);
             var southHand = GetHand(South);
             var northSouth = northHand.Concat(southHand).OrderDescending().ToArray();
-            bestPlay = await Task.Run(() => Calculate.CalculateBestPlay(northHand, southHand));
+            var miniMaxSettings = new MiniMax.MiniMaxSettings {UseFalsecards = Preferences.Get(Constants.UseFalsecards, false)} ;
+            bestPlay = await Task.Run(() => Calculate.CalculateBestPlay(northHand, southHand, miniMaxSettings));
             var calculateElapsed = stopWatch.Elapsed;
             stopWatch.Restart();
             var calculateSettings = new Calculate.CalculateSettings

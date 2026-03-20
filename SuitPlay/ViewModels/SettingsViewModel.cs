@@ -17,6 +17,7 @@ public partial class SettingsViewModel : ObservableObject
     public bool FilterInferiorLines { get; set; }
     public bool RemoveDuplicateLines { get; set; }
     public bool RemoveTranspositions { get; set; }
+    public bool UseFalsecards { get; set; }
 
     private void Load()
     {
@@ -28,6 +29,8 @@ public partial class SettingsViewModel : ObservableObject
         FilterInferiorLines = Preferences.Get(Constants.FilterInferiorLines, false);
         RemoveDuplicateLines = Preferences.Get(Constants.RemoveDuplicateLines, false);
         RemoveTranspositions = Preferences.Get(Constants.RemoveTranspositions, false);
+        UseFalsecards = Preferences.Get(Constants.UseFalsecards, false);
+        
     }
 
     public void Save()
@@ -40,5 +43,6 @@ public partial class SettingsViewModel : ObservableObject
         Preferences.Set(Constants.FilterInferiorLines, FilterInferiorLines);
         Preferences.Set(Constants.RemoveDuplicateLines, RemoveDuplicateLines);
         Preferences.Set(Constants.RemoveTranspositions, RemoveTranspositions);
+        Preferences.Set(Constants.UseFalsecards, UseFalsecards);
     }
 }

@@ -12,11 +12,13 @@ public class CalculateTest
     private static readonly JsonSerializerOptions JsonSerializerOptions  = new() { WriteIndented = false, IncludeFields = true };
     [UsedImplicitly] private readonly ITestOutputHelper testOutputHelper;
     private readonly Calculate.CalculateSettings calculateSettings;
+    private readonly MiniMax.MiniMaxSettings miniMaxSettings;
 
     public CalculateTest(ITestOutputHelper testOutputHelper)
     {
         this.testOutputHelper = testOutputHelper;
         calculateSettings = new Calculate.CalculateSettings {EtalonsDirectory = Path.Combine(AppContext.BaseDirectory, "etalons-suitplay")};
+        miniMaxSettings = new MiniMax.MiniMaxSettings();
         Utils.SetupLogging(AppDomain.CurrentDomain.BaseDirectory);
     }
 
@@ -118,7 +120,7 @@ public class CalculateTest
         var northHand = Utils.StringToCardArray(north);
         var southHand = Utils.StringToCardArray(south);
         // Act
-        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
+        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand, miniMaxSettings);
         var filename2 = $"{north}-{south}.json";
         var result2 = Calculate.GetResult2(bestPlay, northHand, southHand, calculateSettings);
         Utils.SaveTrees2(result2, filename2);
@@ -152,7 +154,7 @@ public class CalculateTest
         var northHand = Utils.StringToCardArray(combinationToTest.Split('-')[0]);
         var southHand = Utils.StringToCardArray(combinationToTest.Split('-')[1]);
         //Act
-        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
+        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand, miniMaxSettings);
         var result2 = Calculate.GetResult2(bestPlay, northHand, southHand, calculateSettings);
         if (!Directory.Exists("tmp"))
             Directory.CreateDirectory("tmp");
@@ -276,7 +278,7 @@ public class CalculateTest
         var northHand = Utils.StringToCardArray(north);
         var southHand = Utils.StringToCardArray(south);
         // Act
-        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
+        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand, miniMaxSettings);
         var result2 = Calculate.GetResult2(bestPlay, northHand, southHand, calculateSettings);
         var results = CheckTree(result2);
         testOutputHelper.WriteLine($"{north} - {south}");
@@ -322,7 +324,7 @@ public class CalculateTest
         var northHand = Utils.StringToCardArray(north);
         var southHand = Utils.StringToCardArray(south);
         // Act
-        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand);
+        var bestPlay = Calculate.CalculateBestPlay(northHand, southHand, miniMaxSettings);
         var result2 = Calculate.GetResult2(bestPlay, northHand, southHand, calculateSettings);
         var results = CheckTree2(result2);
         testOutputHelper.WriteLine($"{north} - {south}");
@@ -381,7 +383,7 @@ public class CalculateTest
         var cardsEW = initialCards[Player.East].Concat(initialCards[Player.West]).OrderDescending().ToList();
         var cards = new Cards(playedCards);
         // Act
-        var actual = MiniMax.GetPlayableCards(initialCards, cards, cardsEW, cardsNS);
+        var actual = MiniMax.GetPlayableCards(initialCards, cards, cardsEW, cardsNS, new MiniMax.MiniMaxSettings());
         // Assert
         Assert.Equal(Utils.StringToCardArray(expected).OrderDescending(), actual.OrderDescending());
     }

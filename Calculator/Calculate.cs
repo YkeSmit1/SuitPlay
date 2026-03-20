@@ -471,7 +471,7 @@ public class Calculate
         }
     }    
 
-    public static IDictionary<Face[], List<Item>> CalculateBestPlay(Face[] north, Face[] south)
+    public static IDictionary<Face[], List<Item>> CalculateBestPlay(Face[] north, Face[] south, MiniMax.MiniMaxSettings miniMaxSettings)
     {
         Log.Information("Calculating best play North:{@north} South:{@south}",  north, south);
         var cardsEW = Utils.GetAllCards().Except(north).Except(south).ToArray();
@@ -483,7 +483,7 @@ public class Calculate
         {
             var cardsE = combination.ToArray();
             var cardsW = cardsEW.Except(cardsE);
-            var calculateBestPlayForCombination = MiniMax.CalculateBestPlayForCombination(north, cardsE, south, cardsW);
+            var calculateBestPlayForCombination = MiniMax.CalculateBestPlayForCombination(miniMaxSettings, north, cardsE, south, cardsW);
             result[cardsE] = calculateBestPlayForCombination;
         });
         

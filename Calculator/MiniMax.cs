@@ -5,7 +5,11 @@ namespace Calculator;
 
 public static class MiniMax
 {
-    public static List<Item> CalculateBestPlayForCombination(params IEnumerable<Face>[] cards)
+    public class MiniMaxSettings
+    {
+        public bool UseFalsecards { get; init; }
+    }
+    public static List<Item> CalculateBestPlayForCombination(MiniMaxSettings miniMaxSettings, params IEnumerable<Face>[] cards)
     {
         var tree = new List<Item>();
         var initialCards = cards.Select((x, index) => (x, index)).ToDictionary(item => (Player)item.index, item => item.x.ToList());
@@ -17,7 +21,7 @@ public static class MiniMax
         void FindBestMove()
         {
             var playedCards = new Cards([]);
-            var playableCards = GetPlayableCards(initialCards, playedCards, cardsEW, cardsNS);
+            var playableCards = GetPlayableCards(initialCards, playedCards, cardsEW, cardsNS, miniMaxSettings);
             foreach (var card in playableCards)
             {
                 playedCards.Add(card);
@@ -44,7 +48,7 @@ public static class MiniMax
                 return new Item(playedCards.Clone(), trickCount);
             }
 
-            var playableCards = GetPlayableCards(initialCards, playedCards, cardsEW, cardsNS);
+            var playableCards = GetPlayableCards(initialCards, playedCards, cardsEW, cardsNS, miniMaxSettings);
             if (maximizingPlayer)
             {
                 var resultItem = new Item (playedCards.Clone(), int.MinValue, []);
@@ -84,7 +88,8 @@ public static class MiniMax
 
     }
 
-    public static List<Face> GetPlayableCards(Dictionary<Player, List<Face>> initialCards, Cards playedCards, List<Face> cardsEW, List<Face> cardsNS)
+    public static List<Face> GetPlayableCards(Dictionary<Player, List<Face>> initialCards, Cards playedCards,
+        List<Face> cardsEW, List<Face> cardsNS, MiniMaxSettings miniMaxSettings)
     {
         var cardsEWNotPlayed = cardsEW.Except(playedCards.Data).ToList();
         if (playedCards.Count() % 4 == 0)
@@ -186,7 +191,7 @@ public static class MiniMax
             // Win is cheap is possible
             if (highestCardsOurTeam.Count > 0) 
                 return [highestCardsOurTeam.Min()];
-            return [availableCards.Min()];
+            return miniMaxSettings.UseFalsecards ? availableCards : [availableCards.Min()];
         }
 
         List<Face> FilterAvailableCards(Player player, List<Face> cards)
