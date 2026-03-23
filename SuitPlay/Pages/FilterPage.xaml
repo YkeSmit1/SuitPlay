@@ -8,7 +8,8 @@
         <viewModels:FilterViewModel/>
     </ContentPage.BindingContext>
     <ContentPage.Content>
-        <Grid RowDefinitions="auto, auto" ColumnDefinitions="auto, auto, auto, auto, auto">
+        <Grid RowDefinitions="auto, auto" ColumnDefinitions="auto, auto, auto, auto, auto" 
+              x:DataType="viewModels:FilterViewModel">
             <Switch Grid.Row="0" Grid.Column="0" IsToggled="{Binding EnableVacantPlaces}"/>
             <Label Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="4" Text="Number of vacant places"/>
             <Label Grid.Row="1" Grid.Column="1" Text="West"/>
