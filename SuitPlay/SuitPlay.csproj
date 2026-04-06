@@ -56,10 +56,10 @@
       <ApplicationVersion>9</ApplicationVersion>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(TargetFramework)'=='net9.0-ios'">
-      <CodesignKey>Apple Development: Created via API (Y4H5C85256)</CodesignKey>
-      <CodesignProvision>VS: com.companyname.suitplay Development</CodesignProvision>
-    </PropertyGroup>
+<!--    <PropertyGroup Condition="'$(TargetFramework)'=='net9.0-ios'">-->
+<!--      <CodesignKey>Apple Development: Created via API (Y4H5C85256)</CodesignKey>-->
+<!--      <CodesignProvision>VS: com.companyname.suitplay Development</CodesignProvision>-->
+<!--    </PropertyGroup>-->
     <ItemGroup>
         <!-- App Icon -->
         <MauiIcon Include="Resources\AppIcon\appicon.svg" />
