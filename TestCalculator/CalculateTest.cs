@@ -28,6 +28,8 @@ public class TestCombinationsGenerator : IEnumerable<object[]>
         ["AJT98", "5432"],
         ["QJ82", "A93"],
         ["KJ2", "A9876"],
+        //["AQT", "53" ],
+        ["AQT", "32" ],
     ];
 
     public IEnumerator<object[]> GetEnumerator() => combinations.GetEnumerator();
@@ -47,7 +49,7 @@ public class CalculateTest
     public CalculateTest(ITestOutputHelper testOutputHelper)
     {
         this.testOutputHelper = testOutputHelper;
-        calculateSettings = new Calculate.CalculateSettings {EtalonsDirectory = Path.Combine(AppContext.BaseDirectory, "etalons-suitplay")};
+        calculateSettings = new Calculate.CalculateSettings {EtalonsDirectory = Path.Combine(AppContext.BaseDirectory, "etalons-suitplay"), MaxLines = int.MaxValue};
         miniMaxSettings = new MiniMax.MiniMaxSettings();
         Utils.SetupLogging(AppDomain.CurrentDomain.BaseDirectory);
     }

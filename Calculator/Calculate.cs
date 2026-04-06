@@ -263,6 +263,8 @@ public class Calculate
                     if (sameItemsNextCard.Count <= 1) 
                         return false;
                     var cardsList = sameItemsNextCard.SelectMany(x => x.Items).Select(x => x.Play).Where(x => x.ToString().StartsWith(cardsToNextCard)).ToList();
+                    if (cardsList.Distinct().Count() == 1)
+                        return false;
                     var index = Utils.FindFirstDifferentPosition(cardsList);
                     var cards = new Cards(cardsList.First().Take(index).ToList());
                     if (index % 2 == 0)
