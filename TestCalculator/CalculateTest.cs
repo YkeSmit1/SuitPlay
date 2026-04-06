@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Collections;
+using System.Text.Json;
 using Calculator;
 using Calculator.Models;
 using JetBrains.Annotations;
@@ -6,7 +7,36 @@ using Xunit.Abstractions;
 
 namespace TestCalculator;
 
+public class TestCombinationsGenerator : IEnumerable<object[]>
+{
+    private readonly List<object[]> combinations =
+    [
+        ["AQT98", "5432"],
+        ["QT98", "A432"],
+        ["AJ92", "K843"],
+        ["AQJ", "T987654"],
+        ["AQJ", "T9876543"],
+        ["AT32", "Q654"],
+        ["QJ2", "AT3"],
+        ["AJ2", "KT3"],
+        ["AJ32", "K954"],
+        // ["J92", "A743"],
+        // ["J92", "A753"],
+        ["J987", "A432"],
+        ["J98", "A432"],
+        ["AJ98", "5432"],
+        ["AJT98", "5432"],
+        ["QJ82", "A93"],
+        ["KJ2", "A9876"],
+    ];
+
+    public IEnumerator<object[]> GetEnumerator() => combinations.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
 [TestSubject(typeof(Calculate))]
+
 public class CalculateTest
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions  = new() { WriteIndented = false, IncludeFields = true };
@@ -97,23 +127,7 @@ public class CalculateTest
     }
     
     [Theory]
-    [InlineData("AQT98", "5432")]
-    [InlineData("QT98", "A432")]
-    [InlineData("AJ92", "K843")]
-    [InlineData("AQJ", "T987654")]
-    [InlineData("AQJ", "T9876543")]
-    [InlineData("AT32", "Q654")]
-    [InlineData("QJ2", "AT3")]
-    [InlineData("AJ2", "KT3")]
-    [InlineData("AJ32", "K954")]
-    //[InlineData("J92", "A743")]
-    //[InlineData("J92", "A753")]
-    [InlineData("J987", "A432")]
-    [InlineData("J98", "A432")]
-    [InlineData("AJ98", "5432")]
-    [InlineData("AJT98", "5432")]
-    [InlineData("QJ82", "A93")]
-    [InlineData("KJ2", "A9876")]
+    [ClassData(typeof(TestCombinationsGenerator))]
     public void TestEqualToEtalon2(string north, string south)
     {
         // Arrange 
@@ -132,27 +146,13 @@ public class CalculateTest
     }
 
     [Theory]
-    [InlineData("AQT98-5432.json")]
-    [InlineData("QT98-A432.json")]
-    [InlineData("AJ92-K843.json")]
-    [InlineData("AQJ-T987654.json")]
-    [InlineData("AQJ-T9876543.json")]
-    [InlineData("AT32-Q654.json")]
-    [InlineData("AJ32-K954.json")]
-    // [InlineData("J92-A743.json")]
-    // [InlineData("J92-A753.json")]
-    [InlineData("J987-A432.json")]
-    [InlineData("J98-A432.json")]
-    [InlineData("AJ98-5432.json")]
-    [InlineData("AJT98-5432.json")]
-    [InlineData("QJ82-A93.json")]
-    [InlineData("KJ2-A9876.json")]
-    public void CompareWithOld(string fileName)
+    [ClassData(typeof(TestCombinationsGenerator))]
+    public void CompareWithOld(string north, string south)
     {
         // Arrange
-        var combinationToTest = fileName[..fileName.LastIndexOf('.')];
-        var northHand = Utils.StringToCardArray(combinationToTest.Split('-')[0]);
-        var southHand = Utils.StringToCardArray(combinationToTest.Split('-')[1]);
+        var fileName = $"{north}-{south}.json";
+        var northHand = Utils.StringToCardArray(north);
+        var southHand = Utils.StringToCardArray(south);
         //Act
         var bestPlay = Calculate.CalculateBestPlay(northHand, southHand, miniMaxSettings);
         var result2 = Calculate.GetResult2(bestPlay, northHand, southHand, calculateSettings);
@@ -163,7 +163,10 @@ public class CalculateTest
         using var fileStreamNew = new FileStream(Path.Combine("tmp", fileName), FileMode.Open);
         var resultsNew = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStreamNew, JsonSerializerOptions);
         //Assert
-        using var fileStreamOld = new FileStream(Path.Combine("etalons-suitplay", fileName), FileMode.Open);
+        var combine = Path.Combine("etalons-suitplay", fileName);
+        if (!Path.Exists(combine))
+            return;
+        using var fileStreamOld = new FileStream(combine, FileMode.Open);
         var resultsOld = JsonSerializer.Deserialize<(Dictionary<string, List<int>> treesForJson, IEnumerable<string>)>(fileStreamOld, JsonSerializerOptions);
 
         var combinationsOld = resultsOld.Item2.ToList();
@@ -255,23 +258,7 @@ public class CalculateTest
     }
 
     [Theory]
-    [InlineData("AQT98", "5432")]
-    [InlineData("QT98", "A432")]
-    [InlineData("AJ92", "K843")]
-    [InlineData("AQJ", "T987654")]
-    [InlineData("AQJ", "T9876543")]
-    [InlineData("AT32", "Q654")]
-    [InlineData("QJ2", "AT3")]
-    [InlineData("AJ2", "KT3")]
-    [InlineData("AJ32", "K954")]
-    //[InlineData("J92", "A743")]
-    //[InlineData("J92", "A753")]
-    [InlineData("J987", "A432")]
-    [InlineData("J98", "A432")]
-    [InlineData("AJ98", "5432")]
-    [InlineData("AJT98", "5432")]
-    [InlineData("QJ82", "A93")]
-    [InlineData("KJ2", "A9876")]
+    [ClassData(typeof(TestCombinationsGenerator))]
     public void CheckResults(string north, string south)
     {
         // Arrange 
@@ -301,23 +288,7 @@ public class CalculateTest
     }
     
     [Theory]
-    [InlineData("AQT98", "5432")]
-    [InlineData("QT98", "A432")]
-    [InlineData("AJ92", "K843")]
-    [InlineData("AQJ", "T987654")]
-    [InlineData("AQJ", "T9876543")]
-    [InlineData("AT32", "Q654")]
-    [InlineData("QJ2", "AT3")]
-    [InlineData("AJ2", "KT3")]
-    [InlineData("AJ32", "K954")]
-    //[InlineData("J92", "A743")]
-    //[InlineData("J92", "A753")]
-    [InlineData("J987", "A432")]
-    [InlineData("J98", "A432")]
-    [InlineData("AJ98", "5432")]
-    [InlineData("AJT98", "5432")]
-    [InlineData("QJ82", "A93")]
-    [InlineData("KJ2", "A9876")]
+    [ClassData(typeof(TestCombinationsGenerator))]
     public void CheckResults2(string north, string south)
     {
         // Arrange 
