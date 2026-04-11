@@ -1,0 +1,43 @@
+name: Build p12 from Certificate
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-p12:
+    runs-on: macos-latest
+
+    steps:
+      - name: Download private key
+        # Assumes you stored the private key as a secret after step 1
+        run: |
+          echo "${{ secrets.PRIVATE_KEY }}" > private.key
+
+      - name: Upload Apple .cer file
+        # Assumes you uploaded the .cer file as a secret (base64 encoded)
+        run: |
+          echo "${{ secrets.APPLE_CERTIFICATE_BASE64 }}" | base64 --decode > apple.cer
+
+      - name: Convert .cer to .pem
+        run: |
+          openssl x509 -in apple.cer -inform DER -out apple.pem -outform PEM
+
+      - name: Bundle into .p12
+        run: |
+          openssl pkcs12 -export \
+            -inkey private.key \
+            -in apple.pem \
+            -out certificate.p12 \
+            -passout pass:${{ secrets.P12_PASSWORD }}
+
+      - name: Base64 encode the .p12
+        run: |
+          base64 certificate.p12 > certificate_base64.txt
+          cat certificate_base64.txt
+
+      - name: Upload .p12 as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: p12-certificate
+          path: certificate.p12
+          retention-days: 1
