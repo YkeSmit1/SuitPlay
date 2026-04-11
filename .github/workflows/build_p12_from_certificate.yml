@@ -11,7 +11,7 @@ jobs:
       - name: Download private key
         # Assumes you stored the private key as a secret after step 1
         run: |
-          echo "${{ secrets.PRIVATE_KEY }}" > private.key
+          echo "${{ secrets.APPLE_PRIVATE_KEY }}" > private.key
 
       - name: Upload Apple .cer file
         # Assumes you uploaded the .cer file as a secret (base64 encoded)
