@@ -1,0 +1,29 @@
+name: Generate p12 Certificate
+
+on:
+  workflow_dispatch: # Run manually from GitHub Actions UI
+
+jobs:
+  generate-p12:
+    runs-on: macos-latest
+
+    steps:
+      - name: Install dependencies
+        run: brew install openssl
+
+      - name: Generate Private Key
+        run: |
+          openssl genrsa -out private.key 2048
+
+      - name: Generate CSR (Certificate Signing Request)
+        run: |
+          openssl req -new -key private.key \
+            -out request.csr \
+            -subj "/emailAddress=${{ secrets.APPLE_EMAIL }}/CN=${{ secrets.APPLE_TEAM_NAME }}/C=US"
+
+      - name: Upload CSR as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: certificate-signing-request
+          path: request.csr
+          retention-days: 1
