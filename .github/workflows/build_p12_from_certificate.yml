@@ -32,7 +32,7 @@ jobs:
 
       - name: Base64 encode the .p12
         run: |
-          base64 certificate.p12 > certificate_base64.txt
+          base64 -i certificate.p12 > certificate_base64.txt
           cat certificate_base64.txt
 
       - name: Upload .p12 as artifact
