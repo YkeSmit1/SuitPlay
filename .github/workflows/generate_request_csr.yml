@@ -1,4 +1,4 @@
-name: Generate p12 Certificate
+name: Generate request.csr
 
 on:
   workflow_dispatch: # Run manually from GitHub Actions UI
