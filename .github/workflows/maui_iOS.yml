@@ -55,6 +55,7 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: Build iOS .ipa
+        timeout-minutes: 30
         run: |
           dotnet publish suitplay/suitplay.csproj \
             -f:net9.0-ios \
