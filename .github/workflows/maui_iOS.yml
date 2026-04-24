@@ -52,7 +52,7 @@ jobs:
           PP_PATH=$RUNNER_TEMP/profile.mobileprovision
           echo $BUILD_PROVISION_PROFILE_BASE64 | base64 --decode > $PP_PATH
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles          
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: Build iOS .ipa
         run: |
@@ -62,7 +62,7 @@ jobs:
             /p:ArchiveOnBuild=true \
             /p:RuntimeIdentifier=ios-arm64 \
             /p:CodesignKey="Apple Distribution: Yke Smit (L7Y5LALL64)" \
-            /p:CodesignProvision="VS: com.companyname.suitplay Development"          
+            /p:CodesignProvision="suitplay_distribute"
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v7
