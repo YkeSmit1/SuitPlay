@@ -63,7 +63,7 @@ jobs:
             /p:ArchiveOnBuild=true \
             /p:RuntimeIdentifier=ios-arm64 \
             /p:CodesignKey="Apple Distribution: Yke Smit (L7Y5LALL64)" \
-            /p:CodesignProvision="suitplay_distribute"
+            /p:CodesignProvision="suitplay_distribute" \
             /p:EnableLLVMOptimizations=false \
             /p:MtouchUseLlvm=false \
             /verbosity:detailed
