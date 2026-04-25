@@ -71,3 +71,4 @@ jobs:
         with:
           name: ios-app
           path: '**/*.ipa'        
+          archive: false
