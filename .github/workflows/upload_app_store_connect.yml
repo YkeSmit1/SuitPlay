@@ -1,0 +1,24 @@
+name: Upload to App Store
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  upload:
+    runs-on: macos-latest
+    steps:
+      - name: Download .ipa artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: suitplay-ipa
+
+      - name: Upload to App Store Connect
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          xcrun altool --upload-app \
+            --type ios \
+            --file SuitPlay.ipa \
+            --username "$APPLE_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD"
