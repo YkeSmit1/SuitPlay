@@ -15,7 +15,7 @@ jobs:
       - name: Download .ipa artifact
         uses: actions/download-artifact@v7
         with:
-          name: ios-app
+          name: suitplay.ipa
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.inputs.run_id }}
 
@@ -26,6 +26,6 @@ jobs:
         run: |
           xcrun altool --upload-app \
             --type ios \
-            --file SuitPlay.ipa \
+            --file suitPlay.ipa \
             --username "$APPLE_ID" \
             --password "$APPLE_APP_SPECIFIC_PASSWORD"
