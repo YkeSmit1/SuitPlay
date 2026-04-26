@@ -25,6 +25,9 @@ jobs:
           find . -name "*.ipa"
           cd Payload
           ls -la
+          cd suitplay.app
+          ls -la
+          cd ..
           cd ..
 
       - name: Upload to App Store Connect
