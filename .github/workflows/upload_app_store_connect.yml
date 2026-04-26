@@ -31,6 +31,6 @@ jobs:
         run: |
           xcrun altool --upload-app \
             --type ios \
-            --file suitplay.ipa \
+            --file Payload/suitplay.ipa \
             --username "$APPLE_ID" \
             --password "$APPLE_APP_SPECIFIC_PASSWORD"
