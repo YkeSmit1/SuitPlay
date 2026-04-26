@@ -19,17 +19,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.inputs.run_id }}
 
-      - name: Check downloaded files
-        run: |
-          ls -la
-          find . -name "*.ipa"
-          cd Payload
-          ls -la
-          cd suitplay.app
-          ls -la
-          cd ..
-          cd ..
-
       - name: Upload to App Store Connect
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -37,6 +26,6 @@ jobs:
         run: |
           xcrun altool --upload-app \
             --type ios \
-            --file Payload/suitplay.ipa \
+            --file suitplay.ipa \
             --username "$APPLE_ID" \
             --password "$APPLE_APP_SPECIFIC_PASSWORD"
