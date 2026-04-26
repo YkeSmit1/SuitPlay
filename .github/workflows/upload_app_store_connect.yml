@@ -15,7 +15,7 @@ jobs:
       - name: Download .ipa artifact
         uses: actions/download-artifact@v7
         with:
-          name: suitplay.ipa
+          name: ios-app
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.inputs.run_id }}
 
