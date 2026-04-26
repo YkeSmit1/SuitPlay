@@ -62,7 +62,7 @@
 <!--    </PropertyGroup>-->
     <ItemGroup>
         <!-- App Icon -->
-        <MauiIcon Include="Resources\AppIcon\appicon.svg" />
+        <MauiIcon Include="Resources\AppIcon\appicon.png" />
         <MauiImage Include="Resources\Images\Embedded\cardfaces2.jpg" />
 
         <!-- Splash Screen -->
