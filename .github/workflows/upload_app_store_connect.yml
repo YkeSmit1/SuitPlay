@@ -23,6 +23,9 @@ jobs:
         run: |
           ls -la
           find . -name "*.ipa"
+          cd Payload
+          ls -la
+          cd ..
 
       - name: Upload to App Store Connect
         env:
