@@ -19,6 +19,12 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.inputs.run_id }}
 
+      - name: Check downloaded files
+        run: |
+          ls -la
+          find . -name "*.ipa"          
+          find . -name "ios-app.zip"          
+
       - name: Upload to App Store Connect
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
