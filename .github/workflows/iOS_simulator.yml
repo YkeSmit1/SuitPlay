@@ -1,0 +1,41 @@
+name: Build iOS Simulator App
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-simulator:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui-ios
+
+      - name: Build for iOS Simulator
+        run: |
+          dotnet build suitplay/suitplay.csproj \
+            -f:net9.0-ios \
+            -c Release \
+            /p:RuntimeIdentifier=iossimulator-x64 \
+            /p:CodesignKey="" \
+            /p:CodesignProvision=""
+
+      - name: Zip .app for Appetize
+        run: |
+          cd suitplay/bin/Release/net9.0-ios/iossimulator-x64
+          zip -r simulator-app.zip *.app
+
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v7
+        with:
+          name: simulator-app
+          path: suitplay/bin/Release/net9.0-ios/iossimulator-x64/simulator-app.zip
+          retention-days: 5
