@@ -16,6 +16,9 @@ jobs:
         with:
           xcode-version: '26.3'
 
+      - name: List available simulators
+        run: xcrun simctl list devices available          
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
