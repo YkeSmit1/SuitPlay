@@ -16,9 +16,6 @@ jobs:
         with:
           xcode-version: '26.3'
 
-      - name: List available simulators
-        run: xcrun simctl list devices available          
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
@@ -36,10 +33,10 @@ jobs:
             /p:CodesignKey="" \
             /p:CodesignProvision=""
 
-      - name: Take iPhone 11 Pro Max screenshot (6.5 inch)
+      - name: Take iPhone 17 Pro Max screenshot (6.5 inch)
         run: |
           # Boot simulator
-          xcrun simctl boot "iPhone 11 Pro Max"
+          xcrun simctl boot "iPhone 17 Pro Max"
           open -a Simulator
           sleep 30
 
@@ -55,7 +52,7 @@ jobs:
       - name: Take iPad Pro 12.9 inch screenshot (13 inch)
         run: |
           # Boot simulator
-          xcrun simctl boot "iPad Pro (12.9-inch) (6th generation)"
+          xcrun simctl boot "iPad Pro 13-inch (M5)"
           open -a Simulator
           sleep 30
 
