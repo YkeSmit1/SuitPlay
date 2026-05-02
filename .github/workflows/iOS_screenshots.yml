@@ -36,7 +36,7 @@ jobs:
       - name: Take iPhone screenshot (6.5 inch)
         run: |
           # Boot simulator
-          xcrun simctl boot "iPhone 17 Pro Max"
+          xcrun simctl boot "iPhone 16 Pro Max"
           open -a Simulator
           sleep 30
 
@@ -82,7 +82,7 @@ jobs:
       - name: Boot and diagnose simulator
         run: |
           # Boot simulator and wait
-          xcrun simctl boot "iPhone 17 Pro Max"
+          xcrun simctl boot "iPhone 16 Pro Max"
           sleep 30
           
           # Check if it's actually booted
