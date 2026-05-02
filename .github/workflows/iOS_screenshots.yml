@@ -24,28 +24,24 @@ jobs:
       - name: Install MAUI workload
         run: dotnet workload install maui
 
-      - name: Build for iPhone simulator
+      - name: Build for iPhone simulator (arm64)
         run: |
           dotnet build suitplay/suitplay.csproj \
             -f:net9.0-ios \
             -c Release \
-            /p:RuntimeIdentifier=iossimulator-x64 \
+            /p:RuntimeIdentifier=iossimulator-arm64 \
             /p:CodesignKey="" \
             /p:CodesignProvision=""
 
-      - name: Take iPhone 17 Pro Max screenshot (6.5 inch)
+      - name: Take iPhone screenshot (6.5 inch)
         run: |
-          # Boot simulator
           xcrun simctl boot "iPhone 17 Pro Max"
           open -a Simulator
           sleep 30
 
-          # Install and launch app
-          xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-x64/suitplay.app
+          xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-arm64/suitplay.app
           xcrun simctl launch booted com.companyname.suitplay
-          sleep 960
-
-          # Take screenshot
+          sleep 20
           xcrun simctl io booted screenshot iphone_6_5.png
           xcrun simctl shutdown booted
 
@@ -64,7 +60,12 @@ jobs:
           # Take screenshot
           xcrun simctl io booted screenshot ipad_13.png
           xcrun simctl shutdown booted
-
+      - name: Check simulator logs
+        if: always()
+        run: |
+          xcrun simctl launch booted com.companyname.suitplay 2>&1 || true
+          log show --predicate 'process == "suitplay"' --last 5m | tail -50
+          
       - name: Upload screenshots
         uses: actions/upload-artifact@v7
         with:
