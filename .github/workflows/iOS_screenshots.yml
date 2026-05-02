@@ -78,6 +78,30 @@ jobs:
         run: |
           xcrun simctl launch booted com.companyname.suitplay 2>&1 || true
           log show --predicate 'process == "suitplay"' --last 5m | tail -50
+
+      - name: Boot and diagnose simulator
+        run: |
+          # Boot simulator and wait
+          xcrun simctl boot "iPhone 17 Pro Max"
+          sleep 30
+          
+          # Check if it's actually booted
+          xcrun simctl list devices | grep -E "Booted|Shutdown"
+          
+          # Try installing and capture any errors
+          xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-arm64/suitplay.app 2>&1 || echo "INSTALL FAILED"
+          
+          # Check simulator status again after install
+          xcrun simctl list devices | grep -E "Booted|Shutdown"
+          
+          # Try launching and capture errors
+          xcrun simctl launch booted com.companyname.suitplay 2>&1 || echo "LAUNCH FAILED"
+          
+          # Check status again after launch
+          xcrun simctl list devices | grep -E "Booted|Shutdown"
+          
+          # Get crash logs if any
+          find ~/Library/Logs/DiagnosticReports -name "*.crash" -newer /tmp -exec cat {} \; 2>/dev/null || echo "No crash logs found"          
           
       - name: Upload screenshots
         uses: actions/upload-artifact@v7
