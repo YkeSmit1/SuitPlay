@@ -35,15 +35,28 @@ jobs:
 
       - name: Take iPhone screenshot (6.5 inch)
         run: |
+          # Boot simulator
           xcrun simctl boot "iPhone 17 Pro Max"
           open -a Simulator
           sleep 30
 
+          # Install and launch app
           xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-arm64/suitplay.app
           xcrun simctl launch booted com.companyname.suitplay
           sleep 20
+
+          # Take screenshot
           xcrun simctl io booted screenshot iphone_6_5.png
           xcrun simctl shutdown booted
+
+      - name: Build for iPad simulator
+        run: |
+          dotnet build suitplay/suitplay.csproj \
+            -f:net9.0-ios \
+            -c Release \
+            /p:RuntimeIdentifier=iossimulator-x64 \
+            /p:CodesignKey="" \
+            /p:CodesignProvision=""
 
       - name: Take iPad Pro 12.9 inch screenshot (13 inch)
         run: |
