@@ -31,19 +31,34 @@ jobs:
             -c Release \
             /p:RuntimeIdentifier=iossimulator-arm64 \
             /p:CodesignKey="" \
-            /p:CodesignProvision=""
+            /p:CodesignProvision="" \
+            /p:MtouchUseLlvm=false \
 
       - name: Take iPhone screenshot (6.5 inch)
         run: |
-          xcrun simctl boot "iPhone 17 Pro Max"
+          # Boot simulator
+          xcrun simctl boot "iPhone 16 Pro Max"
           open -a Simulator
           sleep 30
 
+          # Install and launch app
           xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-arm64/suitplay.app
           xcrun simctl launch booted com.companyname.suitplay
           sleep 20
+
+          # Take screenshot
           xcrun simctl io booted screenshot iphone_6_5.png
           xcrun simctl shutdown booted
+
+      - name: Build for iPad simulator
+        run: |
+          dotnet build suitplay/suitplay.csproj \
+            -f:net9.0-ios \
+            -c Release \
+            /p:RuntimeIdentifier=iossimulator-x64 \
+            /p:CodesignKey="" \
+            /p:CodesignProvision="" \
+            /p:MtouchUseLlvm=false \
 
       - name: Take iPad Pro 12.9 inch screenshot (13 inch)
         run: |
@@ -65,6 +80,30 @@ jobs:
         run: |
           xcrun simctl launch booted com.companyname.suitplay 2>&1 || true
           log show --predicate 'process == "suitplay"' --last 5m | tail -50
+
+      - name: Boot and diagnose simulator
+        run: |
+          # Boot simulator and wait
+          xcrun simctl boot "iPhone 16 Pro Max"
+          sleep 30
+          
+          # Check if it's actually booted
+          xcrun simctl list devices | grep -E "Booted|Shutdown"
+          
+          # Try installing and capture any errors
+          xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-arm64/suitplay.app 2>&1 || echo "INSTALL FAILED"
+          
+          # Check simulator status again after install
+          xcrun simctl list devices | grep -E "Booted|Shutdown"
+          
+          # Try launching and capture errors
+          xcrun simctl launch booted com.companyname.suitplay 2>&1 || echo "LAUNCH FAILED"
+          
+          # Check status again after launch
+          xcrun simctl list devices | grep -E "Booted|Shutdown"
+          
+          # Get crash logs if any
+          find ~/Library/Logs/DiagnosticReports -name "*.crash" -newer /tmp -exec cat {} \; 2>/dev/null || echo "No crash logs found"          
           
       - name: Upload screenshots
         uses: actions/upload-artifact@v7
