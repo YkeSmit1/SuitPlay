@@ -24,33 +24,7 @@ jobs:
       - name: Install MAUI workload
         run: dotnet workload install maui
 
-      - name: Build for iPhone simulator (arm64)
-        run: |
-          dotnet build suitplay/suitplay.csproj \
-            -f:net9.0-ios \
-            -c Release \
-            /p:RuntimeIdentifier=iossimulator-arm64 \
-            /p:CodesignKey="" \
-            /p:CodesignProvision="" \
-            /p:MtouchUseLlvm=false \
-
-      - name: Take iPhone screenshot (6.5 inch)
-        run: |
-          # Boot simulator
-          xcrun simctl boot "iPhone 16 Pro Max"
-          open -a Simulator
-          sleep 30
-
-          # Install and launch app
-          xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-arm64/suitplay.app
-          xcrun simctl launch booted com.companyname.suitplay
-          sleep 20
-
-          # Take screenshot
-          xcrun simctl io booted screenshot iphone_6_5.png
-          xcrun simctl shutdown booted
-
-      - name: Build for iPad simulator
+      - name: Build for simulator
         run: |
           dotnet build suitplay/suitplay.csproj \
             -f:net9.0-ios \
@@ -75,35 +49,22 @@ jobs:
           # Take screenshot
           xcrun simctl io booted screenshot ipad_13.png
           xcrun simctl shutdown booted
-      - name: Check simulator logs
-        if: always()
-        run: |
-          xcrun simctl launch booted com.companyname.suitplay 2>&1 || true
-          log show --predicate 'process == "suitplay"' --last 5m | tail -50
 
-      - name: Boot and diagnose simulator
+      - name: Take iPhone screenshot (6.5 inch)
         run: |
-          # Boot simulator and wait
+          # Boot simulator
           xcrun simctl boot "iPhone 16 Pro Max"
+          open -a Simulator
           sleep 30
-          
-          # Check if it's actually booted
-          xcrun simctl list devices | grep -E "Booted|Shutdown"
-          
-          # Try installing and capture any errors
-          xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-arm64/suitplay.app 2>&1 || echo "INSTALL FAILED"
-          
-          # Check simulator status again after install
-          xcrun simctl list devices | grep -E "Booted|Shutdown"
-          
-          # Try launching and capture errors
-          xcrun simctl launch booted com.companyname.suitplay 2>&1 || echo "LAUNCH FAILED"
-          
-          # Check status again after launch
-          xcrun simctl list devices | grep -E "Booted|Shutdown"
-          
-          # Get crash logs if any
-          find ~/Library/Logs/DiagnosticReports -name "*.crash" -newer /tmp -exec cat {} \; 2>/dev/null || echo "No crash logs found"          
+
+          # Install and launch app
+          xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-x64/suitplay.app
+          xcrun simctl launch booted com.companyname.suitplay
+          sleep 20
+
+          # Take screenshot
+          xcrun simctl io booted screenshot iphone_6_5.png
+          xcrun simctl shutdown booted
           
       - name: Upload screenshots
         uses: actions/upload-artifact@v7
