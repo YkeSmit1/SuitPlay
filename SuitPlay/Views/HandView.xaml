@@ -10,18 +10,23 @@
     </ContentView.BindingContext>
     <ContentView.Content>
         <StackLayout HeightRequest="98">
-            <AbsoluteLayout BindableLayout.ItemsSource="{Binding Cards}" x:DataType="viewModels:HandViewModel" HorizontalOptions="Center">
+            <AbsoluteLayout BindableLayout.ItemsSource="{Binding Cards}" 
+                            x:DataType="viewModels:HandViewModel" 
+                            HorizontalOptions="FillAndExpand"
+                            HeightRequest="98"
+                            WidthRequest="500">
                 <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="suitPlay:UiCard">
-                            <Image Source="{Binding Source}"  
-                                   AbsoluteLayout.LayoutBounds="{Binding Rect}"
-                                   WidthRequest="{Binding Rect.Width}"
-                                   HeightRequest="{Binding Rect.Height}">
-                                <Image.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="TapGestureRecognizer_OnImageTapped"/>
-                                </Image.GestureRecognizers>
-                            </Image>
-                        </DataTemplate>
+                    <DataTemplate x:DataType="suitPlay:UiCard">
+                        <Image Source="{Binding Source}"  
+                               AbsoluteLayout.LayoutBounds="{Binding Rect}"
+                               AbsoluteLayout.LayoutFlags="None"
+                               WidthRequest="{Binding Rect.Width}"
+                               HeightRequest="{Binding Rect.Height}">
+                            <Image.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="TapGestureRecognizer_OnImageTapped"/>
+                            </Image.GestureRecognizers>
+                        </Image>
+                    </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </AbsoluteLayout>
             <StackLayout.GestureRecognizers>
