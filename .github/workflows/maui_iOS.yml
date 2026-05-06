@@ -17,7 +17,7 @@ jobs:
       - name: Setup Xcode version
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '26.4'
+          xcode-version: '26.3'
           
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -28,7 +28,7 @@ jobs:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}     
 
       - name: Install MAUI Workloads
-        run: dotnet workload install maui
+        run: dotnet workload install maui --version 9.0.120
 
       - name: Restore dependencies
         run: dotnet restore
