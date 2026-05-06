@@ -21,7 +21,7 @@ jobs:
         with:
           dotnet-version: '9.0.x'
       - name: Install MAUI workload
-        run: dotnet workload install maui
+        run: dotnet workload install maui maui@9.0.120
 
       - name: Build for iOS Simulator
         run: |
