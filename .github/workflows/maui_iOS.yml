@@ -28,7 +28,7 @@ jobs:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}     
 
       - name: Install MAUI Workloads
-        run: dotnet workload install maui --version 9.0.120
+        run: dotnet workload install maui
 
       - name: Restore dependencies
         run: dotnet restore
