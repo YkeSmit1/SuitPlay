@@ -178,7 +178,7 @@ public partial class MainPage
         }
         catch (Exception exception)
         {
-            await DisplayAlert("Error", exception.Message, "OK");
+            await DisplayAlert("Error", $"{exception.Message}\n{exception.StackTrace}\n", "OK");
         }
     }
     
