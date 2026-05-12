@@ -6,16 +6,16 @@ namespace SuitPlay.Converters;
 
 public class ItemToTricksConverter : IValueConverter
 {
+    private bool DeveloperMode { get; } = Preferences.Get(Constants.DeveloperMode, true);
+    
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         var item = (Item2)value;
         if (item == null)
             return "";
-        var viewModel = (Distributions2ViewModel)((Binding)parameter)?.Source;
-        var developerMode = viewModel?.DeveloperMode == true;
         
         var tricksInSuitPlay = item.Tricks.Length > 1 ? $"({item.TricksInSuitPlay})" : "";
-        return developerMode ? $"{string.Join(',', item.Tricks)}" + tricksInSuitPlay : item.Tricks.Max().ToString();
+        return DeveloperMode ? $"{string.Join(',', item.Tricks)}" + tricksInSuitPlay : item.Tricks.Max().ToString();
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

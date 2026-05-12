@@ -7,13 +7,12 @@ namespace SuitPlay.Converters;
 
 public class LineItemToLineConverter : IValueConverter
 {
+    private bool DeveloperMode { get; } = Preferences.Get(Constants.DeveloperMode, true);
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is not LineItem lineItem)
             return "";
-        var viewModel = (Distributions2ViewModel)((Binding)parameter)?.Source;
-        var developerMode = viewModel?.DeveloperMode == true;
-        return developerMode ? lineItem!.Header : lineItem!.Line.MaxBy(x => x.Count()).ToString();
+        return DeveloperMode ? lineItem!.Header : lineItem!.Line.MaxBy(x => x.Count()).ToString();
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

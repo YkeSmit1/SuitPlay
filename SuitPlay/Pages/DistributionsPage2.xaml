@@ -55,19 +55,16 @@
                             <StackLayout Orientation="Vertical">
                                 <!-- Lines -->
                                 <Label Margin="5" Text="{Binding
-                                    Converter={StaticResource LineItemToLineConverter},
-                                    ConverterParameter={Binding Path=., Source={x:Reference Distributions2ViewModel}}}" 
+                                    Converter={StaticResource LineItemToLineConverter}}" 
                                 >
                                 </Label>
                                 <!-- Tricks -->
                                     <StackLayout BindableLayout.ItemsSource="{Binding Items2}" Orientation="Vertical">
                                         <BindableLayout.ItemTemplate>
                                             <DataTemplate x:DataType="models:Item2">
-                                                <Label Text="{Binding Converter={StaticResource ItemToTricksConverter},
-                                                            ConverterParameter={Binding Path=., Source={x:Reference Distributions2ViewModel}}}"
+                                                <Label Text="{Binding Converter={StaticResource ItemToTricksConverter}}"
                                                        Margin="5" HorizontalTextAlignment="Center"
-                                                       TextColor="{Binding Converter={StaticResource ItemToTextColorConverter},
-                                                            ConverterParameter={Binding Path=., Source={x:Reference Distributions2ViewModel}}}" />
+                                                       TextColor="{Binding Converter={StaticResource ItemToTextColorConverter}}" />
                                             </DataTemplate>
                                         </BindableLayout.ItemTemplate>
                                     </StackLayout>

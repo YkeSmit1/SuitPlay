@@ -7,14 +7,14 @@ namespace SuitPlay.Converters;
 
 public class ItemToTextColorConverter : IValueConverter
 {
+    private bool DeveloperMode { get; } = Preferences.Get(Constants.DeveloperMode, true);
+    
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         var item = (Item2)value;
         if (item == null)
             return Colors.White;
-        var viewModel = (Distributions2ViewModel)((Binding)parameter)?.Source;
-        var developerMode = viewModel?.DeveloperMode == true;
-        if (!developerMode)
+        if (!DeveloperMode)
             return Colors.White;
         return item switch
         {
