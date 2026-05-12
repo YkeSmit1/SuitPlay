@@ -9,8 +9,7 @@ public class LineItemToLineConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        var lineItem = (LineItem)value;
-        if (lineItem == null)
+        if (value is not LineItem lineItem)
             return "";
         var viewModel = (Distributions2ViewModel)((Binding)parameter)?.Source;
         var developerMode = viewModel?.DeveloperMode == true;
