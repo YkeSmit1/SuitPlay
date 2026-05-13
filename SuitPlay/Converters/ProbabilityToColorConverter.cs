@@ -7,7 +7,7 @@ public class ProbabilityToColorConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         var isBestValue = value != null && (bool)value;
-        return isBestValue ? Colors.Green : Colors.White;
+        return isBestValue ? Colors.Green : null;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -13,13 +13,13 @@ public class ItemToTextColorConverter : IValueConverter
     {
         var item = (Item2)value;
         if (item == null)
-            return Colors.White;
+            return null;
         if (!DeveloperMode)
-            return Colors.White;
+            return null;
         return item switch
         {
             { IsDifferent: true } => Colors.Red,
-            { Tricks.Length: 1 } => Colors.White,
+            { Tricks.Length: 1 } => null,
             _ => Colors.Green
         };
     }
