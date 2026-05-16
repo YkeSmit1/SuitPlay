@@ -56,6 +56,14 @@
       <ApplicationVersion>9</ApplicationVersion>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
+      <ApplicationVersion>2</ApplicationVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-ios|AnyCPU'">
+      <ApplicationVersion>2</ApplicationVersion>
+    </PropertyGroup>
+
 <!--    <PropertyGroup Condition="'$(TargetFramework)'=='net9.0-ios'">-->
 <!--      <CodesignKey>Apple Development: Created via API (Y4H5C85256)</CodesignKey>-->
 <!--      <CodesignProvision>VS: com.companyname.suitplay Development</CodesignProvision>-->
