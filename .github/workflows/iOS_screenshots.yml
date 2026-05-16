@@ -44,7 +44,7 @@ jobs:
           # Install and launch app
           xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-x64/suitplay.app
           xcrun simctl launch booted com.companyname.suitplay
-          sleep 240
+          sleep 10
 
           # Take screenshot
           xcrun simctl io booted screenshot ipad_13.png
@@ -60,7 +60,7 @@ jobs:
           # Install and launch app
           xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-x64/suitplay.app
           xcrun simctl launch booted com.companyname.suitplay
-          sleep 240
+          sleep 10
 
           # Take screenshot
           xcrun simctl io booted screenshot iphone_6_5.png
