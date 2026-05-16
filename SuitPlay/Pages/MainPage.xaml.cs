@@ -45,8 +45,8 @@ public partial class MainPage
 
     private void LoadSettings()
     {
-        var north = Preferences.Get("North", "");
-        var south = Preferences.Get("South", "");
+        var north = Preferences.Get("North", "AQ");
+        var south = Preferences.Get("South", "32");
         var remainingCards = Utils.CardsToString(Utils.GetAllCards()).Except(north).Except(south);
         ((HandViewModel)North.BindingContext).ShowHand($"{north}", "default", dictionary);
         ((HandViewModel)South.BindingContext).ShowHand($"{south}", "default", dictionary);

@@ -6,7 +6,7 @@ namespace SuitPlay.Converters;
 
 public class ItemToTricksConverter : IValueConverter
 {
-    private bool DeveloperMode { get; } = Preferences.Get(Constants.DeveloperMode, true);
+    private bool DeveloperMode { get; } = Preferences.Get(Constants.DeveloperMode, false);
     
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {

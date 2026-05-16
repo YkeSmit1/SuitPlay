@@ -21,7 +21,7 @@ public partial class SettingsViewModel : ObservableObject
 
     private void Load()
     {
-        DeveloperMode = Preferences.Get(Constants.DeveloperMode, true);
+        DeveloperMode = Preferences.Get(Constants.DeveloperMode, false);
         OnlyLinesInSuitPlay = Preferences.Get(Constants.OnlyLinesInSuitPlay, true);
         OnlyCombinationsInSuitPlay = Preferences.Get(Constants.OnlyCombinationsInSuitPlay, true);
         MaxLinesInCalculate = Preferences.Get(Constants.MaxLinesInCalculate, 10000);

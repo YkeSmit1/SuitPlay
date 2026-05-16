@@ -8,7 +8,7 @@ namespace SuitPlay.ViewModels;
 public partial class Distributions2ViewModel : ObservableObject, IQueryAttributable
 {
     private readonly ArrayEqualityComparer<Face> arrayEqualityComparer = new();
-    [ObservableProperty] public partial bool DeveloperMode { get; set; } = Preferences.Get(Constants.DeveloperMode, true);
+    [ObservableProperty] public partial bool DeveloperMode { get; set; } = Preferences.Get(Constants.DeveloperMode, false);
     [ObservableProperty] public partial ObservableCollection<DistributionItem> DistributionItems { get; set; }
     [ObservableProperty] public partial ObservableCollection<LineItem> LineItems { get; set; }
     [ObservableProperty] public partial ObservableCollection<int> PossibleNrOfTricks { get; set; }
