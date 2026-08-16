@@ -127,11 +127,11 @@ public partial class MainPage
         }
         catch (MaxLinesException)
         {
-            await DisplayAlert("Too many lines", "Too many lines were generated.\nSimplify the combination or increase the value of \"Max lines in calculation\" in the settings.", "OK");
+            await DisplayAlertAsync("Too many lines", "Too many lines were generated.\nSimplify the combination or increase the value of \"Max lines in calculation\" in the settings.", "OK");
         }
         catch (Exception exception)
         {
-            await DisplayAlert("Error", exception.Message, "OK");
+            await DisplayAlertAsync("Error", exception.Message, "OK");
         }
         finally
         {
@@ -180,7 +180,7 @@ public partial class MainPage
         }
         catch (Exception exception)
         {
-            await DisplayAlert("Error", $"{exception.Message}\n{exception.StackTrace}\n", "OK");
+            await DisplayAlertAsync("Error", $"{exception.Message}\n{exception.StackTrace}\n", "OK");
         }
     }
     
@@ -192,7 +192,7 @@ public partial class MainPage
         }
         catch (Exception exception)
         {
-            await DisplayAlert("Error", exception.Message, "OK");
+            await DisplayAlertAsync("Error", exception.Message, "OK");
         }
     }
 
@@ -204,7 +204,7 @@ public partial class MainPage
         }
         catch (Exception exception)
         {
-            await DisplayAlert("Error", exception.Message, "OK");
+            await DisplayAlertAsync("Error", exception.Message, "OK");
         }
     }
 }
