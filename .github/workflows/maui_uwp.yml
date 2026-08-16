@@ -26,6 +26,8 @@ jobs:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}     
     - name: Install .Net MAUI
       run: dotnet workload install maui      
+    - name: Check workload version
+      run: dotnet workload list
     - name: Restore dependencies
       run: dotnet restore
     - name: Decrypt PFX File
