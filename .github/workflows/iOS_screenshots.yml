@@ -19,7 +19,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Install MAUI workload
         run: dotnet workload install maui --version 10.0.202 
@@ -27,7 +27,7 @@ jobs:
       - name: Build for simulator
         run: |
           dotnet build suitplay/suitplay.csproj \
-            -f:net9.0-ios \
+            -f:net10.0-ios \
             -c Release \
             /p:RuntimeIdentifier=iossimulator-x64 \
             /p:CodesignKey="" \
@@ -42,7 +42,7 @@ jobs:
           sleep 30
 
           # Install and launch app
-          xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-x64/suitplay.app
+          xcrun simctl install booted suitplay/bin/Release/net10.0-ios/iossimulator-x64/suitplay.app
           xcrun simctl launch booted com.companyname.suitplay
           sleep 10
 
@@ -58,7 +58,7 @@ jobs:
           sleep 30
 
           # Install and launch app
-          xcrun simctl install booted suitplay/bin/Release/net9.0-ios/iossimulator-x64/suitplay.app
+          xcrun simctl install booted suitplay/bin/Release/net10.0-ios/iossimulator-x64/suitplay.app
           xcrun simctl launch booted com.companyname.suitplay
           sleep 10
 
